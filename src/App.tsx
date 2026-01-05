@@ -1,3 +1,7 @@
+/* 
+  ZapMenu v2.0.1 
+  Sincronização forçada via AI Studio
+*/
 import React, { useState, useEffect } from 'react';
 import { ViewState, Restaurant } from './types';
 import { AdminDashboard } from './views/AdminDashboard';
