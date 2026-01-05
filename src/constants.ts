@@ -1,21 +1,21 @@
 export const SEED_RESTAURANTS = [
   {
     id: '75b2671b-5353-4c92-959c-8519448375e0',
-    name: 'Burger Master',
-    slug: 'burger-master',
+    name: 'Barranco Lanches',
+    slug: 'barranco-lanches',
     phone: '5511999999999',
-    logo: 'https://images.unsplash.com/photo-1571091718767-18b5b1457add?w=200&h=200&fit=crop',
-    coverImage: 'https://images.unsplash.com/photo-1550547660-d9450f859349?w=800&h=400&fit=crop',
+    logo: 'https://images.unsplash.com/photo-1550547660-d9450f859349?w=200&h=200&fit=crop',
+    coverImage: 'https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?w=800&h=400&fit=crop',
     coverImages: [
-        'https://images.unsplash.com/photo-1550547660-d9450f859349?w=800&h=400&fit=crop',
-        'https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?w=800&h=400&fit=crop'
+        'https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?w=800&h=400&fit=crop',
+        'https://images.unsplash.com/photo-1550547660-d9450f859349?w=800&h=400&fit=crop'
     ],
-    address: 'Av. Paulista, 1000 - São Paulo',
+    address: 'Rua do Barranco, 123 - Centro',
     isActive: true,
-    deliveryFee: 5.0,
-    minOrderValue: 20.0,
-    estimatedTime: '30-45 min',
-    pixKey: 'contato@burgermaster.com'
+    deliveryFee: 7.0,
+    minOrderValue: 25.0,
+    estimatedTime: '40-60 min',
+    pixKey: 'financeiro@barrancolanches.com'
   }
 ];
 
@@ -31,10 +31,15 @@ export const SEED_CATEGORIES = [
   {
     id: 'c1',
     restaurant_id: '75b2671b-5353-4c92-959c-8519448375e0',
-    name: 'Hambúrgueres'
+    name: 'Lanches'
   },
   {
     id: 'c2',
+    restaurant_id: '75b2671b-5353-4c92-959c-8519448375e0',
+    name: 'XT (X-Tudo)'
+  },
+  {
+    id: 'c3',
     restaurant_id: '75b2671b-5353-4c92-959c-8519448375e0',
     name: 'Bebidas'
   }
@@ -44,21 +49,31 @@ export const SEED_MENU_ITEMS = [
   {
     restaurant_id: '75b2671b-5353-4c92-959c-8519448375e0',
     category_id: 'c1',
-    name: 'Classic Burger',
-    description: 'Pão brioche, carne 180g, queijo cheddar e maionese da casa.',
-    price: 28.90,
+    name: 'X-Salada Especial',
+    description: 'Pão, hambúrguer, queijo, alface, tomate e maionese especial.',
+    price: 22.00,
     image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&h=400&fit=crop',
     available: true,
-    stock: 50
+    stock: 100
   },
   {
     restaurant_id: '75b2671b-5353-4c92-959c-8519448375e0',
     category_id: 'c2',
-    name: 'Coca-Cola 350ml',
-    description: 'Lata gelada.',
-    price: 6.00,
-    image: 'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=400&h=400&fit=crop',
+    name: 'XT Monstro',
+    description: 'Pão gigante, 2 carnes, ovo, bacon, presunto, queijo, calabresa, alface e tomate.',
+    price: 38.00,
+    image: 'https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?w=400&h=400&fit=crop',
     available: true,
-    stock: 100
+    stock: 30
+  },
+  {
+    restaurant_id: '75b2671b-5353-4c92-959c-8519448375e0',
+    category_id: 'c3',
+    name: 'Suco de Laranja 500ml',
+    description: 'Suco natural feito na hora.',
+    price: 12.00,
+    image: 'https://images.unsplash.com/photo-1600266172704-5f7253457173?w=400&h=400&fit=crop',
+    available: true,
+    stock: 50
   }
 ];
