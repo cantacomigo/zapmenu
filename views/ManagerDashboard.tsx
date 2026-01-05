@@ -4,7 +4,6 @@ import { Category, MenuItem, Order, Restaurant, RestaurantStaff, Promotion, Give
 import { Button, Card, Input, Modal, Badge, ImageUpload, processImage } from '../components/ui';
 import { Plus, Edit2, Trash2, Utensils, ClipboardList, LayoutDashboard, LogOut, Filter, X, Settings, Power, Clock, DollarSign, QrCode, Users, Shield, Key, Megaphone, Gift, Calendar, Trophy, Ticket, RefreshCw, CreditCard, Banknote, Wallet, ChevronDown, ImageIcon, Printer, BarChart3, TrendingUp, Package, AlertTriangle, MessageSquare, Upload, Loader2 } from 'lucide-react';
 
-// ... (Interface declarations remain same) ...
 interface ManagerDashboardProps {
   restaurantId: string;
   onLogout: () => void;
@@ -40,7 +39,6 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({ restaurantId
   const [promotions, setPromotions] = useState<Promotion[]>([]);
   const [giveaways, setGiveaways] = useState<Giveaway[]>([]);
   
-  // ... (State declarations remain same) ...
   const [marketingTab, setMarketingTab] = useState<'promotions' | 'giveaways'>('promotions');
   const [lastOrderCount, setLastOrderCount] = useState(0);
   const [filterStatus, setFilterStatus] = useState<string>('all');
@@ -90,7 +88,6 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({ restaurantId
     }
   }, [restaurantId]);
 
-  // ... (Polling useEffect remains same) ...
   useEffect(() => {
       const interval = setInterval(async () => {
           const currentOrders = await db.getOrders(restaurantId);
@@ -118,7 +115,6 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({ restaurantId
       return () => clearInterval(interval);
   }, [restaurantId]);
 
-  // ... (Memos and Handlers up to handleSaveSettings) ...
   const filteredOrders = useMemo(() => {
     return orders.filter(order => {
       if (filterStatus !== 'all' && order.status !== filterStatus) return false;
@@ -197,15 +193,7 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({ restaurantId
             <title>Pedido #${order.id.slice(0,4)}</title>
             <style>
                 @page { margin: 0; }
-                body { 
-                    font-family: 'Courier New', Courier, monospace; 
-                    width: 80mm; 
-                    margin: 0; 
-                    padding: 5mm; 
-                    font-size: 12px; 
-                    line-height: 1.2;
-                    color: black;
-                }
+                body { font-family: 'Courier New', Courier, monospace; width: 80mm; margin: 0; padding: 5mm; font-size: 12px; line-height: 1.2; color: black; }
                 .center { text-align: center; }
                 .bold { font-weight: bold; }
                 .divider { border-top: 1px dashed #000; margin: 8px 0; }
@@ -215,67 +203,34 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({ restaurantId
                 .footer { text-align: center; font-size: 10px; margin-top: 15px; }
                 .header { font-size: 16px; font-weight: bold; text-align: center; margin-bottom: 5px; }
                 .meta { font-size: 11px; margin-bottom: 5px; }
-                @media print {
-                    body { width: auto; }
-                }
+                @media print { body { width: auto; } }
             </style>
         </head>
         <body>
             <div class="header">${restaurant.name}</div>
             <div class="center meta">${restaurant.address}</div>
             <div class="center meta">Tel: ${restaurant.phone}</div>
-            
             <div class="divider"></div>
-            
             <div class="bold" style="font-size: 14px;">PEDIDO #${order.id.slice(0,4)}</div>
             <div class="meta">${new Date(order.createdAt).toLocaleDateString()} ${new Date(order.createdAt).toLocaleTimeString()}</div>
-            
             <div class="divider"></div>
-            
             <div class="bold">CLIENTE</div>
             <div>${order.customerName}</div>
             <div>${order.customerPhone}</div>
             ${order.customerAddress ? `<div>${order.customerAddress}</div>` : ''}
-            
             <div class="divider"></div>
-            
             <div class="bold" style="margin-bottom: 5px;">ITENS</div>
             ${itemsHtml}
-            
             <div class="divider"></div>
-            
-            <div class="item">
-                <span>Subtotal</span>
-                <span>${formatCurrency(order.total - (restaurant.deliveryFee || 0))}</span>
-            </div>
-            <div class="item">
-                <span>Taxa Entrega</span>
-                <span>${formatCurrency(restaurant.deliveryFee || 0)}</span>
-            </div>
-            <div class="total">
-                <span>TOTAL</span>
-                <span>${formatCurrency(order.total)}</span>
-            </div>
-            
+            <div class="item"><span>Subtotal</span><span>${formatCurrency(order.total - (restaurant.deliveryFee || 0))}</span></div>
+            <div class="item"><span>Taxa Entrega</span><span>${formatCurrency(restaurant.deliveryFee || 0)}</span></div>
+            <div class="total"><span>TOTAL</span><span>${formatCurrency(order.total)}</span></div>
             <div class="divider"></div>
-            
             <div class="center bold">PAGAMENTO</div>
             <div class="center">${getPaymentLabel(order.paymentMethod)}</div>
             ${order.paymentDetails ? `<div class="center" style="font-size: 11px;">(${order.paymentDetails})</div>` : ''}
-            
-            <div class="footer">
-                <p>Obrigado pela preferência!</p>
-                <p>zapmenu.com.br</p>
-            </div>
-            
-            <script>
-                window.onload = function() { 
-                    setTimeout(() => {
-                        window.print(); 
-                        // window.close(); // Optional: Auto-close after print
-                    }, 500);
-                }
-            </script>
+            <div class="footer"><p>Obrigado pela preferência!</p><p>zapmenu.com.br</p></div>
+            <script>window.onload = function() { setTimeout(() => { window.print(); }, 500); }</script>
         </body>
         </html>`;
         
@@ -363,6 +318,7 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({ restaurantId
 
   const handleDeleteItem = async (id: string) => { if(confirm("Excluir item?")) { await db.deleteMenuItem(id); await refreshData(); } };
   const handleToggleAvailability = async (item: MenuItem) => { const updated = { ...item, available: !item.available }; await db.saveMenuItem(updated); await refreshData(); };
+  
   const handleSaveCategory = async () => {
     if (editingCategory && editingCategory.name?.trim()) {
         if (editingCategory.id) await db.updateCategory(editingCategory as Category);
@@ -370,13 +326,13 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({ restaurantId
         await refreshData(); setEditingCategory({}); setIsCategoryModalOpen(false);
     }
   };
+  
   const handleDeleteCategory = async (catId: string) => {
       const hasItems = items.some(i => i.categoryId === catId);
       if (hasItems) { alert("Não é possível excluir uma categoria que possui produtos."); return; }
       if (confirm("Tem certeza que deseja excluir esta categoria?")) { await db.deleteCategory(catId); await refreshData(); }
   };
   
-  // UPDATED: Handle Save Settings with detailed Error Logging
   const handleSaveSettings = async () => {
       if (restaurant) {
           setIsSavingSettings(true);
@@ -384,7 +340,6 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({ restaurantId
           setIsSavingSettings(false);
           if (error) {
               alert(`Erro ao salvar configurações: ${error.message || 'Erro desconhecido'}`);
-              console.error("Full Error Details:", JSON.stringify(error, null, 2));
           } else {
               alert("Configurações atualizadas com sucesso!");
           }
@@ -399,7 +354,9 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({ restaurantId
       } as RestaurantStaff;
       await db.saveRestaurantStaff(staff); await refreshData(); setIsStaffModalOpen(false); setCurrentStaff({});
   };
+  
   const handleDeleteStaff = async (id: string) => { if (confirm("Remover este membro da equipe?")) { await db.deleteRestaurantStaff(id); await refreshData(); } };
+  
   const handleSavePromo = async () => {
       if (!currentPromo.title || !currentPromo.discountedPrice) { alert("Título e Preço Promocional são obrigatórios."); return; }
       const promo: Promotion = {
@@ -409,7 +366,9 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({ restaurantId
       } as Promotion;
       await db.savePromotion(promo); await refreshData(); setIsPromoModalOpen(false); setCurrentPromo({});
   };
+  
   const handleDeletePromo = async (id: string) => { if(confirm("Excluir promoção?")) { await db.deletePromotion(id); await refreshData(); setIsPromoModalOpen(false); } };
+  
   const handleSaveGiveaway = async () => {
       if (!currentGiveaway.title || !currentGiveaway.drawDate || !currentGiveaway.prize) { alert("Preencha todos os campos obrigatórios."); return; }
       const giveaway: Giveaway = {
@@ -419,7 +378,9 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({ restaurantId
       } as Giveaway;
       await db.saveGiveaway(giveaway); await refreshData(); setIsGiveawayModalOpen(false); setCurrentGiveaway({});
   };
+  
   const handleDeleteGiveaway = async (id: string) => { if(confirm("Excluir sorteio?")) { await db.deleteGiveaway(id); await refreshData(); setIsGiveawayModalOpen(false); } };
+  
   const openDrawModal = (giveaway: Giveaway) => {
       setCurrentGiveaway(giveaway);
       const drawDate = new Date(giveaway.drawDate + 'T23:59:59');
@@ -432,6 +393,7 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({ restaurantId
       });
       setDrawParticipants(Array.from(uniqueParticipants.values())); setDrawWinner(null); setIsDrawModalOpen(true);
   };
+  
   const performDraw = async () => {
       if (drawParticipants.length === 0) return;
       setIsDrawing(true); let counter = 0;
@@ -441,6 +403,7 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({ restaurantId
           if (counter > 20) { clearInterval(interval); finishDraw(); }
       }, 100);
   };
+  
   const finishDraw = async () => {
       const winnerIndex = Math.floor(Math.random() * drawParticipants.length); const winner = drawParticipants[winnerIndex];
       setDrawWinner(winner); setIsDrawing(false);
@@ -461,7 +424,6 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({ restaurantId
   return (
     <div className="flex h-screen bg-slate-50 font-sans">
       <aside className="w-72 bg-white border-r border-slate-200 hidden md:flex flex-col z-10 shadow-sm">
-        {/* Sidebar content same as before */}
         <div className="p-6 border-b border-slate-100 flex items-center gap-3">
              <div className="w-10 h-10 rounded-xl overflow-hidden shadow-sm border border-slate-100">
                  <img src={restaurant.logo} className="w-full h-full object-cover" alt="logo" />
@@ -486,7 +448,6 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({ restaurantId
 
       <main className="flex-1 overflow-y-auto">
         <div className="max-w-6xl mx-auto p-6 md:p-12">
-            {/* TABS (Menu, Orders, Customers, Reports, Marketing) - same as before */}
             {tab === 'menu' && (
                 <div className="space-y-10 animate-in fade-in duration-500">
                     <div className="flex flex-col md:flex-row md:justify-between md:items-end gap-4">
@@ -548,7 +509,6 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({ restaurantId
             )}
 
             {tab === 'orders' && (
-                // ... (Orders content unchanged) ...
                 <div className="space-y-8 animate-in fade-in duration-500">
                     <div><h2 className="text-3xl font-bold text-slate-900 tracking-tight">Pedidos</h2><p className="text-slate-500 mt-1">Gerencie o fluxo de pedidos em tempo real.</p></div>
                     <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex flex-wrap gap-5 items-end">
@@ -604,157 +564,76 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({ restaurantId
                 </div>
             )}
 
-            {/* Customers, Reports, Marketing tabs essentially the same */}
             {tab === 'customers' && ( <div className="space-y-8 animate-in fade-in duration-500"><div><h2 className="text-3xl font-bold text-slate-900 tracking-tight">Gerenciamento de Clientes</h2><p className="text-slate-500 mt-1">Base de clientes construída a partir do histórico de pedidos.</p></div><div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden"><table className="w-full text-left border-collapse"><thead className="bg-slate-50 border-b border-slate-200"><tr><th className="px-6 py-5 text-xs font-bold text-slate-500 uppercase tracking-wider pl-8">Cliente</th><th className="px-6 py-5 text-xs font-bold text-slate-500 uppercase tracking-wider">Telefone</th><th className="px-6 py-5 text-xs font-bold text-slate-500 uppercase tracking-wider">Pedidos Feitos</th><th className="px-6 py-5 text-xs font-bold text-slate-500 uppercase tracking-wider">Total Gasto</th><th className="px-6 py-5 text-xs font-bold text-slate-500 uppercase tracking-wider">Última Compra</th></tr></thead><tbody className="divide-y divide-slate-100">{customerStats.map(customer => (<tr key={customer.phone} className="hover:bg-slate-50 transition-colors"><td className="px-6 py-5 pl-8"><div className="font-bold text-slate-900">{customer.name}</div></td><td className="px-6 py-5 text-sm text-slate-600">{customer.phone}</td><td className="px-6 py-5"><div className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">{customer.orderCount}</div></td><td className="px-6 py-5 font-bold text-emerald-600">{formatCurrency(customer.totalSpent)}</td><td className="px-6 py-5 text-sm text-slate-500">{new Date(customer.lastOrder).toLocaleDateString()}</td></tr>))}</tbody></table></div></div> )}
             {tab === 'reports' && ( <div className="space-y-8 animate-in fade-in duration-500"><div><h2 className="text-3xl font-bold text-slate-900 tracking-tight">Relatórios de Vendas</h2><p className="text-slate-500 mt-1">Visão geral do desempenho.</p></div><div className="grid grid-cols-1 md:grid-cols-3 gap-6"><div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200"><div className="flex items-center justify-between mb-4"><h3 className="font-bold text-slate-500 text-sm uppercase">Faturamento Total</h3><div className="p-2 bg-emerald-100 text-emerald-600 rounded-xl"><DollarSign className="w-5 h-5" /></div></div><p className="text-3xl font-bold text-slate-900">{formatCurrency(salesData.totalRevenue)}</p></div><div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200"><div className="flex items-center justify-between mb-4"><h3 className="font-bold text-slate-500 text-sm uppercase">Total de Pedidos</h3><div className="p-2 bg-blue-100 text-blue-600 rounded-xl"><ClipboardList className="w-5 h-5" /></div></div><p className="text-3xl font-bold text-slate-900">{salesData.totalOrders}</p></div><div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200"><div className="flex items-center justify-between mb-4"><h3 className="font-bold text-slate-500 text-sm uppercase">Ticket Médio</h3><div className="p-2 bg-purple-100 text-purple-600 rounded-xl"><TrendingUp className="w-5 h-5" /></div></div><p className="text-3xl font-bold text-slate-900">{formatCurrency(salesData.averageTicket)}</p></div></div><div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-200"><h3 className="font-bold text-slate-900 text-lg mb-6 flex items-center"><BarChart3 className="w-5 h-5 mr-2 text-slate-400" />Vendas por Dia</h3><div className="h-64 flex items-end gap-4">{salesData.dailyChart.length === 0 ? (<div className="w-full h-full flex items-center justify-center text-slate-400">Sem dados suficientes</div>) : salesData.dailyChart.slice(-7).map((d, i) => (<div key={i} className="flex-1 flex flex-col items-center group relative"><div className="w-full bg-emerald-500 rounded-t-lg transition-all duration-500 group-hover:bg-emerald-600 relative" style={{ height: `${(d.total / (Math.max(...salesData.dailyChart.map(x=>x.total)) || 1)) * 100}%`, minHeight: '4px' }}><div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 pointer-events-none">{formatCurrency(d.total)} ({d.count} pedidos)</div></div><p className="text-xs font-bold text-slate-500 mt-2 rotate-0 truncate w-full text-center">{d.date.split('/')[0]}/{d.date.split('/')[1]}</p></div>))}</div></div></div> )}
             {tab === 'marketing' && ( <div className="space-y-8 animate-in fade-in duration-500"><div><h2 className="text-3xl font-bold text-slate-900 tracking-tight">Marketing</h2><p className="text-slate-500 mt-1">Crie promoções e sorteios.</p></div><div className="flex p-1 bg-slate-100 rounded-xl w-fit"><button onClick={() => setMarketingTab('promotions')} className={`px-6 py-2.5 rounded-lg text-sm font-bold transition-all ${marketingTab === 'promotions' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>Promoções</button><button onClick={() => setMarketingTab('giveaways')} className={`px-6 py-2.5 rounded-lg text-sm font-bold transition-all ${marketingTab === 'giveaways' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>Sorteios</button></div>{marketingTab === 'promotions' && (<div className="animate-in fade-in slide-in-from-left-4 duration-300"><div className="flex justify-between items-center mb-6"><div className="flex items-center gap-2"><div className="p-2 bg-pink-100 text-pink-600 rounded-lg"><Megaphone className="w-5 h-5" /></div><h3 className="text-xl font-bold text-slate-900">Promoções Ativas</h3></div><Button onClick={() => { setCurrentPromo({}); setIsPromoModalOpen(true); }} className="bg-pink-600 hover:bg-pink-500 shadow-pink-500/20"><Plus className="w-4 h-4 mr-2" /> Nova Promoção</Button></div><div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">{promotions.map(promo => (<div key={promo.id} className="bg-white rounded-2xl border border-slate-200 overflow-hidden hover:shadow-lg transition-all group"><div className="h-32 bg-slate-100 relative"><img src={promo.image} className="w-full h-full object-cover" /><div className="absolute top-2 right-2"><Badge color={promo.isActive ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500'}>{promo.isActive ? 'Ativa' : 'Pausada'}</Badge></div></div><div className="p-4"><h4 className="font-bold text-lg text-slate-900 mb-1">{promo.title}</h4><div className="flex items-center gap-2 text-sm mb-3">{promo.originalPrice != null && <span className="text-slate-400 line-through">R$ {Number(promo.originalPrice).toFixed(2)}</span>}<span className="font-bold text-pink-600 text-lg">R$ {Number(promo.discountedPrice).toFixed(2)}</span></div><div className="flex justify-end gap-2 border-t border-slate-100 pt-3"><button onClick={() => { setCurrentPromo(promo); setIsPromoModalOpen(true); }} className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg"><Edit2 className="w-4 h-4" /></button><button onClick={() => handleDeletePromo(promo.id)} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg"><Trash2 className="w-4 h-4" /></button></div></div></div>))}</div></div>)} {marketingTab === 'giveaways' && (<div className="animate-in fade-in slide-in-from-right-4 duration-300"><div className="flex justify-between items-center mb-6"><div className="flex items-center gap-2"><div className="p-2 bg-purple-100 text-purple-600 rounded-lg"><Gift className="w-5 h-5" /></div><h3 className="text-xl font-bold text-slate-900">Sorteios</h3></div><Button onClick={() => { setCurrentGiveaway({}); setIsGiveawayModalOpen(true); }} className="bg-purple-600 hover:bg-purple-500 shadow-purple-500/20"><Plus className="w-4 h-4 mr-2" /> Novo Sorteio</Button></div><div className="grid grid-cols-1 md:grid-cols-2 gap-6">{giveaways.map(giveaway => (<div key={giveaway.id} className="flex bg-white rounded-2xl border border-slate-200 overflow-hidden hover:shadow-lg transition-all relative"><div className="w-32 bg-slate-100 relative shrink-0"><img src={giveaway.image} className="w-full h-full object-cover" /></div><div className="p-4 flex-1 flex flex-col"><div className="flex justify-between items-start"><h4 className="font-bold text-lg text-slate-900">{giveaway.title}</h4><Badge color={giveaway.winnerName ? 'bg-purple-100 text-purple-700 border-purple-200' : (giveaway.isActive ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500')}>{giveaway.winnerName ? 'Finalizado' : (giveaway.isActive ? 'Aberto' : 'Inativo')}</Badge></div><p className="text-sm font-semibold text-purple-600 mt-1 mb-2">Prêmio: {giveaway.prize}</p>{giveaway.winnerName ? (<div className="bg-purple-50 p-2 rounded-lg border border-purple-100 mb-2"><p className="text-xs text-purple-800 font-bold flex items-center"><Trophy className="w-3 h-3 mr-1" /> Ganhador(a):</p><p className="text-sm text-slate-700">{giveaway.winnerName}</p></div>) : (<div className="flex items-center text-xs text-slate-500 mb-3"><Calendar className="w-3 h-3 mr-1" /> Sorteio: {new Date(giveaway.drawDate).toLocaleDateString()}</div>)}<div className="mt-auto flex justify-between items-center pt-2">{giveaway.isActive && !giveaway.winnerName && (<button onClick={() => openDrawModal(giveaway)} className="px-3 py-1.5 bg-purple-600 text-white text-xs font-bold rounded-lg hover:bg-purple-700 flex items-center shadow-sm"><Ticket className="w-3 h-3 mr-1" /> Sortear</button>)}<div className="flex gap-2 ml-auto"><button onClick={() => { setCurrentGiveaway(giveaway); setIsGiveawayModalOpen(true); }} className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg"><Edit2 className="w-4 h-4" /></button><button onClick={() => handleDeleteGiveaway(giveaway.id)} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg"><Trash2 className="w-4 h-4" /></button></div></div></div></div>))}</div></div>)}</div>)}
             
-            {/* Settings Tab */}
             {tab === 'settings' && (
                 <div className="space-y-8 animate-in fade-in duration-500">
                     <div>
                         <h2 className="text-3xl font-bold text-slate-900 tracking-tight">Configurações</h2>
                         <p className="text-slate-500 mt-1">Gerencie as informações do seu estabelecimento.</p>
                     </div>
-
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                        {/* Basic Info Column */}
                         <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-200">
                              <div className="space-y-6">
                                 <h3 className="font-bold text-slate-900 text-lg border-b border-slate-100 pb-2">Informações Básicas</h3>
                                 <Input label="Nome do Restaurante" value={restaurant.name} onChange={e => setRestaurant({...restaurant, name: e.target.value})} />
                                 <Input label="WhatsApp (com DDD)" value={restaurant.phone} onChange={e => setRestaurant({...restaurant, phone: e.target.value})} />
                                 <Input label="Endereço Completo" value={restaurant.address} onChange={e => setRestaurant({...restaurant, address: e.target.value})} />
-                                
                                 <h3 className="font-bold text-slate-900 text-lg border-b border-slate-100 pb-2 pt-4">Regras de Negócio</h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div className="space-y-1.5">
                                         <label className="block text-sm font-semibold text-slate-700 ml-1">Taxa de Entrega (R$)</label>
-                                        <div className="relative">
-                                            <DollarSign className="absolute left-3 top-3.5 w-4 h-4 text-slate-400" />
-                                            <input type="number" step="0.50" value={restaurant.deliveryFee || 0} onChange={e => setRestaurant({...restaurant, deliveryFee: parseFloat(e.target.value)})} className="w-full pl-9 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all" />
-                                        </div>
+                                        <div className="relative"><DollarSign className="absolute left-3 top-3.5 w-4 h-4 text-slate-400" /><input type="number" step="0.50" value={restaurant.deliveryFee || 0} onChange={e => setRestaurant({...restaurant, deliveryFee: parseFloat(e.target.value)})} className="w-full pl-9 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all" /></div>
                                     </div>
                                     <div className="space-y-1.5">
                                         <label className="block text-sm font-semibold text-slate-700 ml-1">Pedido Mínimo (R$)</label>
-                                        <div className="relative">
-                                            <DollarSign className="absolute left-3 top-3.5 w-4 h-4 text-slate-400" />
-                                            <input type="number" step="1.00" value={restaurant.minOrderValue || 0} onChange={e => setRestaurant({...restaurant, minOrderValue: parseFloat(e.target.value)})} className="w-full pl-9 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all" />
-                                        </div>
+                                        <div className="relative"><DollarSign className="absolute left-3 top-3.5 w-4 h-4 text-slate-400" /><input type="number" step="1.00" value={restaurant.minOrderValue || 0} onChange={e => setRestaurant({...restaurant, minOrderValue: parseFloat(e.target.value)})} className="w-full pl-9 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all" /></div>
                                     </div>
                                     <div className="space-y-1.5">
                                         <label className="block text-sm font-semibold text-slate-700 ml-1">Tempo Estimado</label>
-                                        <div className="relative">
-                                            <Clock className="absolute left-3 top-3.5 w-4 h-4 text-slate-400" />
-                                            <input type="text" placeholder="Ex: 40-50 min" value={restaurant.estimatedTime || ''} onChange={e => setRestaurant({...restaurant, estimatedTime: e.target.value})} className="w-full pl-9 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all" />
-                                        </div>
+                                        <div className="relative"><Clock className="absolute left-3 top-3.5 w-4 h-4 text-slate-400" /><input type="text" placeholder="Ex: 40-50 min" value={restaurant.estimatedTime || ''} onChange={e => setRestaurant({...restaurant, estimatedTime: e.target.value})} className="w-full pl-9 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all" /></div>
                                     </div>
                                     <div className="space-y-1.5">
                                         <label className="block text-sm font-semibold text-slate-700 ml-1">Chave Pix</label>
-                                        <div className="relative">
-                                            <QrCode className="absolute left-3 top-3.5 w-4 h-4 text-slate-400" />
-                                            <input type="text" placeholder="Pix Key" value={restaurant.pixKey || ''} onChange={e => setRestaurant({...restaurant, pixKey: e.target.value})} className="w-full pl-9 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all" />
-                                        </div>
+                                        <div className="relative"><QrCode className="absolute left-3 top-3.5 w-4 h-4 text-slate-400" /><input type="text" placeholder="Pix Key" value={restaurant.pixKey || ''} onChange={e => setRestaurant({...restaurant, pixKey: e.target.value})} className="w-full pl-9 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all" /></div>
                                     </div>
                                 </div>
-
                                 <h3 className="font-bold text-slate-900 text-lg border-b border-slate-100 pb-2 pt-4">Aparência</h3>
                                 <div className="space-y-6">
-                                    <div className="w-full">
-                                        <ImageUpload label="Logo do Restaurante" value={restaurant.logo} onChange={val => setRestaurant({...restaurant, logo: val})} />
-                                    </div>
-                                    
+                                    <ImageUpload label="Logo do Restaurante" value={restaurant.logo} onChange={val => setRestaurant({...restaurant, logo: val})} />
                                     <div className="w-full">
                                         <label className="block text-sm font-semibold text-slate-700 mb-2 ml-1">Imagens de Capa (Carrossel)</label>
                                         <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-3">
                                             {(restaurant.coverImages && restaurant.coverImages.length > 0 ? restaurant.coverImages : [restaurant.coverImage]).map((img, idx) => (
                                                 <div key={idx} className="relative group rounded-xl overflow-hidden h-24 border border-slate-200">
                                                     <img src={img} className="w-full h-full object-cover" />
-                                                    <button 
-                                                        onClick={() => handleRemoveCoverImage(idx)}
-                                                        className="absolute top-1 right-1 bg-white text-red-500 p-1 rounded-full shadow-sm opacity-0 group-hover:opacity-100 transition-opacity"
-                                                    >
-                                                        <Trash2 className="w-3 h-3" />
-                                                    </button>
+                                                    <button onClick={() => handleRemoveCoverImage(idx)} className="absolute top-1 right-1 bg-white text-red-500 p-1 rounded-full shadow-sm opacity-0 group-hover:opacity-100 transition-opacity"><Trash2 className="w-3 h-3" /></button>
                                                 </div>
                                             ))}
-                                            
                                             <label className={`h-24 bg-slate-50 border-2 border-dashed border-slate-200 rounded-xl flex flex-col items-center justify-center relative hover:bg-slate-100 transition-colors cursor-pointer group ${isUploadingCarousel ? 'opacity-50 cursor-not-allowed' : ''}`}>
-                                                 {isUploadingCarousel ? (
-                                                    <Loader2 className="w-6 h-6 text-emerald-600 animate-spin" />
-                                                 ) : (
-                                                    <>
-                                                        <Plus className="w-5 h-5 text-slate-400 group-hover:scale-110 transition-transform mb-1" />
-                                                        <span className="text-[10px] text-slate-400 font-bold uppercase">Adicionar</span>
-                                                    </>
-                                                 )}
-                                                 <input 
-                                                    type="file" 
-                                                    accept="image/*" 
-                                                    className="hidden" 
-                                                    disabled={isUploadingCarousel}
-                                                    onChange={async (e) => {
-                                                        const file = e.target.files?.[0];
-                                                        if (file) {
-                                                            setIsUploadingCarousel(true);
-                                                            try {
-                                                                const base64 = await processImage(file);
-                                                                handleAddCoverImage(base64);
-                                                            } catch (error) {
-                                                                console.error("Error processing image", error);
-                                                                alert("Erro ao processar imagem");
-                                                            } finally {
-                                                                setIsUploadingCarousel(false);
-                                                            }
-                                                        }
-                                                    }}
-                                                 />
+                                                 {isUploadingCarousel ? <Loader2 className="w-6 h-6 text-emerald-600 animate-spin" /> : <><Plus className="w-5 h-5 text-slate-400 group-hover:scale-110 transition-transform mb-1" /><span className="text-[10px] text-slate-400 font-bold uppercase">Adicionar</span></>}
+                                                 <input type="file" accept="image/*" className="hidden" disabled={isUploadingCarousel} onChange={async (e) => { const file = e.target.files?.[0]; if (file) { setIsUploadingCarousel(true); try { const base64 = await processImage(file); handleAddCoverImage(base64); } catch (error) { alert("Erro ao processar imagem"); } finally { setIsUploadingCarousel(false); } } }} />
                                             </label>
                                         </div>
                                     </div>
                                 </div>
-
                                 <div className="pt-6 border-t border-slate-100 flex justify-end">
-                                    <Button onClick={handleSaveSettings} isLoading={isSavingSettings}>
-                                        {isSavingSettings ? 'Salvando...' : 'Salvar Configurações'}
-                                    </Button>
+                                    <Button onClick={handleSaveSettings} isLoading={isSavingSettings}>{isSavingSettings ? 'Salvando...' : 'Salvar Configurações'}</Button>
                                 </div>
                              </div>
                         </div>
-
-                        {/* Team Management Column - unchanged */}
                         <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-200 h-fit">
                             <div className="flex justify-between items-center mb-6 border-b border-slate-100 pb-4">
-                                <div>
-                                    <h3 className="font-bold text-slate-900 text-lg">Gerenciamento de Equipe</h3>
-                                    <p className="text-sm text-slate-500">Adicione usuários para acessar este painel.</p>
-                                </div>
-                                <Button size="sm" onClick={() => { setCurrentStaff({}); setIsStaffModalOpen(true); }} className="shadow-emerald-500/20">
-                                    <Plus className="w-4 h-4 mr-1" /> Novo
-                                </Button>
+                                <div><h3 className="font-bold text-slate-900 text-lg">Gerenciamento de Equipe</h3><p className="text-sm text-slate-500">Adicione usuários para acessar este painel.</p></div>
+                                <Button size="sm" onClick={() => { setCurrentStaff({}); setIsStaffModalOpen(true); }} className="shadow-emerald-500/20"><Plus className="w-4 h-4 mr-1" /> Novo</Button>
                             </div>
                             <div className="space-y-4">
                                 {staffList.map(staff => (
                                     <div key={staff.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100 group hover:border-emerald-200 transition-all">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-emerald-600 font-bold border border-slate-200">
-                                                {staff.name.charAt(0)}
-                                            </div>
-                                            <div>
-                                                <p className="font-bold text-slate-800 text-sm">{staff.name}</p>
-                                                <p className="text-xs text-slate-500">{staff.email}</p>
-                                            </div>
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            <Badge color={staff.role === 'manager' ? 'bg-purple-100 text-purple-700 border-purple-200' : 'bg-blue-100 text-blue-700 border-blue-200'}>
-                                                {staff.role === 'manager' ? 'Gerente' : staff.role === 'kitchen' ? 'Cozinha' : 'Garçom'}
-                                            </Badge>
-                                            
-                                            <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                 <button onClick={() => { setCurrentStaff(staff); setIsStaffModalOpen(true); }} className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"><Edit2 className="w-4 h-4" /></button>
-                                                <button onClick={() => handleDeleteStaff(staff.id)} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"><Trash2 className="w-4 h-4" /></button>
-                                            </div>
-                                        </div>
+                                        <div className="flex items-center gap-3"><div className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-emerald-600 font-bold border border-slate-200">{staff.name.charAt(0)}</div><div><p className="font-bold text-slate-800 text-sm">{staff.name}</p><p className="text-xs text-slate-500">{staff.email}</p></div></div>
+                                        <div className="flex items-center gap-2"><Badge color={staff.role === 'manager' ? 'bg-purple-100 text-purple-700 border-purple-200' : 'bg-blue-100 text-blue-700 border-blue-200'}>{staff.role === 'manager' ? 'Gerente' : staff.role === 'kitchen' ? 'Cozinha' : 'Garçom'}</Badge><div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity"><button onClick={() => { setCurrentStaff(staff); setIsStaffModalOpen(true); }} className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"><Edit2 className="w-4 h-4" /></button><button onClick={() => handleDeleteStaff(staff.id)} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"><Trash2 className="w-4 h-4" /></button></div></div>
                                     </div>
                                 ))}
                             </div>
@@ -762,202 +641,67 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({ restaurantId
                     </div>
                 </div>
             )}
-            
-            {/* ... Other Tabs, Modals (unchanged) ... */}
-            {/* ... Include all other Modals here (Item, Category, Staff, Promo, Giveaway, Draw) ... */}
+
             <Modal isOpen={isItemModalOpen} onClose={() => setIsItemModalOpen(false)} title={currentItem.id ? "Editar Produto" : "Novo Produto"}>
-         <div className="space-y-5">
-             <div className="flex items-center gap-4 mb-2">
-                 <div className="flex-1">
-                    <Input label="Nome do Produto" value={currentItem.name || ''} onChange={e => setCurrentItem({...currentItem, name: e.target.value})} placeholder="Ex: X-Bacon" />
-                 </div>
-                 <div className="w-auto">
-                    <label className="block text-sm font-semibold text-slate-700 mb-1.5 text-center">Disponível</label>
-                    <button onClick={() => setCurrentItem(prev => ({...prev, available: !prev.available}))} className={`w-full h-[50px] px-4 rounded-xl border flex items-center justify-center transition-all ${currentItem.available !== false ? 'bg-emerald-50 border-emerald-200 text-emerald-600' : 'bg-slate-50 border-slate-200 text-slate-400'}`}><Power className="w-5 h-5" /></button>
-                 </div>
-             </div>
-             <div className="grid grid-cols-2 gap-5">
-                 <Input label="Preço (R$)" type="number" step="0.50" value={currentItem.price || ''} onChange={e => setCurrentItem({...currentItem, price: Number(e.target.value)})} />
-                 <div className="w-full">
-                    <label className="block text-sm font-semibold text-slate-700 mb-1.5 ml-1">Categoria</label>
-                    <div className="relative">
-                        <select className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none appearance-none transition-all" value={currentItem.categoryId || ''} onChange={e => setCurrentItem({...currentItem, categoryId: e.target.value})}>
-                            <option value="">Selecione...</option>
-                            {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                        </select>
-                        <ChevronDown className="absolute right-3 top-3.5 w-4 h-4 text-slate-500 pointer-events-none" />
-                    </div>
-                 </div>
-             </div>
-             <Input label="Descrição" value={currentItem.description || ''} onChange={e => setCurrentItem({...currentItem, description: e.target.value})} placeholder="Ingredientes, detalhes..." />
-             <Input label="Estoque Atual (Opcional)" type="number" placeholder="Deixe vazio para infinito" value={currentItem.stock !== undefined ? currentItem.stock : ''} onChange={e => setCurrentItem({...currentItem, stock: e.target.value ? Number(e.target.value) : undefined})} />
-             <ImageUpload label="Imagem do Produto" value={currentItem.image} onChange={val => setCurrentItem({...currentItem, image: val})} />
-             <div className="flex justify-end pt-6 gap-3">
-                 <Button variant="ghost" onClick={() => setIsItemModalOpen(false)}>Cancelar</Button>
-                 <Button onClick={handleSaveItem}>Salvar Alterações</Button>
-             </div>
-         </div>
-      </Modal>
-
-      <Modal isOpen={isCategoryModalOpen} onClose={() => setIsCategoryModalOpen(false)} title={editingCategory.id ? "Editar Categoria" : "Nova Categoria"}>
-        <div className="space-y-5">
-            <Input label="Nome da Categoria" value={editingCategory.name || ''} onChange={e => setEditingCategory(prev => ({...prev, name: e.target.value}))} placeholder="Ex: Bebidas, Lanches..." />
-            <div className="flex justify-end pt-6 gap-3">
-                <Button variant="ghost" onClick={() => setIsCategoryModalOpen(false)}>Cancelar</Button>
-                <Button onClick={handleSaveCategory}>Salvar</Button>
-            </div>
-        </div>
-      </Modal>
-
-      <Modal isOpen={isStaffModalOpen} onClose={() => setIsStaffModalOpen(false)} title={currentStaff.id ? "Editar Membro da Equipe" : "Adicionar Membro da Equipe"}>
-          <div className="space-y-5">
-              <Input label="Nome Completo" value={currentStaff.name || ''} onChange={e => setCurrentStaff({...currentStaff, name: e.target.value})} placeholder="Ex: Maria Silva" />
-              <Input label="Email de Acesso" type="email" value={currentStaff.email || ''} onChange={e => setCurrentStaff({...currentStaff, email: e.target.value})} placeholder="Ex: maria@loja.com" />
-              <Input label="Senha / PIN" type="password" value={currentStaff.password || ''} onChange={e => setCurrentStaff({...currentStaff, password: e.target.value})} placeholder={currentStaff.id ? "****** (Deixe em branco para manter)" : "******"} />
-              <div className="w-full">
-                  <label className="block text-sm font-semibold text-slate-700 mb-1.5 ml-1">Função</label>
-                  <div className="relative">
-                      <select className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none appearance-none transition-all" value={currentStaff.role || 'manager'} onChange={e => setCurrentStaff({...currentStaff, role: e.target.value as any})}>
-                          <option value="manager">Gerente (Acesso Total)</option>
-                          <option value="kitchen">Cozinha (Apenas Pedidos)</option>
-                          <option value="waiter">Garçom</option>
-                      </select>
-                      <ChevronDown className="absolute right-3 top-3.5 w-4 h-4 text-slate-500 pointer-events-none" />
-                  </div>
-              </div>
-              <div className="pt-6 flex justify-end gap-3">
-                  <Button variant="ghost" onClick={() => setIsStaffModalOpen(false)}>Cancelar</Button>
-                  <Button onClick={handleSaveStaff}>{currentStaff.id ? "Salvar Alterações" : "Adicionar Membro"}</Button>
-              </div>
-          </div>
-      </Modal>
-
-      <Modal isOpen={isPromoModalOpen} onClose={() => setIsPromoModalOpen(false)} title={currentPromo.id ? "Editar Promoção" : "Nova Promoção"}>
-          <div className="space-y-5">
-              <Input label="Título da Oferta" value={currentPromo.title || ''} onChange={e => setCurrentPromo({...currentPromo, title: e.target.value})} placeholder="Ex: Promoção de Terça" />
-              <div className="grid grid-cols-2 gap-4">
-                  <Input label="Preço Original (R$)" type="number" value={currentPromo.originalPrice || ''} onChange={e => setCurrentPromo({...currentPromo, originalPrice: Number(e.target.value)})} />
-                  <Input label="Preço Promocional (R$)" type="number" value={currentPromo.discountedPrice || ''} onChange={e => setCurrentPromo({...currentPromo, discountedPrice: Number(e.target.value)})} />
-              </div>
-              <Input label="Descrição / Regras" value={currentPromo.description || ''} onChange={e => setCurrentPromo({...currentPromo, description: e.target.value})} />
-              <ImageUpload label="Banner da Promoção" value={currentPromo.image} onChange={val => setCurrentPromo({...currentPromo, image: val})} />
-              <div className="flex items-center gap-3 pt-2">
-                 <label className="text-sm font-semibold text-slate-700">Status:</label>
-                 <button onClick={() => setCurrentPromo(prev => ({...prev, isActive: !prev.isActive}))} className={`px-4 py-2 rounded-lg text-sm font-bold transition-colors ${currentPromo.isActive !== false ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500'}`}>{currentPromo.isActive !== false ? 'Ativa' : 'Pausada'}</button>
-              </div>
-              <div className="pt-4 flex justify-between gap-3">
-                   {currentPromo.id && (
-                       <Button variant="danger" onClick={() => handleDeletePromo(currentPromo.id!)}>
-                           <Trash2 className="w-4 h-4 mr-2" /> Excluir
-                       </Button>
-                   )}
-                   <div className="flex gap-3 ml-auto">
-                        <Button variant="ghost" onClick={() => setIsPromoModalOpen(false)}>Cancelar</Button>
-                        <Button onClick={handleSavePromo}>Salvar Promoção</Button>
-                   </div>
-              </div>
-          </div>
-      </Modal>
-
-      <Modal isOpen={isGiveawayModalOpen} onClose={() => setIsGiveawayModalOpen(false)} title={currentGiveaway.id ? "Editar Sorteio" : "Novo Sorteio"}>
-          <div className="space-y-5">
-              <Input label="Nome do Sorteio" value={currentGiveaway.title || ''} onChange={e => setCurrentGiveaway({...currentGiveaway, title: e.target.value})} placeholder="Ex: Sorteio Semanal" />
-              <Input label="Prêmio" value={currentGiveaway.prize || ''} onChange={e => setCurrentGiveaway({...currentGiveaway, prize: e.target.value})} placeholder="Ex: Voucher de R$ 100" />
-              <Input label="Data do Sorteio" type="date" value={currentGiveaway.drawDate ? currentGiveaway.drawDate.split('T')[0] : ''} onChange={e => setCurrentGiveaway({...currentGiveaway, drawDate: e.target.value})} />
-              <Input label="Regras / Descrição" value={currentGiveaway.description || ''} onChange={e => setCurrentGiveaway({...currentGiveaway, description: e.target.value})} placeholder="Regras para participar..." />
-              <ImageUpload label="Imagem do Sorteio" value={currentGiveaway.image} onChange={val => setCurrentGiveaway({...currentGiveaway, image: val})} />
-              <div className="flex items-center gap-3 pt-2">
-                 <label className="text-sm font-semibold text-slate-700">Status:</label>
-                 <button onClick={() => setCurrentGiveaway(prev => ({...prev, isActive: !prev.isActive}))} className={`px-4 py-2 rounded-lg text-sm font-bold transition-colors ${currentGiveaway.isActive !== false ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500'}`}>{currentGiveaway.isActive !== false ? 'Ativo' : 'Encerrado'}</button>
-              </div>
-              <div className="pt-4 flex justify-between gap-3">
-                  {currentGiveaway.id && (
-                       <Button variant="danger" onClick={() => handleDeleteGiveaway(currentGiveaway.id!)}>
-                           <Trash2 className="w-4 h-4 mr-2" /> Excluir
-                       </Button>
-                   )}
-                  <div className="flex gap-3 ml-auto">
-                      <Button variant="ghost" onClick={() => setIsGiveawayModalOpen(false)}>Cancelar</Button>
-                      <Button onClick={handleSaveGiveaway}>Salvar Sorteio</Button>
-                  </div>
-              </div>
-          </div>
-      </Modal>
-
-      <Modal isOpen={isDrawModalOpen} onClose={() => setIsDrawModalOpen(false)} title="Realizar Sorteio">
-        <div className="space-y-6">
-            <div className="bg-purple-50 p-4 rounded-xl border border-purple-100 text-center">
-                 <h3 className="text-lg font-bold text-purple-900 mb-1">{currentGiveaway.title}</h3>
-                 <p className="text-sm text-purple-700">Prêmio: {currentGiveaway.prize}</p>
-                 <div className="mt-2 text-xs text-slate-500">
-                    Participantes: Clientes com pedidos entre {
-                        (() => {
-                           if (!currentGiveaway.drawDate) return '';
-                           const d = new Date(currentGiveaway.drawDate + 'T23:59:59'); 
-                           const s = new Date(d); s.setDate(d.getDate() - 7);
-                           return `${s.toLocaleDateString()} e ${d.toLocaleDateString()}`;
-                        })()
-                    }
-                 </div>
-            </div>
-
-            {drawWinner ? (
-                <div className="text-center py-8 animate-in zoom-in duration-500">
-                    <div className="w-20 h-20 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4 border-4 border-yellow-200 shadow-xl">
-                        <Trophy className="w-10 h-10 text-yellow-600" />
-                    </div>
-                    <h2 className="text-2xl font-bold text-slate-900">Parabéns!</h2>
-                    <p className="text-slate-500 mb-6">O ganhador(a) do sorteio foi:</p>
-                    
-                    <div className="bg-white p-6 rounded-2xl shadow-lg border border-yellow-200 max-w-xs mx-auto">
-                        <p className="text-xl font-bold text-slate-900 mb-1">{drawWinner.name}</p>
-                        <p className="text-sm text-slate-500">{drawWinner.phone}</p>
-                    </div>
-
-                    <div className="mt-8">
-                         <Button onClick={() => setIsDrawModalOpen(false)}>Fechar Sorteio</Button>
-                    </div>
+                <div className="space-y-5">
+                    <div className="flex items-center gap-4 mb-2"><div className="flex-1"><Input label="Nome do Produto" value={currentItem.name || ''} onChange={e => setCurrentItem({...currentItem, name: e.target.value})} placeholder="Ex: X-Bacon" /></div><div className="w-auto"><label className="block text-sm font-semibold text-slate-700 mb-1.5 text-center">Disponível</label><button onClick={() => setCurrentItem(prev => ({...prev, available: !prev.available}))} className={`w-full h-[50px] px-4 rounded-xl border flex items-center justify-center transition-all ${currentItem.available !== false ? 'bg-emerald-50 border-emerald-200 text-emerald-600' : 'bg-slate-50 border-slate-200 text-slate-400'}`}><Power className="w-5 h-5" /></button></div></div>
+                    <div className="grid grid-cols-2 gap-5"><Input label="Preço (R$)" type="number" step="0.50" value={currentItem.price || ''} onChange={e => setCurrentItem({...currentItem, price: Number(e.target.value)})} /><div className="w-full"><label className="block text-sm font-semibold text-slate-700 mb-1.5 ml-1">Categoria</label><div className="relative"><select className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none appearance-none transition-all" value={currentItem.categoryId || ''} onChange={e => setCurrentItem({...currentItem, categoryId: e.target.value})}><option value="">Selecione...</option>{categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select><ChevronDown className="absolute right-3 top-3.5 w-4 h-4 text-slate-500 pointer-events-none" /></div></div></div>
+                    <Input label="Descrição" value={currentItem.description || ''} onChange={e => setCurrentItem({...currentItem, description: e.target.value})} placeholder="Ingredientes, detalhes..." />
+                    <Input label="Estoque Atual (Opcional)" type="number" placeholder="Deixe vazio para infinito" value={currentItem.stock !== undefined ? currentItem.stock : ''} onChange={e => setCurrentItem({...currentItem, stock: e.target.value ? Number(e.target.value) : undefined})} />
+                    <ImageUpload label="Imagem do Produto" value={currentItem.image} onChange={val => setCurrentItem({...currentItem, image: val})} />
+                    <div className="flex justify-end pt-6 gap-3"><Button variant="ghost" onClick={() => setIsItemModalOpen(false)}>Cancelar</Button><Button onClick={handleSaveItem}>Salvar Alterações</Button></div>
                 </div>
-            ) : (
-                <>
-                    <div className="max-h-60 overflow-y-auto bg-slate-50 rounded-xl border border-slate-200 p-2">
-                        {drawParticipants.length === 0 ? (
-                            <div className="text-center py-8 text-slate-400">
-                                <Users className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                                <p>Nenhum participante elegível nesta semana.</p>
-                            </div>
-                        ) : (
-                            <div className="grid grid-cols-1 gap-2">
-                                {drawParticipants.map((p, idx) => (
-                                    <div key={idx} className="flex justify-between items-center bg-white p-3 rounded-lg border border-slate-100">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-xs font-bold text-slate-500">
-                                                {idx + 1}
-                                            </div>
-                                            <div>
-                                                <p className="font-bold text-slate-800 text-sm">{p.name}</p>
-                                                <p className="text-xs text-slate-400">{p.phone}</p>
-                                            </div>
-                                        </div>
-                                        <div className="text-xs font-medium bg-emerald-50 text-emerald-700 px-2 py-1 rounded">
-                                            {p.orderCount} pedido(s)
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-                    
-                    <div className="flex justify-between items-center pt-2">
-                         <p className="text-sm text-slate-500">Total: <b>{drawParticipants.length}</b> participantes</p>
-                         <Button disabled={drawParticipants.length === 0 || isDrawing} onClick={performDraw} className="bg-purple-600 hover:bg-purple-700 shadow-purple-500/20">
-                             {isDrawing ? (<><RefreshCw className="w-4 h-4 mr-2 animate-spin" /> Sorteando...</>) : (<><Ticket className="w-4 h-4 mr-2" /> Realizar Sorteio</>)}
-                         </Button>
-                    </div>
-                </>
-            )}
+            </Modal>
+
+            <Modal isOpen={isCategoryModalOpen} onClose={() => setIsCategoryModalOpen(false)} title={editingCategory.id ? "Editar Categoria" : "Nova Categoria"}>
+                <div className="space-y-5"><Input label="Nome da Categoria" value={editingCategory.name || ''} onChange={e => setEditingCategory(prev => ({...prev, name: e.target.value}))} placeholder="Ex: Bebidas, Lanches..." /><div className="flex justify-end pt-6 gap-3"><Button variant="ghost" onClick={() => setIsCategoryModalOpen(false)}>Cancelar</Button><Button onClick={handleSaveCategory}>Salvar</Button></div></div>
+            </Modal>
+
+            <Modal isOpen={isStaffModalOpen} onClose={() => setIsStaffModalOpen(false)} title={currentStaff.id ? "Editar Membro da Equipe" : "Adicionar Membro da Equipe"}>
+                <div className="space-y-5">
+                    <Input label="Nome Completo" value={currentStaff.name || ''} onChange={e => setCurrentStaff({...currentStaff, name: e.target.value})} placeholder="Ex: Maria Silva" />
+                    <Input label="Email de Acesso" type="email" value={currentStaff.email || ''} onChange={e => setCurrentStaff({...currentStaff, email: e.target.value})} placeholder="Ex: maria@loja.com" />
+                    <Input label="Senha / PIN" type="password" value={currentStaff.password || ''} onChange={e => setCurrentStaff({...currentStaff, password: e.target.value})} placeholder={currentStaff.id ? "****** (Deixe em branco para manter)" : "******"} />
+                    <div className="w-full"><label className="block text-sm font-semibold text-slate-700 mb-1.5 ml-1">Função</label><div className="relative"><select className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none appearance-none transition-all" value={currentStaff.role || 'manager'} onChange={e => setCurrentStaff({...currentStaff, role: e.target.value as any})}><option value="manager">Gerente (Acesso Total)</option><option value="kitchen">Cozinha (Apenas Pedidos)</option><option value="waiter">Garçom</option></select><ChevronDown className="absolute right-3 top-3.5 w-4 h-4 text-slate-500 pointer-events-none" /></div></div>
+                    <div className="pt-6 flex justify-end gap-3"><Button variant="ghost" onClick={() => setIsStaffModalOpen(false)}>Cancelar</Button><Button onClick={handleSaveStaff}>{currentStaff.id ? "Salvar Alterações" : "Adicionar Membro"}</Button></div>
+                </div>
+            </Modal>
+
+            <Modal isOpen={isPromoModalOpen} onClose={() => setIsPromoModalOpen(false)} title={currentPromo.id ? "Editar Promoção" : "Nova Promoção"}>
+                <div className="space-y-5">
+                    <Input label="Título da Oferta" value={currentPromo.title || ''} onChange={e => setCurrentPromo({...currentPromo, title: e.target.value})} placeholder="Ex: Promoção de Terça" />
+                    <div className="grid grid-cols-2 gap-4"><Input label="Preço Original (R$)" type="number" value={currentPromo.originalPrice || ''} onChange={e => setCurrentPromo({...currentPromo, originalPrice: Number(e.target.value)})} /><Input label="Preço Promocional (R$)" type="number" value={currentPromo.discountedPrice || ''} onChange={e => setCurrentPromo({...currentPromo, discountedPrice: Number(e.target.value)})} /></div>
+                    <Input label="Descrição / Regras" value={currentPromo.description || ''} onChange={e => setCurrentPromo({...currentPromo, description: e.target.value})} />
+                    <ImageUpload label="Banner da Promoção" value={currentPromo.image} onChange={val => setCurrentPromo({...currentPromo, image: val})} />
+                    <div className="flex items-center gap-3 pt-2"><label className="text-sm font-semibold text-slate-700">Status:</label><button onClick={() => setCurrentPromo(prev => ({...prev, isActive: !prev.isActive}))} className={`px-4 py-2 rounded-lg text-sm font-bold transition-colors ${currentPromo.isActive !== false ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500'}`}>{currentPromo.isActive !== false ? 'Ativa' : 'Pausada'}</button></div>
+                    <div className="pt-4 flex justify-between gap-3">{currentPromo.id && <Button variant="danger" onClick={() => handleDeletePromo(currentPromo.id!)}><Trash2 className="w-4 h-4 mr-2" /> Excluir</Button>}<div className="flex gap-3 ml-auto"><Button variant="ghost" onClick={() => setIsPromoModalOpen(false)}>Cancelar</Button><Button onClick={handleSavePromo}>Salvar Promoção</Button></div></div>
+                </div>
+            </Modal>
+
+            <Modal isOpen={isGiveawayModalOpen} onClose={() => setIsGiveawayModalOpen(false)} title={currentGiveaway.id ? "Editar Sorteio" : "Novo Sorteio"}>
+                <div className="space-y-5">
+                    <Input label="Nome do Sorteio" value={currentGiveaway.title || ''} onChange={e => setCurrentGiveaway({...currentGiveaway, title: e.target.value})} placeholder="Ex: Sorteio Semanal" />
+                    <Input label="Prêmio" value={currentGiveaway.prize || ''} onChange={e => setCurrentGiveaway({...currentGiveaway, prize: e.target.value})} placeholder="Ex: Voucher de R$ 100" />
+                    <Input label="Data do Sorteio" type="date" value={currentGiveaway.drawDate ? currentGiveaway.drawDate.split('T')[0] : ''} onChange={e => setCurrentGiveaway({...currentGiveaway, drawDate: e.target.value})} />
+                    <Input label="Regras / Descrição" value={currentGiveaway.description || ''} onChange={e => setCurrentGiveaway({...currentGiveaway, description: e.target.value})} placeholder="Regras para participar..." />
+                    <ImageUpload label="Imagem do Sorteio" value={currentGiveaway.image} onChange={val => setCurrentGiveaway({...currentGiveaway, image: val})} />
+                    <div className="flex items-center gap-3 pt-2"><label className="text-sm font-semibold text-slate-700">Status:</label><button onClick={() => setCurrentGiveaway(prev => ({...prev, isActive: !prev.isActive}))} className={`px-4 py-2 rounded-lg text-sm font-bold transition-colors ${currentGiveaway.isActive !== false ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500'}`}>{currentGiveaway.isActive !== false ? 'Ativo' : 'Encerrado'}</button></div>
+                    <div className="pt-4 flex justify-between gap-3">{currentGiveaway.id && <Button variant="danger" onClick={() => handleDeleteGiveaway(currentGiveaway.id!)}><Trash2 className="w-4 h-4 mr-2" /> Excluir</Button>}<div className="flex gap-3 ml-auto"><Button variant="ghost" onClick={() => setIsGiveawayModalOpen(false)}>Cancelar</Button><Button onClick={handleSaveGiveaway}>Salvar Sorteio</Button></div></div>
+                </div>
+            </Modal>
+
+            <Modal isOpen={isDrawModalOpen} onClose={() => setIsDrawModalOpen(false)} title="Realizar Sorteio">
+                <div className="space-y-6">
+                    <div className="bg-purple-50 p-4 rounded-xl border border-purple-100 text-center"><h3 className="text-lg font-bold text-purple-900 mb-1">{currentGiveaway.title}</h3><p className="text-sm text-purple-700">Prêmio: {currentGiveaway.prize}</p><div className="mt-2 text-xs text-slate-500">Participantes: Clientes com pedidos entre {(() => { if (!currentGiveaway.drawDate) return ''; const d = new Date(currentGiveaway.drawDate + 'T23:59:59'); const s = new Date(d); s.setDate(d.getDate() - 7); return `${s.toLocaleDateString()} e ${d.toLocaleDateString()}`; })()}</div></div>
+                    {drawWinner ? (
+                        <div className="text-center py-8 animate-in zoom-in duration-500"><div className="w-20 h-20 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4 border-4 border-yellow-200 shadow-xl"><Trophy className="w-10 h-10 text-yellow-600" /></div><h2 className="text-2xl font-bold text-slate-900">Parabéns!</h2><p className="text-slate-500 mb-6">O ganhador(a) do sorteio foi:</p><div className="bg-white p-6 rounded-2xl shadow-lg border border-yellow-200 max-w-xs mx-auto"><p className="text-xl font-bold text-slate-900 mb-1">{drawWinner.name}</p><p className="text-sm text-slate-500">{drawWinner.phone}</p></div><div className="mt-8"><Button onClick={() => setIsDrawModalOpen(false)}>Fechar Sorteio</Button></div></div>
+                    ) : (
+                        <><div className="max-h-60 overflow-y-auto bg-slate-50 rounded-xl border border-slate-200 p-2">{drawParticipants.length === 0 ? <div className="text-center py-8 text-slate-400"><Users className="w-8 h-8 mx-auto mb-2 opacity-50" /><p>Nenhum participante elegível nesta semana.</p></div> : <div className="grid grid-cols-1 gap-2">{drawParticipants.map((p, idx) => <div key={idx} className="flex justify-between items-center bg-white p-3 rounded-lg border border-slate-100"><div className="flex items-center gap-3"><div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-xs font-bold text-slate-500">{idx + 1}</div><div><p className="font-bold text-slate-800 text-sm">{p.name}</p><p className="text-xs text-slate-400">{p.phone}</p></div></div><div className="text-xs font-medium bg-emerald-50 text-emerald-700 px-2 py-1 rounded">{p.orderCount} pedido(s)</div></div>)}</div>}</div><div className="flex justify-between items-center pt-2"><p className="text-sm text-slate-500">Total: <b>{drawParticipants.length}</b> participantes</p><Button disabled={drawParticipants.length === 0 || isDrawing} onClick={performDraw} className="bg-purple-600 hover:bg-purple-700 shadow-purple-500/20">{isDrawing ? <><RefreshCw className="w-4 h-4 mr-2 animate-spin" /> Sorteando...</> : <><Ticket className="w-4 h-4 mr-2" /> Realizar Sorteio</>}</Button></div></>
+                    )}
+                </div>
+            </Modal>
         </div>
-      </Modal>
+      </main>
     </div>
   );
 };
