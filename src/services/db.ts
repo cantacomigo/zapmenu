@@ -19,6 +19,15 @@ const fromDbRestaurant = (r: any): Restaurant => ({
     pixKey: r.pix_key
 });
 
+// Helper for Admin mapping
+const fromDbAdmin = (a: any): AdminUser => ({
+    id: a.id,
+    name: a.name,
+    email: a.email,
+    role: a.role,
+    createdAt: new Date(a.created_at).getTime()
+});
+
 export const db = {
   seedDatabase: async () => {
     // 1. Restaurants
@@ -126,7 +135,7 @@ export const db = {
         customerName: o.customer_name,
         customerPhone: o.customer_phone,
         customerAddress: o.customer_address,
-        payment_method: o.payment_method,
+        paymentMethod: o.payment_method,
         items: o.items,
         total: Number(o.total),
         status: o.status,
@@ -153,12 +162,20 @@ export const db = {
   },
 
   getAdmins: async (): Promise<AdminUser[]> => {
-    const { data } = await supabase.from('admins').select('*');
-    return (data || []) as AdminUser[];
+    const { data } = await supabase.from('admins').select('*').order('created_at', { ascending: false });
+    return (data || []).map(fromDbAdmin);
   },
   
-  addAdmin: async (admin: any) => supabase.from('admins').insert(admin),
-  updateAdmin: async (admin: any) => supabase.from('admins').update(admin).eq('id', admin.id),
+  addAdmin: async (admin: AdminUser) => {
+      const payload = { name: admin.name, email: admin.email, role: admin.role };
+      return await supabase.from('admins').insert(payload);
+  },
+  
+  updateAdmin: async (admin: AdminUser) => {
+      const payload = { name: admin.name, email: admin.email, role: admin.role };
+      return await supabase.from('admins').update(payload).eq('id', admin.id);
+  },
+  
   deleteAdmin: async (id: string) => supabase.from('admins').delete().eq('id', id),
   
   getPromotions: async (rId: string) => [], // Implementação futura
