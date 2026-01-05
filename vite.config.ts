@@ -11,6 +11,8 @@ export default defineConfig(({ mode }) => {
       },
       plugins: [react()],
       define: {
+        // Define process.env para evitar erros de referência em bibliotecas
+        'process.env': {},
         'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),
         'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY)
       },
