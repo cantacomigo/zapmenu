@@ -5,6 +5,7 @@ import { ManagerDashboard } from './views/ManagerDashboard';
 import { CustomerMenu } from './views/CustomerMenu';
 import { db } from './services/db';
 import { Button, Card } from './components/ui';
+import { ToastProvider } from './components/ToastProvider';
 import { ChefHat, Smartphone, UserCog, ExternalLink, ArrowRight, Database } from 'lucide-react';
 
 const LandingPage: React.FC<{ 
@@ -237,6 +238,7 @@ export default function App() {
 
   return (
     <div className="antialiased text-slate-800 font-sans">
+      <ToastProvider />
       {renderView()}
     </div>
   );
