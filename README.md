@@ -2,19 +2,17 @@
 <img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
 </div>
 
-# Run and deploy your AI Studio app
+# ZapMenu - SaaS Digital Menu (Sincronizado via AI Studio)
 
-This contains everything you need to run your app locally.
+Este projeto contém o código-fonte do ZapMenu, um sistema de cardápio digital inteligente com pedidos via WhatsApp.
 
-View your app in AI Studio: https://ai.studio/apps/drive/1EmZ0n71zuxIN_fSkPdCrRQihuZdtBvTd
+## Funcionalidades Principais
+- **Multi-tenant**: Suporta múltiplos restaurantes.
+- **Painel Administrativo**: Gestão de lojas e usuários.
+- **Painel do Gerente**: Gestão de cardápio, pedidos e marketing.
+- **Cardápio Mobile-First**: Experiência fluida para o cliente final.
+- **Integração Supabase**: Autenticação e banco de dados em tempo real.
 
-## Run Locally
-
-**Prerequisites:**  Node.js
-
-
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+## Como rodar localmente
+1. `npm install`
+2. `npm run dev`
