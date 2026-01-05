@@ -14,7 +14,6 @@ const LandingPage: React.FC<{
   const [isSeeding, setIsSeeding] = useState(false);
 
   useEffect(() => {
-    // Check if we have data
     const checkData = async () => {
         const restaurants = await db.getRestaurants();
         setHasRestaurants(restaurants.length > 0);
@@ -32,7 +31,6 @@ const LandingPage: React.FC<{
 
   return (
     <div className="min-h-screen bg-[#0F172A] relative overflow-hidden flex flex-col justify-center items-center p-6 text-white font-sans">
-      {/* Background Effects */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0">
           <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-emerald-500/20 rounded-full blur-[120px]"></div>
           <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-blue-600/20 rounded-full blur-[120px]"></div>
@@ -53,7 +51,6 @@ const LandingPage: React.FC<{
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl w-full relative z-10">
-        {/* Admin Card */}
         <div onClick={() => onRoleSelect('admin')} className="group cursor-pointer">
             <div className="h-full bg-white/5 backdrop-blur-lg border border-white/10 rounded-3xl p-8 hover:bg-white/10 transition-all duration-300 hover:-translate-y-2 hover:border-white/20 hover:shadow-2xl hover:shadow-emerald-900/20">
                 <div className="w-16 h-16 bg-slate-800 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-emerald-500 transition-colors duration-300">
@@ -67,7 +64,6 @@ const LandingPage: React.FC<{
             </div>
         </div>
 
-        {/* Manager Card */}
         <div onClick={() => onRoleSelect('manager')} className="group cursor-pointer">
              <div className="h-full bg-white/5 backdrop-blur-lg border border-white/10 rounded-3xl p-8 hover:bg-white/10 transition-all duration-300 hover:-translate-y-2 hover:border-white/20 hover:shadow-2xl hover:shadow-blue-900/20">
                 <div className="w-16 h-16 bg-slate-800 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-blue-500 transition-colors duration-300">
@@ -81,7 +77,6 @@ const LandingPage: React.FC<{
             </div>
         </div>
 
-        {/* Customer Card */}
         <div onClick={() => onRoleSelect('customer')} className="group cursor-pointer relative">
             <div className="absolute -top-3 -right-3 bg-gradient-to-r from-emerald-500 to-teal-400 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg z-20">
                 DEMO LIVE
@@ -111,7 +106,6 @@ const LandingPage: React.FC<{
   );
 };
 
-// Simple Manager Login Mock
 const ManagerLogin: React.FC<{ onLogin: (restId: string) => void, onBack: () => void }> = ({ onLogin, onBack }) => {
     const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
     
@@ -160,10 +154,9 @@ const ManagerLogin: React.FC<{ onLogin: (restId: string) => void, onBack: () => 
 export default function App() {
   const [viewState, setViewState] = useState<ViewState>({ view: 'LANDING' });
 
-  // Simple Hash Router for demo URL persistence
   useEffect(() => {
       const handleHashChange = () => {
-          const hash = window.location.hash.slice(1); // remove #
+          const hash = window.location.hash.slice(1);
           if (hash.startsWith('menu/')) {
               const slug = hash.split('/')[1];
               if (slug) setViewState({ view: 'CUSTOMER_MENU', slug });
@@ -175,7 +168,7 @@ export default function App() {
       };
 
       window.addEventListener('hashchange', handleHashChange);
-      handleHashChange(); // Check on mount
+      handleHashChange();
       return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
 
@@ -188,13 +181,11 @@ export default function App() {
           window.location.hash = 'manager-login';
       } else if (role === 'customer') {
           const restaurants = await db.getRestaurants();
-          // Use first available or stay on landing if empty to allow seeding
           if (restaurants.length > 0) {
             const r = restaurants[0];
             setViewState({ view: 'CUSTOMER_MENU', slug: r.slug });
             window.location.hash = `menu/${r.slug}`;
           } else {
-             // Stay on landing, the UI will show the seed button
              alert("Nenhum restaurante encontrado. Clique em 'Restaurar Dados' no cartão de Cliente.");
           }
       }
