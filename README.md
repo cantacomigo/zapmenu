@@ -2,7 +2,7 @@
 <img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
 </div>
 
-# ZapMenu - SaaS Digital Menu (Sincronizado via AI Studio)
+# ZapMenu - SaaS Digital Menu
 
 Este projeto contém o código-fonte do ZapMenu, um sistema de cardápio digital inteligente com pedidos via WhatsApp.
 
@@ -16,3 +16,6 @@ Este projeto contém o código-fonte do ZapMenu, um sistema de cardápio digital
 ## Como rodar localmente
 1. `npm install`
 2. `npm run dev`
+
+---
+*Status de sincronização: Atualizado em 05/01/2026*
