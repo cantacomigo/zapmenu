@@ -1,6 +1,5 @@
 import { supabase } from '../integrations/supabase/client';
 import { AdminUser, Category, CustomerUser, Giveaway, MenuItem, Order, Promotion, Restaurant, RestaurantStaff } from "../types";
-import { SEED_ADMINS, SEED_CATEGORIES, SEED_MENU_ITEMS, SEED_RESTAURANTS, SEED_ORDERS } from "../constants";
 
 const fromDbRestaurant = (r: any): Restaurant => ({
     id: r.id,
@@ -19,7 +18,45 @@ const fromDbRestaurant = (r: any): Restaurant => ({
 });
 
 export const db = {
-  // ... existing methods
+  // Auth Admins
+  loginAdmin: async (email: string, password: string): Promise<AdminUser | null> => {
+    const { data, error } = await supabase
+        .from('admins')
+        .select('*')
+        .eq('email', email)
+        .eq('password', password)
+        .single();
+    
+    if (error || !data) return null;
+    return {
+        id: data.id,
+        name: data.name,
+        email: data.email,
+        role: data.role,
+        createdAt: new Date(data.created_at).getTime()
+    };
+  },
+
+  // Auth Managers/Staff
+  loginStaff: async (email: string, password: string): Promise<RestaurantStaff | null> => {
+    const { data, error } = await supabase
+        .from('restaurant_staff')
+        .select('*')
+        .eq('email', email)
+        .eq('password', password)
+        .single();
+    
+    if (error || !data) return null;
+    return {
+        id: data.id,
+        restaurantId: data.restaurant_id,
+        name: data.name,
+        email: data.email,
+        role: data.role,
+        createdAt: new Date(data.created_at).getTime()
+    };
+  },
+
   getRestaurants: async () => {
     const { data } = await supabase.from('restaurants').select('*').order('name');
     return (data || []).map(fromDbRestaurant);
@@ -176,7 +213,6 @@ export const db = {
         .single();
     
     if (error || !data) return null;
-    
     return {
         id: data.id,
         name: data.name,
@@ -199,7 +235,6 @@ export const db = {
         .single();
     
     if (error || !data) return null;
-    
     return {
         id: data.id,
         name: data.name,
