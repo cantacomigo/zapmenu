@@ -1,5 +1,5 @@
 import { supabase } from '../integrations/supabase/client';
-import { AdminUser, Category, CustomerUser, Giveaway, MenuItem, Order, Promotion, Restaurant, RestaurantStaff } from "../types";
+import { AdminUser, Category, CustomerUser, Giveaway, MenuItem, Order, Promotion, Restaurant, RestaurantStaff, CartItem } from "../types";
 
 const fromDbRestaurant = (r: any): Restaurant => ({
     id: r.id,
@@ -15,6 +15,19 @@ const fromDbRestaurant = (r: any): Restaurant => ({
     minOrderValue: Number(r.min_order_value),
     estimatedTime: r.estimated_time,
     pixKey: r.pix_key
+});
+
+const fromDbOrder = (o: any): Order => ({
+    id: o.id,
+    restaurantId: o.restaurant_id,
+    customerName: o.customer_name,
+    customerPhone: o.customer_phone,
+    customerAddress: o.customer_address,
+    paymentMethod: o.payment_method,
+    items: o.items as CartItem[],
+    total: Number(o.total),
+    status: o.status,
+    createdAt: new Date(o.created_at).getTime()
 });
 
 export const db = {
@@ -140,18 +153,17 @@ export const db = {
 
   getOrders: async (restaurantId: string): Promise<Order[]> => {
     const { data } = await supabase.from('orders').select('*').eq('restaurant_id', restaurantId).order('created_at', { ascending: false });
-    return (data || []).map(o => ({
-        id: o.id,
-        restaurantId: o.restaurant_id,
-        customerName: o.customer_name,
-        customerPhone: o.customer_phone,
-        customerAddress: o.customer_address,
-        paymentMethod: o.payment_method,
-        items: o.items,
-        total: Number(o.total),
-        status: o.status,
-        createdAt: new Date(o.created_at).getTime()
-    })) as Order[];
+    return (data || []).map(fromDbOrder);
+  },
+
+  getCustomerOrders: async (phone: string, restaurantId: string): Promise<Order[]> => {
+    const { data } = await supabase
+        .from('orders')
+        .select('*')
+        .eq('customer_phone', phone)
+        .eq('restaurant_id', restaurantId)
+        .order('created_at', { ascending: false });
+    return (data || []).map(fromDbOrder);
   },
 
   addOrder: async (order: Order) => {

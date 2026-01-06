@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { db } from '../services/db';
 import { CartItem, Category, MenuItem, Restaurant, Order, CustomerUser, Promotion, Giveaway } from '../types';
-import { Button, Modal, Input } from '../components/ui';
-import { ShoppingBag, Minus, Plus, Search, MapPin, ArrowLeft, Send, Check, Star, Clock, AlertCircle, Banknote, QrCode, Copy, User, LogIn, LogOut, Store, Megaphone, Gift, Calendar, Trophy, X, Package, Utensils, Coins } from 'lucide-react';
+import { Button, Modal, Input, Badge } from '../components/ui';
+import { ShoppingBag, Minus, Plus, Search, MapPin, ArrowLeft, Send, Check, Star, Clock, AlertCircle, Banknote, QrCode, Copy, User, LogIn, LogOut, Store, Megaphone, Gift, Calendar, Trophy, X, Package, Utensils, Coins, ClipboardList } from 'lucide-react';
 
 export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ slug, onBack }) => {
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
@@ -22,6 +22,9 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
   const [authForm, setAuthForm] = useState({ name: '', phone: '', address: '', password: '' });
 
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+  const [isOrdersModalOpen, setIsOrdersModalOpen] = useState(false);
+  const [customerOrders, setCustomerOrders] = useState<Order[]>([]);
+  
   const [customerInfo, setCustomerInfo] = useState({ 
       name: '', 
       phone: '', 
@@ -84,6 +87,7 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
       if (user) {
           setCurrentUser(user);
           localStorage.setItem('zapmenu_current_user', JSON.stringify(user));
+          setCustomerInfo(prev => ({ ...prev, name: user.name, phone: user.phone, address: user.address }));
           setIsAuthModalOpen(false);
       } else {
           alert("Telefone ou senha incorretos.");
@@ -99,6 +103,20 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
           alert("Erro ao realizar cadastro. Tente outro telefone.");
       }
   };
+
+  const fetchCustomerOrders = async () => {
+      if (!currentUser || !restaurant) return;
+      const orders = await db.getCustomerOrders(currentUser.phone, restaurant.id);
+      setCustomerOrders(orders);
+  };
+
+  useEffect(() => {
+      if (isOrdersModalOpen) {
+          fetchCustomerOrders();
+          const interval = setInterval(fetchCustomerOrders, 15000); // Atualiza a cada 15s
+          return () => clearInterval(interval);
+      }
+  }, [isOrdersModalOpen]);
 
   const addToCart = (item: MenuItem) => {
     if (!item.available) return;
@@ -171,6 +189,20 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
           `\n💳 *Pagamento:* ${paymentLabel}${changeInfo}`;
 
       window.open(`https://wa.me/${restaurant.phone}?text=${encodeURIComponent(message)}`, '_blank');
+      
+      // Abre o modal de pedidos para ele ver o novo pedido
+      setIsOrdersModalOpen(true);
+  };
+
+  const getStatusDisplay = (status: string) => {
+    switch (status) {
+      case 'pending': return { label: 'Pendente', color: 'bg-amber-100 text-amber-700' };
+      case 'paid': return { label: 'Pago', color: 'bg-emerald-100 text-emerald-700' };
+      case 'shipped': return { label: 'Em Entrega', color: 'bg-purple-100 text-purple-700' };
+      case 'completed': return { label: 'Finalizado', color: 'bg-slate-100 text-slate-700' };
+      case 'cancelled': return { label: 'Cancelado', color: 'bg-red-100 text-red-700' };
+      default: return { label: status, color: 'bg-slate-100 text-slate-600' };
+    }
   };
 
   const cartSubtotal = useMemo(() => cart.reduce((acc, item) => acc + (Number(item.price) * item.quantity), 0), [cart]);
@@ -196,11 +228,18 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
          <div className="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-slate-900/40 to-transparent"></div>
          <div className="absolute top-0 left-0 right-0 p-4 flex justify-between items-center z-10">
             <button onClick={onBack} className="p-2 bg-white/10 rounded-full text-white backdrop-blur-md hover:bg-white/20 transition-colors"><ArrowLeft className="w-5 h-5" /></button>
-            {currentUser ? (
-                <button onClick={() => { setCurrentUser(null); localStorage.removeItem('zapmenu_current_user'); }} className="bg-white/10 px-4 py-2 rounded-full text-white text-sm backdrop-blur-md hover:bg-white/20 transition-colors">Sair</button>
-            ) : (
-                <button onClick={() => setIsAuthModalOpen(true)} className="bg-emerald-600 px-4 py-2 rounded-full text-white text-sm font-bold shadow-lg shadow-emerald-500/20">Entrar</button>
-            )}
+            <div className="flex gap-2">
+                {currentUser && (
+                    <button onClick={() => setIsOrdersModalOpen(true)} className="p-2 bg-white/10 rounded-full text-white backdrop-blur-md hover:bg-white/20 transition-colors">
+                        <ClipboardList className="w-5 h-5" />
+                    </button>
+                )}
+                {currentUser ? (
+                    <button onClick={() => { setCurrentUser(null); localStorage.removeItem('zapmenu_current_user'); }} className="bg-white/10 px-4 py-2 rounded-full text-white text-sm backdrop-blur-md hover:bg-white/20 transition-colors">Sair</button>
+                ) : (
+                    <button onClick={() => setIsAuthModalOpen(true)} className="bg-emerald-600 px-4 py-2 rounded-full text-white text-sm font-bold shadow-lg shadow-emerald-500/20">Entrar</button>
+                )}
+            </div>
          </div>
          <div className="absolute bottom-0 left-0 right-0 p-6 z-10">
             <div className="flex items-end gap-4 max-w-4xl mx-auto">
@@ -295,6 +334,47 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
               </button>
           </div>
       )}
+
+      {/* MODAL DE MEUS PEDIDOS */}
+      <Modal isOpen={isOrdersModalOpen} onClose={() => setIsOrdersModalOpen(false)} title="Meus Pedidos">
+          <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-1">
+              {customerOrders.length > 0 ? (
+                  customerOrders.map(order => {
+                      const status = getStatusDisplay(order.status);
+                      return (
+                          <div key={order.id} className="bg-white border border-slate-100 p-4 rounded-2xl shadow-sm">
+                              <div className="flex justify-between items-start mb-3">
+                                  <div>
+                                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Pedido #{order.id.slice(-4).toUpperCase()}</p>
+                                      <p className="text-xs text-slate-500">{new Date(order.createdAt).toLocaleDateString('pt-BR')} às {new Date(order.createdAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</p>
+                                  </div>
+                                  <Badge color={`${status.color} border-transparent text-[10px] font-bold uppercase tracking-wider`}>{status.label}</Badge>
+                              </div>
+                              <div className="space-y-1 mb-3">
+                                  {order.items.map((item, idx) => (
+                                      <div key={idx} className="flex justify-between text-xs text-slate-600">
+                                          <span>{item.quantity}x {item.name}</span>
+                                          <span>R$ {(item.price * item.quantity).toFixed(2)}</span>
+                                      </div>
+                                  ))}
+                              </div>
+                              <div className="flex justify-between items-center pt-2 border-t border-slate-50">
+                                  <span className="text-xs font-bold text-slate-900">Total</span>
+                                  <span className="text-sm font-black text-emerald-700">R$ {order.total.toFixed(2)}</span>
+                              </div>
+                          </div>
+                      );
+                  })
+              ) : (
+                  <div className="text-center py-12">
+                      <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-300">
+                          <Package size={32} />
+                      </div>
+                      <p className="text-slate-500 font-medium">Você ainda não fez nenhum pedido.</p>
+                  </div>
+              )}
+          </div>
+      </Modal>
 
       <Modal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} title="Identificação">
           <div className="space-y-4">
