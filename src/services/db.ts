@@ -2,7 +2,6 @@ import { supabase } from '../integrations/supabase/client';
 import { AdminUser, Category, CustomerUser, Giveaway, MenuItem, Order, Promotion, Restaurant, RestaurantStaff } from "../types";
 import { SEED_ADMINS, SEED_CATEGORIES, SEED_MENU_ITEMS, SEED_RESTAURANTS } from "../constants";
 
-// Helper to map DB snake_case to JS camelCase for Restaurants
 const fromDbRestaurant = (r: any): Restaurant => ({
     id: r.id,
     name: r.name,
@@ -19,18 +18,8 @@ const fromDbRestaurant = (r: any): Restaurant => ({
     pixKey: r.pix_key
 });
 
-// Helper for Admin mapping
-const fromDbAdmin = (a: any): AdminUser => ({
-    id: a.id,
-    name: a.name,
-    email: a.email,
-    role: a.role,
-    createdAt: new Date(a.created_at).getTime()
-});
-
 export const db = {
   seedDatabase: async () => {
-    // 1. Restaurants
     const rests = SEED_RESTAURANTS.map(r => ({
         id: r.id, name: r.name, slug: r.slug, phone: r.phone, logo: r.logo,
         cover_image: r.coverImage, cover_images: r.coverImages, address: r.address,
@@ -38,14 +27,9 @@ export const db = {
         estimated_time: r.estimatedTime, pix_key: r.pixKey
     }));
     await supabase.from('restaurants').upsert(rests);
-    
-    // 2. Admins
     await supabase.from('admins').upsert(SEED_ADMINS);
+    await supabase.from('categories').upsert(SEED_CATEGORIES.map(c => ({ id: c.id, restaurant_id: c.restaurant_id, name: c.name })));
     
-    // 3. Categories
-    await supabase.from('categories').upsert(SEED_CATEGORIES);
-    
-    // 4. Items
     const items = SEED_MENU_ITEMS.map(i => ({
         restaurant_id: i.restaurant_id,
         category_id: i.category_id,
@@ -57,49 +41,38 @@ export const db = {
         stock: i.stock
     }));
     await supabase.from('menu_items').upsert(items);
-    
     return true;
   },
 
-  getRestaurants: async (): Promise<Restaurant[]> => {
+  getRestaurants: async () => {
     const { data } = await supabase.from('restaurants').select('*').order('name');
     return (data || []).map(fromDbRestaurant);
   },
   
-  getRestaurantBySlug: async (slug: string): Promise<Restaurant | undefined> => {
+  getRestaurantBySlug: async (slug: string) => {
     const { data } = await supabase.from('restaurants').select('*').eq('slug', slug).single();
     return data ? fromDbRestaurant(data) : undefined;
   },
 
   addRestaurant: async (rest: Restaurant) => {
-    const payload = { 
+    return await supabase.from('restaurants').insert({ 
         name: rest.name, slug: rest.slug, phone: rest.phone, address: rest.address,
-        logo: rest.logo, cover_image: rest.coverImage, cover_images: rest.coverImages,
-        is_active: true 
-    };
-    return await supabase.from('restaurants').insert(payload);
+        logo: rest.logo, cover_image: rest.coverImage, is_active: true 
+    });
   },
 
   updateRestaurant: async (rest: Restaurant) => {
-    const payload = {
-        name: rest.name, 
-        slug: rest.slug,
-        phone: rest.phone, 
-        address: rest.address,
-        logo: rest.logo, 
-        cover_image: rest.coverImage, 
-        cover_images: rest.coverImages,
-        min_order_value: rest.minOrderValue, 
-        delivery_fee: rest.deliveryFee
-    };
-    return await supabase.from('restaurants').update(payload).eq('id', rest.id);
+    return await supabase.from('restaurants').update({
+        name: rest.name, slug: rest.slug, phone: rest.phone, address: rest.address,
+        logo: rest.logo, cover_image: rest.coverImage, min_order_value: rest.minOrderValue, delivery_fee: rest.deliveryFee
+    }).eq('id', rest.id);
   },
 
   deleteRestaurant: async (id: string) => supabase.from('restaurants').delete().eq('id', id),
 
   getCategories: async (restaurantId: string): Promise<Category[]> => {
     const { data } = await supabase.from('categories').select('*').eq('restaurant_id', restaurantId).order('name');
-    return (data || []).map(c => ({ id: c.id, restaurantId: c.restaurant_id, name: c.name })) as Category[];
+    return (data || []).map(c => ({ id: c.id, restaurantId: c.restaurant_id, name: c.name }));
   },
 
   addCategory: async (cat: Category) => {
@@ -114,7 +87,7 @@ export const db = {
 
   getMenuItems: async (restaurantId: string): Promise<MenuItem[]> => {
     const { data } = await supabase.from('menu_items').select('*').eq('restaurant_id', restaurantId).order('name');
-    return (data || []).map(i => ({ ...i, restaurantId: i.restaurant_id, categoryId: i.category_id })) as MenuItem[];
+    return (data || []).map(i => ({ ...i, restaurantId: i.restaurant_id, categoryId: i.category_id }));
   },
 
   saveMenuItem: async (item: MenuItem) => {
@@ -125,7 +98,8 @@ export const db = {
         price: item.price,
         description: item.description,
         image: item.image,
-        available: item.available
+        available: item.available,
+        stock: item.stock
     };
     if (item.id) return await supabase.from('menu_items').update(payload).eq('id', item.id);
     return await supabase.from('menu_items').insert(payload);
@@ -150,7 +124,7 @@ export const db = {
   },
 
   addOrder: async (order: Order) => {
-    const payload = {
+    return await supabase.from('orders').insert({
         restaurant_id: order.restaurantId,
         customer_name: order.customerName,
         customer_phone: order.customerPhone,
@@ -159,34 +133,16 @@ export const db = {
         items: order.items,
         total: order.total,
         status: 'pending'
-    };
-    return await supabase.from('orders').insert(payload);
+    });
   },
 
   updateOrder: async (order: Order) => {
     return await supabase.from('orders').update({ status: order.status }).eq('id', order.id);
   },
 
-  getAdmins: async (): Promise<AdminUser[]> => {
-    const { data } = await supabase.from('admins').select('*').order('created_at', { ascending: false });
-    return (data || []).map(fromDbAdmin);
-  },
-  
-  addAdmin: async (admin: AdminUser) => {
-      const payload = { name: admin.name, email: admin.email, role: admin.role };
-      return await supabase.from('admins').insert(payload);
-  },
-  
-  updateAdmin: async (admin: AdminUser) => {
-      const payload = { name: admin.name, email: admin.email, role: admin.role };
-      return await supabase.from('admins').update(payload).eq('id', admin.id);
-  },
-  
-  deleteAdmin: async (id: string) => supabase.from('admins').delete().eq('id', id),
-  
   getPromotions: async (restaurantId: string): Promise<Promotion[]> => {
-    const { data } = await supabase.from('promotions').select('*').eq('restaurant_id', restaurantId).order('created_at', { ascending: false });
-    return (data || []).map(p => ({ ...p, restaurantId: p.restaurant_id, originalPrice: Number(p.original_price), discountedPrice: Number(p.discounted_price), isActive: p.is_active })) as Promotion[];
+    const { data } = await supabase.from('promotions').select('*').eq('restaurant_id', restaurantId);
+    return (data || []).map(p => ({ ...p, restaurantId: p.restaurant_id, discountedPrice: Number(p.discounted_price), originalPrice: Number(p.original_price), isActive: p.is_active }));
   },
 
   savePromotion: async (promo: Promotion) => {
@@ -206,8 +162,8 @@ export const db = {
   deletePromotion: async (id: string) => supabase.from('promotions').delete().eq('id', id),
 
   getGiveaways: async (restaurantId: string): Promise<Giveaway[]> => {
-    const { data } = await supabase.from('giveaways').select('*').eq('restaurant_id', restaurantId).order('draw_date', { ascending: false });
-    return (data || []).map(g => ({ ...g, restaurantId: g.restaurant_id, drawDate: g.draw_date, isActive: g.is_active, winnerName: g.winner_name, winnerPhone: g.winner_phone, drawnAt: g.drawn_at ? new Date(g.drawn_at).getTime() : undefined })) as Giveaway[];
+    const { data } = await supabase.from('giveaways').select('*').eq('restaurant_id', restaurantId);
+    return (data || []).map(g => ({ ...g, restaurantId: g.restaurant_id, drawDate: g.draw_date, isActive: g.is_active, winnerName: g.winner_name }));
   },
 
   saveGiveaway: async (give: Giveaway) => {
@@ -224,40 +180,17 @@ export const db = {
     return await supabase.from('giveaways').insert(payload);
   },
 
-  deleteGiveaway: async (id: string) => supabase.from('giveaways').delete().eq('id', id),
-  
-  getRestaurantStaff: async (rId: string) => [],
-
   registerCustomer: async (c: CustomerUser) => {
-      // Verifica se já existe
       const { data: existing } = await supabase.from('customers').select('id').eq('phone', c.phone).single();
       if (existing) return { success: false, message: 'Este telefone já está cadastrado.' };
-
-      const { error } = await supabase.from('customers').insert({
-          name: c.name,
-          phone: c.phone,
-          password: c.password,
-          address: c.address
-      });
-
-      if (error) return { success: false, message: 'Erro ao cadastrar: ' + error.message };
-      return { success: true, message: 'Cadastro realizado com sucesso.' };
+      const { error } = await supabase.from('customers').insert({ name: c.name, phone: c.phone, password: c.password, address: c.address });
+      if (error) return { success: false, message: error.message };
+      return { success: true };
   },
 
-  loginCustomer: async (phone: string, password: string): Promise<CustomerUser | null> => {
-      const { data, error } = await supabase.from('customers')
-        .select('*')
-        .eq('phone', phone)
-        .eq('password', password)
-        .single();
-
-      if (error || !data) return null;
-      return {
-          id: data.id,
-          name: data.name,
-          phone: data.phone,
-          address: data.address,
-          createdAt: new Date(data.created_at).getTime()
-      } as CustomerUser;
+  loginCustomer: async (phone: string, password: string) => {
+      const { data } = await supabase.from('customers').select('*').eq('phone', phone).eq('password', password).single();
+      if (!data) return null;
+      return { id: data.id, name: data.name, phone: data.phone, address: data.address, createdAt: new Date(data.created_at).getTime() } as CustomerUser;
   }
 };
