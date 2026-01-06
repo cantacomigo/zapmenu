@@ -139,12 +139,13 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
                 <Search className="absolute left-3.5 top-2.5 w-4 h-4 text-slate-400" />
                 <input type="text" placeholder="Buscar no cardápio..." className="w-full pl-10 pr-4 py-2.5 rounded-xl border-none bg-white shadow-sm font-medium text-sm" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
             </div>
-            <div className="flex gap-2 overflow-x-auto hide-scroll">
+            {/* CATEGORIES GRID - Adjusted for wrap and smaller size */}
+            <div className="flex flex-wrap gap-1.5">
                 {categories.map(cat => (
                     <button 
                         key={cat.id} 
                         onClick={() => setActiveCategory(cat.id)} 
-                        className={`px-4 py-2 rounded-lg text-xs font-bold transition-all whitespace-nowrap border-2 ${activeCategory === cat.id ? 'bg-slate-900 border-slate-900 text-white shadow-md' : 'bg-white border-slate-100 text-slate-500'}`}
+                        className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all border-2 ${activeCategory === cat.id ? 'bg-slate-900 border-slate-900 text-white shadow-sm' : 'bg-white border-slate-100 text-slate-500'}`}
                     >
                         {cat.name}
                     </button>
@@ -152,7 +153,7 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
             </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
             {filteredItems.map(item => (
                 <div key={item.id} className="bg-white p-3 rounded-2xl shadow-sm border border-slate-100 flex gap-3 hover:shadow-md transition-shadow">
                     <img src={item.image} className="w-20 h-20 rounded-xl object-cover" />
