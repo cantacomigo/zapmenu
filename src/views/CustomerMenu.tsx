@@ -239,7 +239,7 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
             <Sparkles size={40} />
         </div>
         <h2 className="text-2xl font-black text-slate-900 tracking-tight">
-            {restaurant ? `Bem-vindo ao ${restaurant.name}!` : "Bem-vindo ao ZapMenu!"}
+            {restaurant ? `Bem-vindo ao ${restaurant.name}!` : "Bem-vindo!"}
         </h2>
         <p className="text-slate-500 mt-2 font-medium max-w-xs mx-auto">
             {restaurant ? "Estamos preparando nossas delícias para você..." : "Estamos preparando o cardápio delicioso para você..."} 🍱
@@ -301,7 +301,6 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
             </div>
         )}
 
-        {/* ... restante do código sem alterações */}
         {promotions.length > 0 && (
             <div className="space-y-4">
                 <div className="flex items-center gap-2">
