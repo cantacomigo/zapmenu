@@ -3,7 +3,7 @@ import { db } from '../../services/db';
 import { Order } from '../../types';
 import { Card, Badge, Button, Input } from '../../components/ui';
 import { OrderReceipt } from '../../components/OrderReceipt';
-import { MessageSquare, CheckCircle2, Truck, XCircle, CreditCard, Search, Filter, CheckCheck, Printer, Clock, Calendar, RefreshCw, MapPin, ClipboardList, SendHorizontal } from 'lucide-react';
+import { MessageSquare, CheckCircle2, Truck, XCircle, CreditCard, Search, Filter, CheckCheck, Printer, Clock, Calendar, RefreshCw, MapPin, ClipboardList, SendHorizontal, BellRing } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 interface OrdersTabProps {
@@ -77,29 +77,27 @@ export const OrdersTab: React.FC<OrdersTabProps> = ({ orders, onRefresh, restaur
     }, 100);
   };
 
-  const handleSendConfirmation = (order: Order) => {
-    const message = getWhatsAppMessage(order, 'confirm_receipt');
-    openWhatsApp(order.customerPhone, message);
-    toast.success("Mensagem de confirmação enviada!");
-  };
-
-  const handleUpdateStatus = async (order: Order, status: Order['status']) => {
-    try {
-      await db.updateOrder({ ...order, status });
-      toast.success(`Status atualizado: ${status}`);
-      const message = getWhatsAppMessage(order, status);
-      if (message) openWhatsApp(order.customerPhone, message);
-      onRefresh();
-    } catch (error) {
-      toast.error("Erro ao atualizar status");
+  const handleSendAction = async (order: Order, type: Order['status'] | 'confirm_receipt') => {
+    // Se for um status do banco, atualiza. Se for só mensagem (confirm_receipt), não muda o status.
+    if (type !== 'confirm_receipt') {
+        try {
+            await db.updateOrder({ ...order, status: type as any });
+            onRefresh();
+        } catch (error) {
+            toast.error("Erro ao atualizar banco de dados");
+        }
     }
+    
+    const message = getWhatsAppMessage(order, type);
+    if (message) openWhatsApp(order.customerPhone, message);
+    toast.success("Ação realizada com sucesso!");
   };
 
   const getStatusDisplay = (status: string) => {
     switch (status) {
       case 'pending': return { label: 'Pendente', color: 'bg-amber-100 text-amber-700' };
-      case 'paid': return { label: 'Pago', color: 'bg-emerald-100 text-emerald-700' };
-      case 'shipped': return { label: 'Enviado', color: 'bg-purple-100 text-purple-700' };
+      case 'paid': return { label: 'Em Preparo', color: 'bg-emerald-100 text-emerald-700' };
+      case 'shipped': return { label: 'Saiu p/ Entrega', color: 'bg-purple-100 text-purple-700' };
       case 'completed': return { label: 'Finalizado', color: 'bg-slate-100 text-slate-700' };
       case 'cancelled': return { label: 'Cancelado', color: 'bg-red-100 text-red-700' };
       case 'scheduled': return { label: 'Agendados', color: 'bg-blue-100 text-blue-700' };
@@ -121,21 +119,13 @@ export const OrdersTab: React.FC<OrdersTabProps> = ({ orders, onRefresh, restaur
 
   return (
     <div className="space-y-4 md:space-y-6">
-      {/* Hidden container for printing */}
       {printingOrder && (
-          <OrderReceipt 
-            order={printingOrder} 
-            restaurantName={restaurantName || 'ZapMenu'} 
-            restaurantLogo={restaurantLogo}
-          />
+          <OrderReceipt order={printingOrder} restaurantName={restaurantName || 'ZapMenu'} restaurantLogo={restaurantLogo} />
       )}
 
       <div className="flex justify-between items-center px-1">
         <h2 className="text-xl md:text-2xl font-black text-slate-900 tracking-tight">Pedidos</h2>
-        <button 
-            onClick={onRefresh} 
-            className="p-2 bg-emerald-50 text-emerald-600 rounded-xl active:rotate-180 transition-all duration-500 shadow-sm"
-        >
+        <button onClick={onRefresh} className="p-2 bg-emerald-50 text-emerald-600 rounded-xl active:rotate-180 transition-all duration-500 shadow-sm">
             <RefreshCw size={20} />
         </button>
       </div>
@@ -157,9 +147,7 @@ export const OrdersTab: React.FC<OrdersTabProps> = ({ orders, onRefresh, restaur
               key={status}
               onClick={() => setStatusFilter(status)}
               className={`px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-wider whitespace-nowrap transition-all border-2 snap-center ${
-                statusFilter === status 
-                  ? 'bg-slate-900 text-white border-slate-900 shadow-md' 
-                  : 'bg-white text-slate-500 border-transparent shadow-sm hover:bg-slate-50'
+                statusFilter === status ? 'bg-slate-900 text-white border-slate-900 shadow-md' : 'bg-white text-slate-500 border-transparent shadow-sm hover:bg-slate-50'
               }`}
             >
               {status === 'all' ? 'Todos' : getStatusDisplay(status).label}
@@ -172,115 +160,94 @@ export const OrdersTab: React.FC<OrdersTabProps> = ({ orders, onRefresh, restaur
         {filteredOrders.map(order => {
           const statusInfo = getStatusDisplay(order.status);
           return (
-            <Card key={order.id} className="p-4 border-slate-100 shadow-sm hover:shadow-lg transition-all active:scale-[0.99] rounded-[24px]">
+            <Card key={order.id} className="p-5 border-slate-100 shadow-sm hover:shadow-lg transition-all rounded-[32px]">
               <div className="space-y-4">
-                {/* Header */}
                 <div className="flex justify-between items-start">
                   <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2 mb-0.5">
+                    <div className="flex items-center gap-2 mb-1">
                         <span className="font-black text-slate-400 text-[10px] tracking-widest uppercase">#{order.id.slice(-6).toUpperCase()}</span>
-                        <Badge color={`${statusInfo.color} border-none text-[8px] font-black uppercase tracking-tighter px-1.5 py-0.5 rounded-full`}>{statusInfo.label}</Badge>
+                        <Badge color={`${statusInfo.color} border-none text-[8px] font-black uppercase tracking-tighter px-2 py-0.5 rounded-full`}>{statusInfo.label}</Badge>
                     </div>
-                    <h3 className="text-sm font-black text-slate-900 leading-tight truncate">{order.customerName}</h3>
+                    <h3 className="text-base font-black text-slate-900 truncate">{order.customerName}</h3>
                   </div>
                   <div className="text-right pl-3">
-                    <p className="text-base font-black text-emerald-600 leading-none">R$ {order.total.toFixed(2)}</p>
-                    <span className="text-[8px] text-slate-400 font-black mt-1 uppercase bg-slate-50 px-1.5 py-0.5 rounded-md inline-block">
+                    <p className="text-lg font-black text-emerald-600 leading-none">R$ {order.total.toFixed(2)}</p>
+                    <span className="text-[9px] text-slate-400 font-black mt-1 uppercase bg-slate-50 px-2 py-0.5 rounded-lg inline-block">
                         {order.paymentMethod === 'pix' ? 'PIX' : order.paymentMethod.toUpperCase()}
                     </span>
                   </div>
                 </div>
 
-                {/* Info de Entrega */}
-                <div className="bg-slate-50/50 p-2.5 rounded-[18px] border border-slate-100 space-y-1.5">
-                  <div className="flex items-start gap-2">
-                    <MapPin className="w-3 h-3 text-slate-400 mt-0.5 shrink-0" />
-                    <p className="text-[11px] text-slate-500 font-medium leading-relaxed truncate">{order.customerAddress}</p>
-                  </div>
+                <div className="bg-slate-50/50 p-3 rounded-[20px] border border-slate-100 space-y-2">
+                    <div className="flex items-start gap-2">
+                        <MapPin className="w-3.5 h-3.5 text-slate-400 mt-0.5 shrink-0" />
+                        <p className="text-xs text-slate-500 font-medium leading-relaxed line-clamp-2">{order.customerAddress}</p>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5 pt-2 border-t border-slate-100/50">
+                        {order.items.map((item, idx) => (
+                            <div key={idx} className="bg-white border border-slate-100 text-slate-600 px-2.5 py-1 rounded-xl text-[10px] font-bold shadow-sm">
+                                <span className="text-emerald-600">{item.quantity}x</span> {item.name}
+                            </div>
+                        ))}
+                    </div>
                 </div>
 
-                {/* Resumo Itens */}
-                <div className="flex flex-wrap gap-1">
-                    {order.items.map((item, idx) => (
-                        <div key={idx} className="bg-white border border-slate-100 text-slate-600 px-2 py-0.5 rounded-lg text-[9px] font-bold shadow-sm">
-                            <span className="text-emerald-600">{item.quantity}x</span> {item.name.split(' ')[0]}
-                        </div>
-                    ))}
-                </div>
+                {/* BOTÕES DE MENSAGENS E STATUS */}
+                <div className="space-y-3 pt-2">
+                    <div className="flex items-center gap-2">
+                        <BellRing className="w-3 h-3 text-slate-300" />
+                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Enviar Mensagem e Atualizar Status</span>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                        <button 
+                            onClick={() => handleSendAction(order, 'confirm_receipt')}
+                            className="flex items-center justify-center gap-2 px-3 py-2.5 bg-white border-2 border-slate-100 text-slate-700 rounded-2xl text-[10px] font-black uppercase tracking-tight hover:bg-emerald-50 hover:border-emerald-100 hover:text-emerald-600 transition-all active:scale-95"
+                        >
+                            <CheckCheck size={14} /> Aceito
+                        </button>
+                        <button 
+                            onClick={() => handleSendAction(order, 'paid')}
+                            className={`flex items-center justify-center gap-2 px-3 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-tight transition-all active:scale-95 ${order.status === 'paid' ? 'bg-emerald-600 text-white shadow-lg' : 'bg-white border-2 border-slate-100 text-slate-700'}`}
+                        >
+                            <CreditCard size={14} /> Pago
+                        </button>
+                        <button 
+                            onClick={() => handleSendAction(order, 'shipped')}
+                            className={`flex items-center justify-center gap-2 px-3 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-tight transition-all active:scale-95 ${order.status === 'shipped' ? 'bg-purple-600 text-white shadow-lg' : 'bg-white border-2 border-slate-100 text-slate-700'}`}
+                        >
+                            <Truck size={14} /> Enviei
+                        </button>
+                        <button 
+                            onClick={() => handleSendAction(order, 'completed')}
+                            className={`flex items-center justify-center gap-2 px-3 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-tight transition-all active:scale-95 ${order.status === 'completed' ? 'bg-slate-900 text-white shadow-lg' : 'bg-white border-2 border-slate-100 text-slate-700'}`}
+                        >
+                            <CheckCircle2 size={14} /> Finalizar
+                        </button>
+                    </div>
 
-                {/* BOTÕES DE AÇÃO */}
-                <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-50">
-                  {/* Imprimir */}
-                  <button 
-                    onClick={() => handlePrint(order)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-full text-slate-900 text-[10px] font-black uppercase tracking-tight shadow-sm active:scale-95 transition-all"
-                  >
-                    <Printer size={14} /> Imprimir
-                  </button>
-
-                  {/* Confirmar Recebimento */}
-                  {order.status === 'pending' && (
-                    <button 
-                      onClick={() => handleSendConfirmation(order)}
-                      className="flex items-center gap-1.5 px-4 py-1.5 bg-[#059669] text-white rounded-full text-[10px] font-black uppercase tracking-tight shadow-md active:scale-95 transition-all"
-                    >
-                      <CheckCheck size={14} /> Confirmar
-                    </button>
-                  )}
-
-                  {/* Confirmar Pagamento */}
-                  {order.status === 'pending' && (
-                    <button 
-                      onClick={() => handleUpdateStatus(order, 'paid')}
-                      className="flex items-center gap-1.5 px-4 py-1.5 bg-[#0D9488] text-white rounded-full text-[10px] font-black uppercase tracking-tight shadow-md active:scale-95 transition-all"
-                    >
-                      <CreditCard size={14} /> Pagar
-                    </button>
-                  )}
-
-                  {/* Enviar para Entrega */}
-                  {order.status === 'paid' && (
-                    <button 
-                      onClick={() => handleUpdateStatus(order, 'shipped')}
-                      className="flex items-center gap-1.5 px-4 py-1.5 bg-[#9333EA] text-white rounded-full text-[10px] font-black uppercase tracking-tight shadow-md active:scale-95 transition-all"
-                    >
-                      <Truck size={14} /> Enviar
-                    </button>
-                  )}
-
-                  {/* Finalizar Entrega */}
-                  {order.status === 'shipped' && (
-                    <button 
-                      onClick={() => handleUpdateStatus(order, 'completed')}
-                      className="flex items-center gap-1.5 px-4 py-1.5 bg-slate-900 text-white rounded-full text-[10px] font-black uppercase tracking-tight shadow-md active:scale-95 transition-all"
-                    >
-                      <CheckCircle2 size={14} /> Finalizar
-                    </button>
-                  )}
-
-                  {/* Spacer */}
-                  <div className="flex-1 min-w-[10px]"></div>
-
-                  {/* Cancelar */}
-                  {['pending', 'paid', 'shipped'].includes(order.status) && (
-                    <button 
-                      onClick={() => handleUpdateStatus(order, 'cancelled')}
-                      className="flex items-center gap-1.5 px-4 py-1.5 bg-[#FEF2F2] text-[#DC2626] rounded-full text-[10px] font-black uppercase tracking-tight shadow-sm active:scale-95 transition-all"
-                    >
-                      <XCircle size={14} /> Cancelar
-                    </button>
-                  )}
-
-                  {/* Chat Direto */}
-                  <button 
-                    onClick={() => {
-                      const phone = order.customerPhone.replace(/\D/g, '');
-                      window.open(`https://api.whatsapp.com/send?phone=${phone}`, '_blank');
-                    }}
-                    className="p-1.5 text-slate-400 hover:text-emerald-600 transition-colors"
-                  >
-                    <MessageSquare size={20} />
-                  </button>
+                    <div className="flex items-center gap-2 pt-2">
+                        <button onClick={() => handlePrint(order)} className="flex items-center gap-2 px-4 py-2 bg-slate-100 text-slate-600 rounded-xl text-[10px] font-black uppercase tracking-tight hover:bg-slate-200 transition-all">
+                            <Printer size={14} /> Ticket
+                        </button>
+                        <button 
+                            onClick={() => {
+                                const phone = order.customerPhone.replace(/\D/g, '');
+                                window.open(`https://api.whatsapp.com/send?phone=${phone}`, '_blank');
+                            }}
+                            className="flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-600 rounded-xl text-[10px] font-black uppercase tracking-tight hover:bg-emerald-100 transition-all"
+                        >
+                            <MessageSquare size={14} /> Chat
+                        </button>
+                        <div className="flex-1"></div>
+                        <button 
+                            onClick={() => handleSendAction(order, 'cancelled')}
+                            className="p-2 text-slate-300 hover:text-red-500 transition-colors"
+                            title="Cancelar Pedido"
+                        >
+                            <XCircle size={20} />
+                        </button>
+                    </div>
                 </div>
               </div>
             </Card>
@@ -288,9 +255,9 @@ export const OrdersTab: React.FC<OrdersTabProps> = ({ orders, onRefresh, restaur
         })}
         
         {filteredOrders.length === 0 && (
-            <div className="py-20 text-center bg-white rounded-[32px] border-2 border-dashed border-slate-100">
-                <ClipboardList className="w-12 h-12 text-slate-100 mx-auto mb-3" />
-                <p className="text-slate-400 font-black uppercase text-[10px] tracking-widest">Nenhum pedido</p>
+            <div className="py-24 text-center bg-white rounded-[40px] border-2 border-dashed border-slate-100">
+                <ClipboardList className="w-16 h-16 text-slate-100 mx-auto mb-4" />
+                <p className="text-slate-400 font-black uppercase text-xs tracking-widest">Nenhum pedido encontrado</p>
             </div>
         )}
       </div>
