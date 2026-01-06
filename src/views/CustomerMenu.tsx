@@ -139,13 +139,13 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
                 <Search className="absolute left-3.5 top-2.5 w-4 h-4 text-slate-400" />
                 <input type="text" placeholder="Buscar no cardápio..." className="w-full pl-10 pr-4 py-2.5 rounded-xl border-none bg-white shadow-sm font-medium text-sm" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
             </div>
-            {/* CATEGORIES GRID - Adjusted for wrap and smaller size */}
+            {/* CATEGORIES GRID */}
             <div className="flex flex-wrap gap-1.5">
                 {categories.map(cat => (
                     <button 
                         key={cat.id} 
                         onClick={() => setActiveCategory(cat.id)} 
-                        className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all border-2 ${activeCategory === cat.id ? 'bg-slate-900 border-slate-900 text-white shadow-sm' : 'bg-white border-slate-100 text-slate-500'}`}
+                        className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all border-2 ${activeCategory === cat.id ? 'bg-red-600 border-red-600 text-white shadow-sm' : 'bg-white border-slate-100 text-slate-500'}`}
                     >
                         {cat.name}
                     </button>
@@ -161,8 +161,8 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
                         <h3 className="font-bold text-sm text-slate-800 truncate">{item.name}</h3>
                         <p className="text-[10px] text-slate-500 line-clamp-2 flex-1 leading-snug">{item.description}</p>
                         <div className="flex justify-between items-end mt-1">
-                            <span className="font-black text-sm text-emerald-700">R$ {Number(item.price).toFixed(2)}</span>
-                            <button onClick={() => addToCart(item)} className="bg-slate-900 text-white w-8 h-8 rounded-lg flex items-center justify-center active:scale-90 transition-transform"><Plus className="w-4 h-4" /></button>
+                            <span className="font-black text-sm text-red-600">R$ {Number(item.price).toFixed(2)}</span>
+                            <button onClick={() => addToCart(item)} className="bg-red-600 text-white w-8 h-8 rounded-lg flex items-center justify-center active:scale-90 transition-transform"><Plus className="w-4 h-4" /></button>
                         </div>
                     </div>
                 </div>
@@ -172,9 +172,9 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
 
       {cart.length > 0 && (
           <div className="fixed bottom-4 left-3 right-3 z-40 max-w-4xl mx-auto">
-              <button onClick={() => setIsCheckoutOpen(true)} className="w-full bg-slate-900 text-white p-3.5 rounded-xl shadow-xl flex justify-between items-center active:scale-95 transition-all">
+              <button onClick={() => setIsCheckoutOpen(true)} className="w-full bg-red-600 text-white p-3.5 rounded-xl shadow-xl flex justify-between items-center active:scale-95 transition-all">
                   <div className="flex items-center gap-2.5">
-                      <div className="bg-emerald-500 w-6 h-6 flex items-center justify-center rounded text-xs font-black">{cart.reduce((a,b)=>a+b.quantity,0)}</div>
+                      <div className="bg-white text-red-600 w-6 h-6 flex items-center justify-center rounded text-xs font-black">{cart.reduce((a,b)=>a+b.quantity,0)}</div>
                       <span className="font-bold text-sm">Sacola</span>
                   </div>
                   <span className="font-black text-sm">R$ {cartTotal.toFixed(2)}</span>
@@ -196,7 +196,7 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
                    </div>
                </div>
 
-               <div className="p-4 bg-slate-900 text-white rounded-2xl flex justify-between font-black text-lg">
+               <div className="p-4 bg-red-600 text-white rounded-2xl flex justify-between font-black text-lg">
                    <span>Total</span><span>R$ {cartTotal.toFixed(2)}</span>
                </div>
 
@@ -219,7 +219,7 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
                             <button 
                                 key={method.id}
                                 onClick={() => setCustomerInfo({...customerInfo, payment: method.id})}
-                                className={`flex items-center gap-2 p-2.5 rounded-xl border transition-all font-bold text-[10px] ${customerInfo.payment === method.id ? 'border-emerald-500 bg-emerald-50 text-emerald-700' : 'border-slate-100 bg-slate-50 text-slate-500'}`}
+                                className={`flex items-center gap-2 p-2.5 rounded-xl border transition-all font-bold text-[10px] ${customerInfo.payment === method.id ? 'border-red-600 bg-red-50 text-red-700' : 'border-slate-100 bg-slate-50 text-slate-500'}`}
                             >
                                 <method.icon size={14} />
                                 {method.label}
@@ -231,7 +231,7 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
                     )}
                </div>
 
-               <Button className="w-full py-4 text-sm" onClick={checkoutOrder}>
+               <Button className="w-full py-4 text-sm bg-red-600 hover:bg-red-700 border-0" onClick={checkoutOrder}>
                    <Send className="w-4 h-4 mr-2" /> Enviar Pedido
                </Button>
            </div>

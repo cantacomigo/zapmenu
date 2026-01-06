@@ -1,5 +1,5 @@
 /* 
-  ZapMenu v2.0.2 - Compact Mode
+  ZapMenu v2.0.2 - Gastronomic Red Mode
 */
 import React, { useState, useEffect } from 'react';
 import { ViewState, Restaurant } from './types';
@@ -36,32 +36,32 @@ const LandingPage: React.FC<{
   return (
     <div className="min-h-screen bg-[#0F172A] relative overflow-hidden flex flex-col justify-center items-center p-4 text-white font-sans">
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0">
-          <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-emerald-500/20 rounded-full blur-[120px]"></div>
-          <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-blue-600/20 rounded-full blur-[120px]"></div>
+          <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-red-600/20 rounded-full blur-[120px]"></div>
+          <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-orange-600/20 rounded-full blur-[120px]"></div>
       </div>
 
       <div className="relative z-10 text-center max-w-4xl mx-auto mb-10 animate-in fade-in zoom-in duration-700">
-        <div className="inline-flex items-center px-2.5 py-1 rounded-full bg-white/10 border border-white/10 text-emerald-300 text-xs font-medium mb-4 backdrop-blur-md">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 mr-2 animate-pulse"></span>
-            v2.0 Compact
+        <div className="inline-flex items-center px-2.5 py-1 rounded-full bg-white/10 border border-white/10 text-red-400 text-xs font-medium mb-4 backdrop-blur-md">
+            <span className="w-1.5 h-1.5 rounded-full bg-red-500 mr-2 animate-pulse"></span>
+            v2.0 Gastronomic
         </div>
         <h1 className="text-5xl md:text-6xl font-extrabold tracking-tight mb-4 bg-clip-text text-transparent bg-gradient-to-r from-white via-slate-200 to-slate-400">
-          Zap<span className="text-emerald-400">Menu</span>
+          Zap<span className="text-red-500">Menu</span>
         </h1>
         <p className="text-lg text-slate-400 max-w-xl mx-auto leading-relaxed">
-          Cardápio digital inteligente com pedidos automáticos via WhatsApp.
+          Cardápio digital inteligente que abre o apetite dos seus clientes.
         </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-5xl w-full relative z-10">
         <div onClick={() => onRoleSelect('admin')} className="group cursor-pointer">
             <div className="h-full bg-white/5 backdrop-blur-lg border border-white/10 rounded-2xl p-6 hover:bg-white/10 transition-all duration-300 hover:border-white/20">
-                <div className="w-12 h-12 bg-slate-800 rounded-xl flex items-center justify-center mb-4 group-hover:bg-emerald-500 transition-colors duration-300">
+                <div className="w-12 h-12 bg-slate-800 rounded-xl flex items-center justify-center mb-4 group-hover:bg-red-600 transition-colors duration-300">
                     <UserCog className="w-6 h-6 text-slate-300 group-hover:text-white" />
                 </div>
                 <h2 className="text-xl font-bold mb-2 text-white">Super Admin</h2>
                 <p className="text-sm text-slate-400 mb-6 leading-relaxed">Gestão de estabelecimentos e assinaturas.</p>
-                <div className="flex items-center text-xs text-emerald-400 font-semibold group-hover:translate-x-1 transition-transform">
+                <div className="flex items-center text-xs text-red-400 font-semibold group-hover:translate-x-1 transition-transform">
                     Acessar <ArrowRight className="ml-1.5 w-3 h-3" />
                 </div>
             </div>
@@ -69,34 +69,34 @@ const LandingPage: React.FC<{
 
         <div onClick={() => onRoleSelect('manager')} className="group cursor-pointer">
              <div className="h-full bg-white/5 backdrop-blur-lg border border-white/10 rounded-2xl p-6 hover:bg-white/10 transition-all duration-300 hover:border-white/20">
-                <div className="w-12 h-12 bg-slate-800 rounded-xl flex items-center justify-center mb-4 group-hover:bg-blue-500 transition-colors duration-300">
+                <div className="w-12 h-12 bg-slate-800 rounded-xl flex items-center justify-center mb-4 group-hover:bg-orange-600 transition-colors duration-300">
                     <ChefHat className="w-6 h-6 text-slate-300 group-hover:text-white" />
                 </div>
                 <h2 className="text-xl font-bold mb-2 text-white">Gerente</h2>
                 <p className="text-sm text-slate-400 mb-6 leading-relaxed">Gestão de cardápio e pedidos em tempo real.</p>
-                <div className="flex items-center text-xs text-blue-400 font-semibold group-hover:translate-x-1 transition-transform">
+                <div className="flex items-center text-xs text-orange-400 font-semibold group-hover:translate-x-1 transition-transform">
                     Login <ArrowRight className="ml-1.5 w-3 h-3" />
                 </div>
             </div>
         </div>
 
         <div onClick={() => onRoleSelect('customer')} className="group cursor-pointer relative">
-            <div className="absolute -top-2 -right-2 bg-emerald-500 text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-lg z-20">
+            <div className="absolute -top-2 -right-2 bg-red-600 text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-lg z-20">
                 DEMO
             </div>
-            <div className="h-full bg-white/10 backdrop-blur-lg border border-emerald-500/30 rounded-2xl p-6 hover:bg-white/10 transition-all duration-300">
-                <div className="w-12 h-12 bg-emerald-900/50 rounded-xl flex items-center justify-center mb-4 group-hover:bg-emerald-500 transition-colors duration-300 border border-emerald-500/20">
-                    <Smartphone className="w-6 h-6 text-emerald-400 group-hover:text-white" />
+            <div className="h-full bg-white/10 backdrop-blur-lg border border-red-500/30 rounded-2xl p-6 hover:bg-white/10 transition-all duration-300">
+                <div className="w-12 h-12 bg-red-900/50 rounded-xl flex items-center justify-center mb-4 group-hover:bg-red-600 transition-colors duration-300 border border-red-500/20">
+                    <Smartphone className="w-6 h-6 text-red-400 group-hover:text-white" />
                 </div>
                 <h2 className="text-xl font-bold mb-2 text-white">Cliente</h2>
                 <p className="text-sm text-slate-300 mb-6 leading-relaxed">Experiência mobile-first de compra fluida.</p>
                 
                 {hasRestaurants === false ? (
-                    <Button onClick={handleSeed} isLoading={isSeeding} variant="primary" size="sm" className="w-full bg-amber-500 border-0">
+                    <Button onClick={handleSeed} isLoading={isSeeding} variant="primary" size="sm" className="w-full bg-amber-600 border-0">
                        <Database className="w-3.5 h-3.5 mr-1.5" /> Restaurar Dados
                     </Button>
                 ) : (
-                    <Button variant="primary" size="sm" className="w-full bg-emerald-500 border-0">
+                    <Button variant="primary" size="sm" className="w-full bg-red-600 border-0">
                        Ver Cardápio <ExternalLink className="ml-1.5 w-3.5 h-3.5" />
                     </Button>
                 )}
@@ -122,9 +122,9 @@ const ManagerLogin: React.FC<{ onLogin: (restId: string) => void, onBack: () => 
 
     return (
         <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
-            <Card className="w-full max-w-sm p-6">
+            <Card className="w-full max-w-sm p-6 text-slate-900 bg-white">
                 <div className="text-center mb-6">
-                    <div className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-blue-100 text-blue-600 mb-3">
+                    <div className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-red-100 text-red-600 mb-3">
                         <ChefHat size={20} />
                     </div>
                     <h2 className="text-xl font-bold text-slate-900">Portal do Gerente</h2>
@@ -140,9 +140,9 @@ const ManagerLogin: React.FC<{ onLogin: (restId: string) => void, onBack: () => 
                         >
                             <img src={r.logo} className="w-10 h-10 rounded-lg object-cover bg-slate-100" />
                             <div className="flex-1 overflow-hidden">
-                                <span className="font-bold text-sm text-slate-800 block truncate group-hover:text-blue-600 transition-colors">{r.name}</span>
+                                <span className="font-bold text-sm text-slate-800 block truncate group-hover:text-red-600 transition-colors">{r.name}</span>
                             </div>
-                            <ArrowRight className="w-3.5 h-3.5 text-slate-300 group-hover:text-blue-500" />
+                            <ArrowRight className="w-3.5 h-3.5 text-slate-300 group-hover:text-red-500" />
                         </button>
                     ))}
                 </div>
