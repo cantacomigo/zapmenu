@@ -34,8 +34,7 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({ restaurantId
 
   useEffect(() => {
     const init = async () => {
-        const restaurants = await db.getRestaurants();
-        const r = restaurants.find(r => r.id === restaurantId);
+        const r = await db.getRestaurantById(restaurantId);
         if (r) {
             setRestaurant(r);
             await refreshData();

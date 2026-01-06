@@ -74,6 +74,11 @@ export const db = {
     const { data } = await supabase.from('restaurants').select('*').order('name');
     return (data || []).map(fromDbRestaurant);
   },
+
+  getRestaurantById: async (id: string) => {
+    const { data } = await supabase.from('restaurants').select('*').eq('id', id).single();
+    return data ? fromDbRestaurant(data) : null;
+  },
   
   getRestaurantBySlug: async (slug: string) => {
     const { data } = await supabase.from('restaurants').select('*').eq('slug', slug).single();
