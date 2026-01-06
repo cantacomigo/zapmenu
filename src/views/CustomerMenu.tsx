@@ -83,7 +83,6 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
             }
         } catch (e) { console.error("Failed to load menu", e); }
         finally { 
-            // Pequeno delay para a mensagem de boas-vindas ser apreciada
             setTimeout(() => setIsLoading(false), 1200);
         }
     };
@@ -279,9 +278,12 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
                         <h1 className="text-3xl font-bold">{restaurant?.name}</h1>
                         <Badge color={isStoreOpen ? 'bg-emerald-500 text-white' : 'bg-red-500 text-white'}>{isStoreOpen ? 'Aberto' : 'Fechado'}</Badge>
                     </div>
-                    <div className="flex gap-3 text-sm font-medium text-slate-200 mt-1">
+                    <div className="flex flex-wrap gap-y-1 gap-x-3 text-sm font-medium text-slate-200 mt-1">
                         <span className="flex items-center"><Star className="w-4 h-4 text-yellow-400 mr-1" /> 4.8</span>
                         <span className="flex items-center"><Clock className="w-4 h-4 mr-1" /> {restaurant?.openingTime} - {restaurant?.closingTime}</span>
+                        {restaurant?.address && (
+                            <span className="flex items-center"><MapPin className="w-4 h-4 mr-1 text-slate-300" /> {restaurant.address}</span>
+                        )}
                     </div>
                 </div>
             </div>
@@ -299,6 +301,7 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
             </div>
         )}
 
+        {/* ... restante do código sem alterações */}
         {promotions.length > 0 && (
             <div className="space-y-4">
                 <div className="flex items-center gap-2">
