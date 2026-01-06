@@ -175,48 +175,52 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
       setCart([]);
       setIsCheckoutOpen(false);
 
-      // Emojis usando pares substitutos para evitar erro de codificação
-      const e_bento = "\uD83C\uDF71";
-      const e_user = "\uD83D\uDC64";
-      const e_phone = "\uD83D\uDCDE";
-      const e_pin = "\uD83D\uDCCD";
-      const e_cart = "\uD83D\uDED2";
-      const e_check = "\u2705";
-      const e_motor = "\uD83D\uDEF5";
-      const e_money = "\uD83D\uDCB0";
-      const e_card = "\uD83D\uDCB3";
-      const e_rocket = "\uD83D\uDE80";
-      const e_time = "\u23F3";
-      const e_spark = "\u2728";
-      const e_bill = "\uD83D\uDCB5";
+      // Emojis via CodePoints
+      const e = {
+          bento: String.fromCodePoint(0x1F371),
+          user: String.fromCodePoint(0x1F464),
+          phone: String.fromCodePoint(0x1F4DE),
+          pin: String.fromCodePoint(0x1F4CD),
+          cart: String.fromCodePoint(0x1F6D2),
+          check: String.fromCodePoint(0x2705),
+          motor: String.fromCodePoint(0x1F6F5),
+          money: String.fromCodePoint(0x1F4B0),
+          card: String.fromCodePoint(0x1F4B3),
+          rocket: String.fromCodePoint(0x1F680),
+          time: String.fromCodePoint(0x1F552),
+          spark: String.fromCodePoint(0x2728),
+          bill: String.fromCodePoint(0x1F4B5)
+      };
 
       const paymentLabel = {
-          'credit': `${e_card} Cartão de Crédito`,
-          'debit': `${e_card} Cartão de Débito`,
-          'pix': `${e_spark} Pix`,
-          'cash': `${e_bill} Dinheiro`
+          'credit': `${e.card} Cartão de Crédito`,
+          'debit': `${e.card} Cartão de Débito`,
+          'pix': `${e.spark} Pix`,
+          'cash': `${e.bill} Dinheiro`
       }[customerInfo.payment];
 
       const changeInfo = (customerInfo.payment === 'cash' && customerInfo.changeFor) 
-          ? `\n${e_money} *Troco para:* R$ ${customerInfo.changeFor}` 
+          ? `\n${e.money} *Troco para:* R$ ${customerInfo.changeFor}` 
           : '';
           
       const pixReminder = customerInfo.payment === 'pix' 
-          ? `\n\n${e_pin} *Atenção:* Vou enviar o comprovante do Pix em seguida! ${e_rocket}` 
+          ? `\n\n${e.pin} *Atenção:* Vou enviar o comprovante do Pix em seguida! ${e.rocket}` 
           : '';
 
-      const message = `*${e_bento} Novo Pedido: ${restaurant.name}*\n\n` +
-          `${e_user} *Cliente:* ${order.customerName}\n` +
-          `${e_phone} *Fone:* ${order.customerPhone}\n` +
-          `${e_pin} *Endereço:* ${order.customerAddress}\n\n` +
-          `${e_cart} *Itens do Pedido:*\n` + 
-          cart.map(i => `${e_check} ${i.quantity}x ${i.name} (R$ ${(i.price * i.quantity).toFixed(2)})`).join('\n') + 
-          `\n\n${e_motor} *Taxa de Entrega:* R$ ${deliveryFee.toFixed(2)}` +
-          `\n${e_money} *Total Geral:* R$ ${order.total.toFixed(2)}` +
-          `\n${e_card} *Forma de Pagamento:* ${paymentLabel}${changeInfo}${pixReminder}\n\n` +
-          `${e_time} *Pedido realizado em:* ${new Date().toLocaleTimeString('pt-BR')}`;
+      const message = `*${e.bento} Novo Pedido: ${restaurant.name}*\n\n` +
+          `${e.user} *Cliente:* ${order.customerName}\n` +
+          `${e.phone} *Fone:* ${order.customerPhone}\n` +
+          `${e.pin} *Endereço:* ${order.customerAddress}\n\n` +
+          `${e.cart} *Itens do Pedido:*\n` + 
+          cart.map(i => `${e.check} ${i.quantity}x ${i.name} (R$ ${(i.price * i.quantity).toFixed(2)})`).join('\n') + 
+          `\n\n${e.motor} *Taxa de Entrega:* R$ ${deliveryFee.toFixed(2)}` +
+          `\n${e.money} *Total Geral:* R$ ${order.total.toFixed(2)}` +
+          `\n${e.card} *Forma de Pagamento:* ${paymentLabel}${changeInfo}${pixReminder}\n\n` +
+          `${e.time} *Pedido realizado em:* ${new Date().toLocaleTimeString('pt-BR')}`;
 
-      window.open(`https://wa.me/${restaurant.phone}?text=${encodeURIComponent(message)}`, '_blank');
+      const cleanPhone = restaurant.phone.replace(/\D/g, '');
+      const url = `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(message)}`;
+      window.open(url, '_blank');
       setIsOrdersModalOpen(true);
   };
 
@@ -235,7 +239,6 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
 
   return (
     <div className="bg-slate-50 min-h-screen pb-32 md:pb-12 font-sans">
-      {/* Restante do componente permanece igual */}
       <div className="relative h-72 md:h-80 w-full overflow-hidden bg-slate-900">
          {coverImages.map((img, idx) => (
              <img key={idx} src={img} className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${idx === currentCoverIndex ? 'opacity-100' : 'opacity-0'}`} alt="cover" />

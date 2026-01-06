@@ -20,31 +20,33 @@ export const OrdersTab: React.FC<OrdersTabProps> = ({ orders, onRefresh, restaur
   const getWhatsAppMessage = (order: Order, type: Order['status'] | 'confirm_receipt') => {
     const orderId = order.id.slice(-6).toUpperCase();
     
-    // Definição de emojis usando surrogate pairs para evitar erro de codificação
-    const e_wave = "\uD83D\uDC4B";
-    const e_check = "\u2705";
-    const e_pin = "\uD83D\uDCCC";
-    const e_rocket = "\uD83D\uDE80";
-    const e_clock = "\u23F3";
-    const e_motor = "\uD83D\uDEF5";
-    const e_pray = "\uD83D\uDE4F";
-    const e_money = "\uD83D\uDCB0";
-    const e_fire = "\uD83D\uDD25";
-    const e_wind = "\uD83D\uDCA8";
-    const e_party = "\uD83C\uDF89";
-    const e_yum = "\uD83D\uDE0B";
-    const e_cancel = "\u274C";
+    // Geração de emojis via CodePoints (A forma mais segura em JS)
+    const e = {
+        wave: String.fromCodePoint(0x1F44B),
+        check: String.fromCodePoint(0x2705),
+        pin: String.fromCodePoint(0x1F4CC),
+        rocket: String.fromCodePoint(0x1F680),
+        clock: String.fromCodePoint(0x23F3),
+        motor: String.fromCodePoint(0x1F6F5),
+        pray: String.fromCodePoint(0x1F64F),
+        money: String.fromCodePoint(0x1F4B0),
+        fire: String.fromCodePoint(0x1F525),
+        wind: String.fromCodePoint(0x1F4A8),
+        party: String.fromCodePoint(0x1F389),
+        yum: String.fromCodePoint(0x1F60B),
+        cancel: String.fromCodePoint(0x274C)
+    };
 
-    const greeting = `${e_wave} Olá *${order.customerName}*!`;
-    const footer = `\n\n${e_pray} Agradecemos a preferência!\n*${restaurantName || 'ZapMenu'}*`;
+    const greeting = `${e.wave} Olá *${order.customerName}*!`;
+    const footer = `\n\n${e.pray} Agradecemos a preferência!\n*${restaurantName || 'ZapMenu'}*`;
 
     if (type === 'confirm_receipt') {
-      let msg = `${greeting}\n\n${e_check} *Pedido Recebido!* Confirmamos que recebemos seu pedido *#${orderId}* e já vamos iniciar o preparo.`;
+      let msg = `${greeting}\n\n${e.check} *Pedido Recebido!* Confirmamos que recebemos seu pedido *#${orderId}* e já vamos iniciar o preparo.`;
       
       if (order.paymentMethod === 'pix') {
-        msg += `\n\n${e_pin} *Atenção:* Vimos que você optou pelo pagamento via *Pix*. Por favor, *envie o comprovante aqui nesta conversa* para que possamos validar e liberar seu pedido mais rápido! ${e_rocket}`;
+        msg += `\n\n${e.pin} *Atenção:* Vimos que você optou pelo pagamento via *Pix*. Por favor, *envie o comprovante aqui nesta conversa* para que possamos validar e liberar seu pedido mais rápido! ${e.rocket}`;
       } else {
-        msg += `\n\n${e_clock} Fique atento, te avisaremos por aqui assim que ele sair para entrega! ${e_motor}`;
+        msg += `\n\n${e.clock} Fique atento, te avisaremos por aqui assim que ele sair para entrega! ${e.motor}`;
       }
       
       return msg + footer;
@@ -52,23 +54,28 @@ export const OrdersTab: React.FC<OrdersTabProps> = ({ orders, onRefresh, restaur
 
     switch (type) {
       case 'paid':
-        return `${greeting}\n${e_money} *Pagamento Confirmado!* Recebemos seu pagamento do pedido *#${orderId}*. Seu pedido já está sendo preparado com muito carinho! ${e_fire}${footer}`;
+        return `${greeting}\n${e.money} *Pagamento Confirmado!* Recebemos seu pagamento do pedido *#${orderId}*. Seu pedido já está sendo preparado com muito carinho! ${e.fire}${footer}`;
       case 'shipped':
-        return `${greeting}\n${e_motor} *Pedido em Caminho!* Seu pedido *#${orderId}* acabou de sair para entrega. Prepare a mesa, logo chegamos aí! ${e_wind}${footer}`;
+        return `${greeting}\n${e.motor} *Pedido em Caminho!* Seu pedido *#${orderId}* acabou de sair para entrega. Prepare a mesa, logo chegamos aí! ${e.wind}${footer}`;
       case 'completed':
-        return `${greeting}\n${e_party} *Pedido Finalizado!* Seu pedido *#${orderId}* foi entregue com sucesso. Bom apetite e aproveite sua refeição! ${e_yum}${e_yum}${footer}`;
+        return `${greeting}\n${e.party} *Pedido Finalizado!* Seu pedido *#${orderId}* foi entregue com sucesso. Bom apetite e aproveite sua refeição! ${e.yum}${e.yum}${footer}`;
       case 'cancelled':
-        return `${greeting}\n${e_cancel} *Pedido Cancelado.* Lamentamos informar, mas seu pedido *#${orderId}* foi cancelado. Se tiver qualquer dúvida, estamos à disposição por aqui.${footer}`;
+        return `${greeting}\n${e.cancel} *Pedido Cancelado.* Lamentamos informar, mas seu pedido *#${orderId}* foi cancelado. Se tiver qualquer dúvida, estamos à disposição por aqui.${footer}`;
       default:
         return '';
     }
   };
 
+  const openWhatsApp = (phone: string, message: string) => {
+    const cleanPhone = phone.replace(/\D/g, '');
+    // Usando a URL da API oficial que é mais estável para codificação
+    const url = `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(message)}`;
+    window.open(url, '_blank');
+  };
+
   const handleSendConfirmation = (order: Order) => {
     const message = getWhatsAppMessage(order, 'confirm_receipt');
-    const phone = order.customerPhone.replace(/\D/g, '');
-    const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
-    window.open(url, '_blank');
+    openWhatsApp(order.customerPhone, message);
     toast.success("Mensagem de confirmação enviada!");
   };
 
@@ -79,9 +86,7 @@ export const OrdersTab: React.FC<OrdersTabProps> = ({ orders, onRefresh, restaur
       
       const message = getWhatsAppMessage(order, status);
       if (message) {
-        const phone = order.customerPhone.replace(/\D/g, '');
-        const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
-        window.open(url, '_blank');
+        openWhatsApp(order.customerPhone, message);
       }
       
       onRefresh();
@@ -210,7 +215,7 @@ export const OrdersTab: React.FC<OrdersTabProps> = ({ orders, onRefresh, restaur
                   <button 
                     onClick={() => {
                       const phone = order.customerPhone.replace(/\D/g, '');
-                      window.open(`https://wa.me/${phone}`, '_blank');
+                      window.open(`https://api.whatsapp.com/send?phone=${phone}`, '_blank');
                     }}
                     className="p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all"
                     title="Conversar no WhatsApp"
