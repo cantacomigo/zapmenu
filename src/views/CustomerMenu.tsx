@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { db } from '../services/db';
 import { CartItem, Category, MenuItem, Restaurant, Order, CustomerUser, Promotion, Giveaway, ProductAddon } from '../types';
 import { Button, Modal, Input, Badge } from '../components/ui';
-import { ShoppingBag, Minus, Plus, Search, MapPin, ArrowLeft, Send, Check, Star, Clock, AlertCircle, Banknote, QrCode, Copy, User, LogIn, LogOut, Store, Megaphone, Gift, Calendar, Trophy, X, Package, Utensils, Coins, ClipboardList } from 'lucide-react';
+import { ShoppingBag, Minus, Plus, Search, MapPin, ArrowLeft, Send, Check, Star, Clock, AlertCircle, Banknote, QrCode, Copy, User, LogIn, LogOut, Store, Megaphone, Gift, Calendar, Trophy, X, Package, Utensils, Coins, ClipboardList, Sparkles } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ slug, onBack }) => {
@@ -82,7 +82,10 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
               if (cats.length > 0) setActiveCategory(cats[0].id);
             }
         } catch (e) { console.error("Failed to load menu", e); }
-        finally { setIsLoading(false); }
+        finally { 
+            // Pequeno delay para a mensagem de boas-vindas ser apreciada
+            setTimeout(() => setIsLoading(false), 800);
+        }
     };
     fetchMenu();
     const storedUser = localStorage.getItem('zapmenu_current_user');
@@ -231,7 +234,20 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
     return res;
   }, [items, activeCategory, searchTerm]);
 
-  if (isLoading) return <div className="flex h-screen items-center justify-center">Carregando...</div>;
+  if (isLoading) return (
+    <div className="flex flex-col h-screen items-center justify-center bg-white p-6 text-center animate-in fade-in duration-500">
+        <div className="w-20 h-20 bg-emerald-50 text-emerald-600 rounded-3xl flex items-center justify-center mb-6 animate-bounce shadow-inner">
+            <Sparkles size={40} />
+        </div>
+        <h2 className="text-2xl font-black text-slate-900 tracking-tight">Bem-vindo ao ZapMenu!</h2>
+        <p className="text-slate-500 mt-2 font-medium max-w-xs mx-auto">Estamos preparando o cardápio delicioso para você... 🍱</p>
+        <div className="mt-8 flex gap-1.5">
+            <div className="w-2 h-2 bg-emerald-600 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+            <div className="w-2 h-2 bg-emerald-600 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+            <div className="w-2 h-2 bg-emerald-600 rounded-full animate-bounce"></div>
+        </div>
+    </div>
+  );
 
   return (
     <div className="bg-slate-50 min-h-screen pb-32 md:pb-12 font-sans">
