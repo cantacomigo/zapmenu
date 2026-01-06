@@ -2,7 +2,7 @@ import React from 'react';
 import { db } from '../../services/db';
 import { Order } from '../../types';
 import { Card, Badge, Button } from '../../components/ui';
-import { MessageSquare, CheckCircle2, Truck, XCircle, CreditCard, ChefHat } from 'lucide-react';
+import { MessageSquare, CheckCircle2, Truck, XCircle, CreditCard } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 interface OrdersTabProps {
@@ -18,10 +18,8 @@ export const OrdersTab: React.FC<OrdersTabProps> = ({ orders, onRefresh, restaur
     const footer = `\n\nAgradecemos a preferência!\n*${restaurantName || 'ZapMenu'}*`;
 
     switch (status) {
-      case 'confirmed':
-        return `${greeting}\n✅ *Pedido Aceito!* Seu pedido *#${orderId}* já está sendo preparado com muito carinho pela nossa equipe. 👨‍🍳${footer}`;
       case 'paid':
-        return `${greeting}\n💰 *Pagamento Confirmado!* Recebemos seu pagamento do pedido *#${orderId}*. Agora é só aguardar!${footer}`;
+        return `${greeting}\n💰 *Pagamento Confirmado!* Recebemos seu pagamento do pedido *#${orderId}*. Seu pedido já está sendo preparado!${footer}`;
       case 'shipped':
         return `${greeting}\n🛵 *Pedido em Caminho!* Seu pedido *#${orderId}* acabou de sair para entrega. Prepare a mesa! 💨${footer}`;
       case 'completed':
@@ -54,7 +52,6 @@ export const OrdersTab: React.FC<OrdersTabProps> = ({ orders, onRefresh, restaur
   const getStatusDisplay = (status: string) => {
     switch (status) {
       case 'pending': return { label: 'Pendente', color: 'bg-amber-100 text-amber-700' };
-      case 'confirmed': return { label: 'Em Preparo', color: 'bg-blue-100 text-blue-700' };
       case 'paid': return { label: 'Pago', color: 'bg-emerald-100 text-emerald-700' };
       case 'shipped': return { label: 'Em Entrega', color: 'bg-purple-100 text-purple-700' };
       case 'completed': return { label: 'Finalizado', color: 'bg-slate-100 text-slate-700' };
@@ -102,16 +99,11 @@ export const OrdersTab: React.FC<OrdersTabProps> = ({ orders, onRefresh, restaur
 
                 <div className="flex flex-wrap gap-2 items-center justify-end">
                   {order.status === 'pending' && (
-                      <Button size="sm" onClick={() => handleUpdateStatus(order, 'confirmed')} className="bg-blue-600">
-                          <ChefHat className="w-4 h-4 mr-1.5" /> Aceitar
-                      </Button>
-                  )}
-                  {order.status === 'confirmed' && (
                       <Button size="sm" onClick={() => handleUpdateStatus(order, 'paid')} className="bg-emerald-600">
                           <CreditCard className="w-4 h-4 mr-1.5" /> Confirmar Pagto
                       </Button>
                   )}
-                  {['confirmed', 'paid'].includes(order.status) && (
+                  {['pending', 'paid'].includes(order.status) && (
                       <Button size="sm" onClick={() => handleUpdateStatus(order, 'shipped')} className="bg-purple-600">
                           <Truck className="w-4 h-4 mr-1.5" /> Enviar Entrega
                       </Button>
@@ -121,7 +113,7 @@ export const OrdersTab: React.FC<OrdersTabProps> = ({ orders, onRefresh, restaur
                           <CheckCircle2 className="w-4 h-4 mr-1.5" /> Finalizar
                       </Button>
                   )}
-                  {['pending', 'confirmed', 'paid'].includes(order.status) && (
+                  {['pending', 'paid'].includes(order.status) && (
                       <Button size="sm" variant="danger" onClick={() => handleUpdateStatus(order, 'cancelled')}>
                           <XCircle className="w-4 h-4 mr-1.5" /> Cancelar
                       </Button>
