@@ -38,6 +38,15 @@ export interface Category {
   id: string;
   restaurantId: string;
   name: string;
+  parentId?: string;
+}
+
+export interface ProductAddon {
+  id: string;
+  restaurantId: string;
+  name: string;
+  price: number;
+  available: boolean;
 }
 
 export interface MenuItem {
@@ -50,10 +59,12 @@ export interface MenuItem {
   image: string;
   available: boolean;
   stock?: number;
+  addons?: ProductAddon[];
 }
 
 export interface CartItem extends MenuItem {
   quantity: number;
+  selectedAddons?: ProductAddon[];
   notes?: string;
 }
 

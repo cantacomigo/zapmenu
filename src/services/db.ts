@@ -1,5 +1,5 @@
 import { supabase } from '../integrations/supabase/client';
-import { AdminUser, Category, CustomerUser, Giveaway, MenuItem, Order, Promotion, Restaurant, RestaurantStaff, CartItem } from "../types";
+import { AdminUser, Category, CustomerUser, Giveaway, MenuItem, Order, Promotion, Restaurant, RestaurantStaff, CartItem, ProductAddon } from "../types";
 
 const fromDbRestaurant = (r: any): Restaurant => ({
     id: r.id,
@@ -35,56 +35,20 @@ const fromDbOrder = (o: any): Order => ({
 });
 
 export const db = {
-  // Auth Admins
   loginAdmin: async (email: string, password: string): Promise<AdminUser | null> => {
-    const { data, error } = await supabase
-        .from('admins')
-        .select('*')
-        .eq('email', email)
-        .eq('password', password)
-        .single();
-    
+    const { data, error } = await supabase.from('admins').select('*').eq('email', email).eq('password', password).single();
     if (error || !data) return null;
-    return {
-        id: data.id,
-        name: data.name,
-        email: data.email,
-        role: data.role,
-        createdAt: new Date(data.created_at).getTime()
-    };
+    return { id: data.id, name: data.name, email: data.email, role: data.role, createdAt: new Date(data.created_at).getTime() };
   },
 
-  // Auth Managers/Staff
   loginStaff: async (email: string, password: string): Promise<RestaurantStaff | null> => {
-    const { data, error } = await supabase
-        .from('restaurant_staff')
-        .select('*')
-        .eq('email', email)
-        .eq('password', password)
-        .single();
-    
+    const { data, error } = await supabase.from('restaurant_staff').select('*').eq('email', email).eq('password', password).single();
     if (error || !data) return null;
-    return {
-        id: data.id,
-        restaurantId: data.restaurant_id,
-        name: data.name,
-        email: data.email,
-        role: data.role,
-        createdAt: new Date(data.created_at).getTime()
-    };
+    return { id: data.id, restaurantId: data.restaurant_id, name: data.name, email: data.email, role: data.role, createdAt: new Date(data.created_at).getTime() };
   },
 
   addStaff: async (staff: Partial<RestaurantStaff>) => {
-    const { data, error } = await supabase.from('restaurant_staff').insert({
-        restaurant_id: staff.restaurantId,
-        name: staff.name,
-        email: staff.email,
-        password: staff.password,
-        role: staff.role || 'manager'
-    }).select().single();
-    
-    if (error) throw error;
-    return data;
+    return await supabase.from('restaurant_staff').insert({ restaurant_id: staff.restaurantId, name: staff.name, email: staff.email, password: staff.password, role: staff.role || 'manager' });
   },
 
   getRestaurants: async () => {
@@ -102,12 +66,15 @@ export const db = {
     return data ? fromDbRestaurant(data) : undefined;
   },
 
-  addRestaurant: async (rest: Restaurant) => {
+  addRestaurant: async (rest: Partial<Restaurant>) => {
     return await supabase.from('restaurants').insert({ 
-        name: rest.name, slug: rest.slug, phone: rest.phone, address: rest.address,
-        logo: rest.logo, cover_image: rest.coverImage, is_active: true,
-        opening_time: rest.openingTime || '08:00',
-        closing_time: rest.closingTime || '22:00'
+        name: rest.name, 
+        slug: rest.slug, 
+        phone: rest.phone, 
+        address: rest.address,
+        logo: rest.logo, 
+        cover_image: rest.coverImage, 
+        is_active: true 
     });
   },
 
@@ -115,34 +82,56 @@ export const db = {
     return await supabase.from('restaurants').update({
         name: rest.name, slug: rest.slug, phone: rest.phone, address: rest.address,
         logo: rest.logo, cover_image: rest.coverImage, min_order_value: rest.minOrderValue, 
-        delivery_fee: rest.deliveryFee, pix_key: rest.pixKey,
-        opening_time: rest.openingTime, closing_time: rest.closingTime
+        delivery_fee: rest.deliveryFee, pix_key: rest.pixKey, opening_time: rest.openingTime, closing_time: rest.closingTime
     }).eq('id', rest.id);
   },
 
-  deleteRestaurant: async (id: string) => supabase.from('restaurants').delete().eq('id', id),
+  deleteRestaurant: async (id: string) => {
+    return await supabase.from('restaurants').delete().eq('id', id);
+  },
 
   getCategories: async (restaurantId: string): Promise<Category[]> => {
     const { data } = await supabase.from('categories').select('*').eq('restaurant_id', restaurantId).order('name');
-    return (data || []).map(c => ({ id: c.id, restaurantId: c.restaurant_id, name: c.name }));
+    return (data || []).map(c => ({ id: c.id, restaurantId: c.restaurant_id, name: c.name, parentId: c.parent_id }));
   },
 
-  addCategory: async (cat: Category) => {
-    return await supabase.from('categories').insert({ name: cat.name, restaurant_id: cat.restaurantId });
+  addCategory: async (cat: Partial<Category>) => {
+    return await supabase.from('categories').insert({ name: cat.name, restaurant_id: cat.restaurantId, parent_id: cat.parentId });
   },
 
   updateCategory: async (cat: Category) => {
-    return await supabase.from('categories').update({ name: cat.name }).eq('id', cat.id);
+    return await supabase.from('categories').update({ name: cat.name, parent_id: cat.parentId }).eq('id', cat.id);
   },
 
   deleteCategory: async (id: string) => supabase.from('categories').delete().eq('id', id),
 
   getMenuItems: async (restaurantId: string): Promise<MenuItem[]> => {
-    const { data } = await supabase.from('menu_items').select('*').eq('restaurant_id', restaurantId).order('name');
-    return (data || []).map(i => ({ ...i, restaurantId: i.restaurant_id, categoryId: i.category_id }));
+    const { data, error } = await supabase
+      .from('menu_items')
+      .select(`
+        *,
+        addons:menu_item_addons(
+          addon:product_addons(*)
+        )
+      `)
+      .eq('restaurant_id', restaurantId)
+      .order('name');
+    
+    return (data || []).map(i => ({
+      ...i,
+      restaurantId: i.restaurant_id,
+      categoryId: i.category_id,
+      addons: i.addons?.map((a: any) => ({
+        id: a.addon.id,
+        restaurantId: a.addon.restaurant_id,
+        name: a.addon.name,
+        price: Number(a.addon.price),
+        available: a.addon.available
+      })) || []
+    }));
   },
 
-  saveMenuItem: async (item: MenuItem) => {
+  saveMenuItem: async (item: MenuItem, addonIds: string[] = []) => {
     const payload = {
         restaurant_id: item.restaurantId,
         category_id: item.categoryId,
@@ -150,14 +139,38 @@ export const db = {
         price: item.price,
         description: item.description,
         image: item.image,
-        available: item.available,
-        stock: item.stock
+        available: item.available
     };
-    if (item.id) return await supabase.from('menu_items').update(payload).eq('id', item.id);
-    return await supabase.from('menu_items').insert(payload);
+
+    let itemId = item.id;
+    if (itemId) {
+      await supabase.from('menu_items').update(payload).eq('id', itemId);
+    } else {
+      const { data } = await supabase.from('menu_items').insert(payload).select().single();
+      itemId = data.id;
+    }
+
+    await supabase.from('menu_item_addons').delete().eq('menu_item_id', itemId);
+    if (addonIds.length > 0) {
+      await supabase.from('menu_item_addons').insert(addonIds.map(aId => ({ menu_item_id: itemId, addon_id: aId })));
+    }
+    return itemId;
   },
 
   deleteMenuItem: async (id: string) => supabase.from('menu_items').delete().eq('id', id),
+
+  getAddons: async (restaurantId: string): Promise<ProductAddon[]> => {
+    const { data } = await supabase.from('product_addons').select('*').eq('restaurant_id', restaurantId).order('name');
+    return (data || []).map(a => ({ id: a.id, restaurantId: a.restaurant_id, name: a.name, price: Number(a.price), available: a.available }));
+  },
+
+  saveAddon: async (addon: Partial<ProductAddon>) => {
+    const payload = { restaurant_id: addon.restaurantId, name: addon.name, price: addon.price, available: addon.available };
+    if (addon.id) return await supabase.from('product_addons').update(payload).eq('id', addon.id);
+    return await supabase.from('product_addons').insert(payload);
+  },
+
+  deleteAddon: async (id: string) => supabase.from('product_addons').delete().eq('id', id),
 
   getOrders: async (restaurantId: string): Promise<Order[]> => {
     const { data } = await supabase.from('orders').select('*').eq('restaurant_id', restaurantId).order('created_at', { ascending: false });
@@ -176,16 +189,9 @@ export const db = {
 
   addOrder: async (order: Order) => {
     return await supabase.from('orders').insert({
-        restaurant_id: order.restaurantId,
-        customer_name: order.customerName,
-        customer_phone: order.customerPhone,
-        customer_address: order.customerAddress,
-        payment_method: order.paymentMethod,
-        payment_details: order.paymentDetails,
-        scheduled_time: order.scheduledTime,
-        items: order.items,
-        total: order.total,
-        status: 'pending'
+        restaurant_id: order.restaurantId, customer_name: order.customerName, customer_phone: order.customerPhone,
+        customer_address: order.customerAddress, payment_method: order.paymentMethod, payment_details: order.paymentDetails,
+        scheduled_time: order.scheduledTime, items: order.items, total: order.total, status: 'pending'
     });
   },
 
@@ -195,25 +201,11 @@ export const db = {
 
   getPromotions: async (restaurantId: string): Promise<Promotion[]> => {
     const { data } = await supabase.from('promotions').select('*').eq('restaurant_id', restaurantId);
-    return (data || []).map(p => ({ 
-        ...p, 
-        restaurantId: p.restaurant_id, 
-        discountedPrice: Number(p.discounted_price), 
-        originalPrice: Number(p.original_price), 
-        isActive: p.is_active 
-    }));
+    return (data || []).map(p => ({ ...p, restaurantId: p.restaurant_id, discountedPrice: Number(p.discounted_price), originalPrice: Number(p.original_price), isActive: p.is_active }));
   },
 
   savePromotion: async (promo: Promotion) => {
-    const payload = {
-        restaurant_id: promo.restaurantId,
-        title: promo.title,
-        description: promo.description,
-        original_price: promo.originalPrice,
-        discounted_price: promo.discountedPrice,
-        image: promo.image,
-        is_active: promo.isActive
-    };
+    const payload = { restaurant_id: promo.restaurantId, title: promo.title, description: promo.description, original_price: promo.originalPrice, discounted_price: promo.discountedPrice, image: promo.image, is_active: promo.isActive };
     if (promo.id) return await supabase.from('promotions').update(payload).eq('id', promo.id);
     return await supabase.from('promotions').insert(payload);
   },
@@ -226,92 +218,32 @@ export const db = {
   },
 
   saveGiveaway: async (give: Giveaway) => {
-    const payload = {
-        restaurant_id: give.restaurantId,
-        title: give.title,
-        prize: give.prize,
-        description: give.description,
-        draw_date: give.drawDate,
-        image: give.image,
-        is_active: give.isActive,
-        winner_name: give.winnerName,
-        winner_phone: give.winnerPhone,
-        drawn_at: give.drawnAt ? new Date(give.drawnAt).toISOString() : null
-    };
+    const payload = { restaurant_id: give.restaurantId, title: give.title, prize: give.prize, description: give.description, draw_date: give.drawDate, image: give.image, is_active: give.isActive, winner_name: give.winnerName, winner_phone: give.winnerPhone, drawn_at: give.drawnAt ? new Date(give.drawnAt).toISOString() : null };
     if (give.id) return await supabase.from('giveaways').update(payload).eq('id', give.id);
     return await supabase.from('giveaways').insert(payload);
   },
 
   deleteGiveaway: async (id: string) => supabase.from('giveaways').delete().eq('id', id),
 
-  getCustomers: async (): Promise<CustomerUser[]> => {
-      const { data } = await supabase.from('customers').select('*').order('name');
-      return (data || []).map(c => ({
-          id: c.id,
-          name: c.name,
-          phone: c.phone,
-          address: c.address,
-          createdAt: new Date(c.created_at).getTime()
-      }));
-  },
-
   loginCustomer: async (phone: string, password: string): Promise<CustomerUser | null> => {
-    const { data, error } = await supabase
-        .from('customers')
-        .select('*')
-        .eq('phone', phone)
-        .eq('password', password)
-        .single();
-    
+    const { data, error } = await supabase.from('customers').select('*').eq('phone', phone).eq('password', password).single();
     if (error || !data) return null;
-    return {
-        id: data.id,
-        name: data.name,
-        phone: data.phone,
-        address: data.address,
-        createdAt: new Date(data.created_at).getTime()
-    };
+    return { id: data.id, name: data.name, phone: data.phone, address: data.address, createdAt: new Date(data.created_at).getTime() };
   },
 
   registerCustomer: async (customer: Partial<CustomerUser>): Promise<CustomerUser | null> => {
-    const { data, error } = await supabase
-        .from('customers')
-        .insert({
-            name: customer.name,
-            phone: customer.phone,
-            password: customer.password,
-            address: customer.address
-        })
-        .select()
-        .single();
-    
+    const { data, error } = await supabase.from('customers').insert({ name: customer.name, phone: customer.phone, password: customer.password, address: customer.address }).select().single();
     if (error || !data) return null;
-    return {
-        id: data.id,
-        name: data.name,
-        phone: data.phone,
-        address: data.address,
-        createdAt: new Date(data.created_at).getTime()
-    };
+    return { id: data.id, name: data.name, phone: data.phone, address: data.address, createdAt: new Date(data.created_at).getTime() };
   },
 
   getAdmins: async (): Promise<AdminUser[]> => {
     const { data } = await supabase.from('admins').select('*').order('created_at');
-    return (data || []).map(a => ({
-        id: a.id,
-        name: a.name,
-        email: a.email,
-        role: a.role,
-        createdAt: new Date(a.created_at).getTime()
-    }));
+    return (data || []).map(a => ({ id: a.id, name: a.name, email: a.email, role: a.role, createdAt: new Date(a.created_at).getTime() }));
   },
 
   addAdmin: async (admin: Partial<AdminUser>) => {
-    return await supabase.from('admins').insert({
-        name: admin.name,
-        email: admin.email,
-        role: admin.role || 'support'
-    });
+    return await supabase.from('admins').insert({ name: admin.name, email: admin.email, role: admin.role || 'support' });
   },
 
   deleteAdmin: async (id: string) => supabase.from('admins').delete().eq('id', id)
