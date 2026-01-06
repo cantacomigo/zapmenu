@@ -147,13 +147,13 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
   return (
     <div className="bg-slate-50 min-h-screen pb-24 font-sans">
       <div className="relative h-44 w-full overflow-hidden bg-slate-900">
-         <img src={restaurant.coverImage} className="w-full h-full object-cover opacity-60" />
+         <img src={restaurant.coverImage} className="w-full h-full object-cover opacity-60" loading="eager" />
          <div className="absolute inset-0 bg-gradient-to-t from-slate-900 to-transparent"></div>
          <div className="absolute top-3 left-3 z-10">
             <button onClick={onBack} className="p-1.5 bg-white/10 rounded-full text-white backdrop-blur-md"><ArrowLeft className="w-4 h-4" /></button>
          </div>
          <div className="absolute bottom-4 left-4 z-10 flex items-center gap-3">
-            <img src={restaurant.logo} className="w-16 h-16 rounded-xl bg-white p-0.5 object-cover shadow-lg" />
+            <img src={restaurant.logo} className="w-16 h-16 rounded-xl bg-white p-0.5 object-cover shadow-lg" loading="eager" />
             <div className="text-white">
                 <h1 className="text-xl font-black leading-tight">{restaurant.name}</h1>
                 <p className="text-[10px] text-slate-300 flex items-center gap-1 uppercase tracking-wider font-bold"><Clock size={10} /> {restaurant.estimatedTime || '30-45 min'}</p>
@@ -183,7 +183,7 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
             {filteredItems.map(item => (
                 <div key={item.id} className="bg-white p-3 rounded-2xl shadow-sm border border-slate-100 flex gap-3 hover:shadow-md transition-shadow">
-                    <img src={item.image} className="w-20 h-20 rounded-xl object-cover" />
+                    <img src={item.image} className="w-20 h-20 rounded-xl object-cover" loading="lazy" />
                     <div className="flex-1 flex flex-col min-w-0">
                         <h3 className="font-bold text-sm text-slate-800 truncate">{item.name}</h3>
                         <p className="text-[10px] text-slate-500 line-clamp-2 flex-1 leading-snug">{item.description}</p>
