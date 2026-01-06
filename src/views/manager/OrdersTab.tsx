@@ -10,11 +10,12 @@ interface OrdersTabProps {
   orders: Order[];
   onRefresh: () => void;
   restaurantName?: string;
+  restaurantLogo?: string;
 }
 
 type StatusFilter = 'all' | Order['status'];
 
-export const OrdersTab: React.FC<OrdersTabProps> = ({ orders, onRefresh, restaurantName }) => {
+export const OrdersTab: React.FC<OrdersTabProps> = ({ orders, onRefresh, restaurantName, restaurantLogo }) => {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [printingOrder, setPrintingOrder] = useState<Order | null>(null);
@@ -119,7 +120,11 @@ export const OrdersTab: React.FC<OrdersTabProps> = ({ orders, onRefresh, restaur
     <div className="space-y-6">
       {/* Hidden container for printing */}
       {printingOrder && (
-          <OrderReceipt order={printingOrder} restaurantName={restaurantName || 'ZapMenu'} />
+          <OrderReceipt 
+            order={printingOrder} 
+            restaurantName={restaurantName || 'ZapMenu'} 
+            restaurantLogo={restaurantLogo}
+          />
       )}
 
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">

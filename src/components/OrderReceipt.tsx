@@ -4,12 +4,23 @@ import { Order } from '../types';
 interface OrderReceiptProps {
   order: Order;
   restaurantName: string;
+  restaurantLogo?: string;
 }
 
-export const OrderReceipt: React.FC<OrderReceiptProps> = ({ order, restaurantName }) => {
+export const OrderReceipt: React.FC<OrderReceiptProps> = ({ order, restaurantName, restaurantLogo }) => {
   return (
     <div id={`receipt-${order.id}`} className="print-only hidden print:block bg-white text-black p-4 w-[80mm] font-mono text-sm leading-tight">
       <div className="text-center border-b border-dashed border-black pb-2 mb-2">
+        {restaurantLogo && (
+          <div className="flex justify-center mb-2">
+            <img 
+              src={restaurantLogo} 
+              alt="Logo" 
+              className="w-20 h-20 object-contain" 
+              style={{ filter: 'grayscale(100%) contrast(200%)' }} // Otimiza para impressão térmica P&B
+            />
+          </div>
+        )}
         <h2 className="text-lg font-bold uppercase">{restaurantName}</h2>
         <p>PEDIDO #{order.id.slice(-6).toUpperCase()}</p>
         <p>{new Date(order.createdAt).toLocaleString('pt-BR')}</p>
