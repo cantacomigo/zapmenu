@@ -6,6 +6,8 @@ import { ViewState, Restaurant } from './types';
 import { AdminDashboard } from './views/AdminDashboard';
 import { ManagerDashboard } from './views/ManagerDashboard';
 import { CustomerMenu } from './views/CustomerMenu';
+import { CustomerLogin } from './views/customer/CustomerLogin';
+import { CustomerRegister } from './views/customer/CustomerRegister';
 import { db } from './services/db';
 import { Button, Card } from './components/ui';
 import { ToastProvider } from './components/ToastProvider';
@@ -70,7 +72,7 @@ const LandingPage: React.FC<{
                 <p className="text-sm text-slate-300 mb-6 leading-relaxed">Visualize como os clientes veem sua loja online.</p>
                 
                 <Button variant="primary" size="sm" className="w-full bg-red-600 border-0">
-                    Ver Cardápio <ExternalLink className="ml-1.5 w-3.5 h-3.5" />
+                    Acessar Menu <ExternalLink className="ml-1.5 w-3.5 h-3.5" />
                 </Button>
             </div>
         </div>
@@ -138,6 +140,8 @@ export default function App() {
               if (slug) setViewState({ view: 'CUSTOMER_MENU', slug });
           } else if (hash === 'admin') {
               setViewState({ view: 'SUPER_ADMIN' });
+          } else if (hash === 'customer-login') {
+              setViewState({ view: 'CUSTOMER_LOGIN' });
           } else if (hash === '') {
               setViewState({ view: 'LANDING' });
           }
@@ -156,13 +160,20 @@ export default function App() {
           setViewState({ view: 'MANAGER_LOGIN' });
           window.location.hash = 'manager-login';
       } else if (role === 'customer') {
-          const restaurants = await db.getRestaurants();
-          if (restaurants.length > 0) {
-            const r = restaurants[0];
-            setViewState({ view: 'CUSTOMER_MENU', slug: r.slug });
-            window.location.hash = `menu/${r.slug}`;
+          // Check if already logged in via localStorage
+          const saved = localStorage.getItem('zapmenu_customer');
+          if (saved) {
+            const restaurants = await db.getRestaurants();
+            if (restaurants.length > 0) {
+                const r = restaurants[0];
+                setViewState({ view: 'CUSTOMER_MENU', slug: r.slug });
+                window.location.hash = `menu/${r.slug}`;
+            } else {
+                alert("Nenhum restaurante cadastrado.");
+            }
           } else {
-             alert("Nenhum restaurante cadastrado no momento.");
+              setViewState({ view: 'CUSTOMER_LOGIN' });
+              window.location.hash = 'customer-login';
           }
       }
   };
@@ -189,6 +200,34 @@ export default function App() {
         return <ManagerLogin 
             onLogin={(id) => setViewState({ view: 'MANAGER_DASHBOARD', restaurantId: id })} 
             onBack={() => setViewState({ view: 'LANDING' })}
+        />;
+      case 'CUSTOMER_LOGIN':
+        return <CustomerLogin 
+            onLogin={async (customer) => {
+                localStorage.setItem('zapmenu_customer', JSON.stringify(customer));
+                const restaurants = await db.getRestaurants();
+                if (restaurants.length > 0) {
+                    setViewState({ view: 'CUSTOMER_MENU', slug: restaurants[0].slug });
+                    window.location.hash = `menu/${restaurants[0].slug}`;
+                }
+            }}
+            onGoToRegister={() => setViewState({ view: 'CUSTOMER_REGISTER' })}
+            onBack={() => {
+                setViewState({ view: 'LANDING' });
+                window.location.hash = '';
+            }}
+        />;
+      case 'CUSTOMER_REGISTER':
+        return <CustomerRegister 
+            onRegister={async (customer) => {
+                localStorage.setItem('zapmenu_customer', JSON.stringify(customer));
+                const restaurants = await db.getRestaurants();
+                if (restaurants.length > 0) {
+                    setViewState({ view: 'CUSTOMER_MENU', slug: restaurants[0].slug });
+                    window.location.hash = `menu/${restaurants[0].slug}`;
+                }
+            }}
+            onBackToLogin={() => setViewState({ view: 'CUSTOMER_LOGIN' })}
         />;
       case 'MANAGER_DASHBOARD':
         return <ManagerDashboard 

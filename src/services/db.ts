@@ -19,32 +19,7 @@ const fromDbRestaurant = (r: any): Restaurant => ({
 });
 
 export const db = {
-  seedDatabase: async () => {
-    const rests = SEED_RESTAURANTS.map(r => ({
-        id: r.id, name: r.name, slug: r.slug, phone: r.phone, logo: r.logo,
-        cover_image: r.coverImage, cover_images: r.coverImages, address: r.address,
-        is_active: r.isActive, delivery_fee: r.deliveryFee, min_order_value: r.minOrderValue,
-        estimated_time: r.estimatedTime, pix_key: r.pixKey
-    }));
-    await supabase.from('restaurants').upsert(rests);
-    await supabase.from('admins').upsert(SEED_ADMINS);
-    await supabase.from('categories').upsert(SEED_CATEGORIES.map(c => ({ id: c.id, restaurant_id: c.restaurant_id, name: c.name })));
-    
-    await supabase.from('menu_items').upsert(SEED_MENU_ITEMS.map(i => ({
-        restaurant_id: i.restaurant_id,
-        category_id: i.category_id,
-        name: i.name,
-        description: i.description,
-        price: i.price,
-        image: i.image,
-        available: i.available,
-        stock: i.stock
-    })));
-
-    await supabase.from('orders').insert(SEED_ORDERS);
-    return true;
-  },
-
+  // ... existing methods
   getRestaurants: async () => {
     const { data } = await supabase.from('restaurants').select('*').order('name');
     return (data || []).map(fromDbRestaurant);
@@ -190,6 +165,48 @@ export const db = {
           address: c.address,
           createdAt: new Date(c.created_at).getTime()
       }));
+  },
+
+  loginCustomer: async (phone: string, password: string): Promise<CustomerUser | null> => {
+    const { data, error } = await supabase
+        .from('customers')
+        .select('*')
+        .eq('phone', phone)
+        .eq('password', password)
+        .single();
+    
+    if (error || !data) return null;
+    
+    return {
+        id: data.id,
+        name: data.name,
+        phone: data.phone,
+        address: data.address,
+        createdAt: new Date(data.created_at).getTime()
+    };
+  },
+
+  registerCustomer: async (customer: Partial<CustomerUser>): Promise<CustomerUser | null> => {
+    const { data, error } = await supabase
+        .from('customers')
+        .insert({
+            name: customer.name,
+            phone: customer.phone,
+            password: customer.password,
+            address: customer.address
+        })
+        .select()
+        .single();
+    
+    if (error || !data) return null;
+    
+    return {
+        id: data.id,
+        name: data.name,
+        phone: data.phone,
+        address: data.address,
+        createdAt: new Date(data.created_at).getTime()
+    };
   },
 
   getAdmins: async (): Promise<AdminUser[]> => {
