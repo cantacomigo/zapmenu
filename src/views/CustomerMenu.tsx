@@ -97,7 +97,6 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
     }
   }, [slug]);
 
-  // Efeito de scroll automático para a categoria ativa
   useEffect(() => {
     if (activeCategory && categoryRef.current) {
         const activeElement = categoryRef.current.querySelector(`[data-id="${activeCategory}"]`);
@@ -253,14 +252,21 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
 
   if (isLoading) return (
     <div className="flex flex-col h-screen items-center justify-center bg-white p-6 text-center animate-in fade-in duration-500">
-        <div className="w-20 h-20 bg-emerald-50 text-emerald-600 rounded-3xl flex items-center justify-center mb-6 animate-bounce shadow-inner">
-            <Sparkles size={40} />
+        <div className="relative mb-8">
+            <div className="absolute inset-0 bg-emerald-500/10 rounded-full blur-2xl animate-pulse"></div>
+            <div className="w-28 h-28 bg-white border-4 border-emerald-50 rounded-[40px] flex items-center justify-center shadow-2xl relative z-10 animate-bounce overflow-hidden">
+                {restaurant?.logo ? (
+                    <img src={restaurant.logo} className="w-full h-full object-cover" alt="Logo" />
+                ) : (
+                    <Sparkles size={48} className="text-emerald-500" />
+                )}
+            </div>
         </div>
         <h2 className="text-2xl font-black text-slate-900 tracking-tight">
             {restaurant ? `Bem-vindo ao ${restaurant.name}!` : "Bem-vindo!"}
         </h2>
         <p className="text-slate-500 mt-2 font-medium max-w-xs mx-auto">
-            {restaurant ? "Estamos preparando nossas delícias para você..." : "Estamos preparando o cardápio delicioso para você..."} 🍱
+            Estamos preparando nossas delícias para você... 🍱
         </p>
         <div className="mt-8 flex gap-1.5">
             <div className="w-2 h-2 bg-emerald-600 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
@@ -310,7 +316,6 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
       </div>
 
       <div className="max-w-4xl mx-auto space-y-8 pb-10">
-        {/* Sticky Header com Busca e Categorias */}
         <div className="sticky top-0 z-30 bg-slate-50/80 backdrop-blur-xl border-b border-slate-100 px-4 py-4 space-y-4 shadow-sm">
             <div className="relative group">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-emerald-600 transition-colors" />
@@ -323,7 +328,6 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
                 />
             </div>
             
-            {/* Categorias estilo App (Horizontal Scroll) */}
             <div 
                 ref={categoryRef} 
                 className="flex gap-2.5 overflow-x-auto pb-1 hide-scroll -mx-4 px-4 snap-x"
@@ -352,7 +356,6 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
                 </div>
             )}
 
-            {/* Promoções em Carrossel */}
             {promotions.length > 0 && (
                 <div className="space-y-4">
                     <div className="flex items-center justify-between">
@@ -386,7 +389,6 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
                 </div>
             )}
 
-            {/* Listagem de Produtos */}
             <div className="space-y-4">
                 <div className="flex items-center gap-2 mb-2">
                     <Utensils className="w-5 h-5 text-emerald-600" />
@@ -429,7 +431,6 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
         </div>
       </div>
 
-      {/* Botão Flutuante de Sacola (Estilo Native App) */}
       {cart.length > 0 && (
           <div className="fixed bottom-0 left-0 right-0 z-40 p-4 bg-gradient-to-t from-white via-white/90 to-transparent pt-10">
               <button 
@@ -450,7 +451,6 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
           </div>
       )}
 
-      {/* MODAL DETALHE ITEM (Estilo Bottom Sheet no Mobile) */}
       <Modal isOpen={isItemDetailOpen} onClose={() => setIsItemDetailOpen(false)} title={selectedItem?.name || ''}>
           <div className="flex flex-col h-full max-h-[85vh]">
               <div className="flex-1 overflow-y-auto pr-1 space-y-6 max-h-[450px] mb-4 hide-scroll">
@@ -574,7 +574,6 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
           </div>
       </Modal>
 
-      {/* Histórico de Pedidos Mobile */}
       <Modal isOpen={isOrdersModalOpen} onClose={() => setIsOrdersModalOpen(false)} title="Meus Últimos Pedidos">
           <div className="space-y-4 max-h-[65vh] overflow-y-auto pr-1 hide-scroll">
               {customerOrders.length > 0 ? customerOrders.map(order => {
@@ -612,7 +611,6 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
           </div>
       </Modal>
       
-      {/* Auth Modal Otimizado */}
       <Modal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} title={authMode === 'login' ? "Bem-vindo de Volta!" : "Crie seu Perfil"}>
           <div className="space-y-5">
               <div className="text-center mb-2">
