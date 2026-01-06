@@ -175,31 +175,43 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
       setCart([]);
       setIsCheckoutOpen(false);
 
+      const bento = "\u{1F371}";
+      const userIcon = "\u{1F464}";
+      const phoneIcon = "\u{1F4DE}";
+      const pinIcon = "\u{1F4CD}";
+      const cartIcon = "\u{1F6D2}";
+      const checkIcon = "\u{2705}";
+      const motorIcon = "\u{1F6F5}";
+      const cashIcon = "\u{1F4B0}";
+      const cardIcon = "\u{1F4B3}";
+      const rocketIcon = "\u{1F680}";
+      const timeIcon = "\u{1F552}";
+
       const paymentLabel = {
-          'credit': '💳 Cartão de Crédito',
-          'debit': '💳 Cartão de Débito',
-          'pix': '✨ Pix',
-          'cash': '💵 Dinheiro'
+          'credit': `\u{1F4B3} Cartão de Crédito`,
+          'debit': `\u{1F4B3} Cartão de Débito`,
+          'pix': `\u{2728} Pix`,
+          'cash': `\u{1F4B5} Dinheiro`
       }[customerInfo.payment];
 
       const changeInfo = (customerInfo.payment === 'cash' && customerInfo.changeFor) 
-          ? `\n💰 *Troco para:* R$ ${customerInfo.changeFor}` 
+          ? `\n\u{1F4B0} *Troco para:* R$ ${customerInfo.changeFor}` 
           : '';
           
       const pixReminder = customerInfo.payment === 'pix' 
-          ? `\n\n📌 *Atenção:* Vou enviar o comprovante do Pix em seguida! 🚀` 
+          ? `\n\n\u{1F4CC} *Atenção:* Vou enviar o comprovante do Pix em seguida! ${rocketIcon}` 
           : '';
 
-      const message = `*🍱 Novo Pedido: ${restaurant.name}*\n\n` +
-          `👤 *Cliente:* ${order.customerName}\n` +
-          `📞 *Fone:* ${order.customerPhone}\n` +
-          `📍 *Endereço:* ${order.customerAddress}\n\n` +
-          `🛒 *Itens do Pedido:*\n` + 
-          cart.map(i => `✅ ${i.quantity}x ${i.name} (R$ ${(i.price * i.quantity).toFixed(2)})`).join('\n') + 
-          `\n\n🛵 *Taxa de Entrega:* R$ ${deliveryFee.toFixed(2)}` +
-          `\n💰 *Total Geral:* R$ ${order.total.toFixed(2)}` +
-          `\n💳 *Forma de Pagamento:* ${paymentLabel}${changeInfo}${pixReminder}\n\n` +
-          `🕒 *Pedido realizado em:* ${new Date().toLocaleTimeString('pt-BR')}`;
+      const message = `*${bento} Novo Pedido: ${restaurant.name}*\n\n` +
+          `${userIcon} *Cliente:* ${order.customerName}\n` +
+          `${phoneIcon} *Fone:* ${order.customerPhone}\n` +
+          `${pinIcon} *Endereço:* ${order.customerAddress}\n\n` +
+          `${cartIcon} *Itens do Pedido:*\n` + 
+          cart.map(i => `${checkIcon} ${i.quantity}x ${i.name} (R$ ${(i.price * i.quantity).toFixed(2)})`).join('\n') + 
+          `\n\n${motorIcon} *Taxa de Entrega:* R$ ${deliveryFee.toFixed(2)}` +
+          `\n${cashIcon} *Total Geral:* R$ ${order.total.toFixed(2)}` +
+          `\n${cardIcon} *Forma de Pagamento:* ${paymentLabel}${changeInfo}${pixReminder}\n\n` +
+          `${timeIcon} *Pedido realizado em:* ${new Date().toLocaleTimeString('pt-BR')}`;
 
       window.open(`https://wa.me/${restaurant.phone}?text=${encodeURIComponent(message)}`, '_blank');
       setIsOrdersModalOpen(true);

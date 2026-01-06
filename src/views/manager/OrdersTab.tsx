@@ -19,16 +19,31 @@ export const OrdersTab: React.FC<OrdersTabProps> = ({ orders, onRefresh, restaur
 
   const getWhatsAppMessage = (order: Order, type: Order['status'] | 'confirm_receipt') => {
     const orderId = order.id.slice(-6).toUpperCase();
-    const greeting = `👋 Olá *${order.customerName}*!`;
-    const footer = `\n\n🙏 Agradecemos a preferência!\n*${restaurantName || 'ZapMenu'}*`;
+    // Usando Unicode Escapes para garantir compatibilidade
+    const wave = "\u{1F44B}";
+    const check = "\u{2705}";
+    const pin = "\u{1F4CC}";
+    const rocket = "\u{1F680}";
+    const clock = "\u{23F3}";
+    const motor = "\u{1F6F5}";
+    const pray = "\u{1F64F}";
+    const money = "\u{1F4B0}";
+    const fire = "\u{1F525}";
+    const wind = "\u{1F4A8}";
+    const party = "\u{1F389}";
+    const yum = "\u{1F60B}";
+    const cancel = "\u{274C}";
+
+    const greeting = `${wave} Olá *${order.customerName}*!`;
+    const footer = `\n\n${pray} Agradecemos a preferência!\n*${restaurantName || 'ZapMenu'}*`;
 
     if (type === 'confirm_receipt') {
-      let msg = `${greeting}\n\n✅ *Pedido Recebido!* Confirmamos que recebemos seu pedido *#${orderId}* e já vamos iniciar o preparo.`;
+      let msg = `${greeting}\n\n${check} *Pedido Recebido!* Confirmamos que recebemos seu pedido *#${orderId}* e já vamos iniciar o preparo.`;
       
       if (order.paymentMethod === 'pix') {
-        msg += `\n\n📌 *Atenção:* Vimos que você optou pelo pagamento via *Pix*. Por favor, *envie o comprovante aqui nesta conversa* para que possamos validar e liberar seu pedido mais rápido! 🚀`;
+        msg += `\n\n${pin} *Atenção:* Vimos que você optou pelo pagamento via *Pix*. Por favor, *envie o comprovante aqui nesta conversa* para que possamos validar e liberar seu pedido mais rápido! ${rocket}`;
       } else {
-        msg += `\n\n⏳ Fique atento, te avisaremos por aqui assim que ele sair para entrega! 🛵`;
+        msg += `\n\n${clock} Fique atento, te avisaremos por aqui assim que ele sair para entrega! ${motor}`;
       }
       
       return msg + footer;
@@ -36,13 +51,13 @@ export const OrdersTab: React.FC<OrdersTabProps> = ({ orders, onRefresh, restaur
 
     switch (type) {
       case 'paid':
-        return `${greeting}\n💰 *Pagamento Confirmado!* Recebemos seu pagamento do pedido *#${orderId}*. Seu pedido já está sendo preparado com muito carinho! 🔥${footer}`;
+        return `${greeting}\n${money} *Pagamento Confirmado!* Recebemos seu pagamento do pedido *#${orderId}*. Seu pedido já está sendo preparado com muito carinho! ${fire}${footer}`;
       case 'shipped':
-        return `${greeting}\n🛵 *Pedido em Caminho!* Seu pedido *#${orderId}* acabou de sair para entrega. Prepare a mesa, logo chegamos aí! 💨${footer}`;
+        return `${greeting}\n${motor} *Pedido em Caminho!* Seu pedido *#${orderId}* acabou de sair para entrega. Prepare a mesa, logo chegamos aí! ${wind}${footer}`;
       case 'completed':
-        return `${greeting}\n🎉 *Pedido Finalizado!* Seu pedido *#${orderId}* foi entregue com sucesso. Bom apetite e aproveite sua refeição! 😋😋${footer}`;
+        return `${greeting}\n${party} *Pedido Finalizado!* Seu pedido *#${orderId}* foi entregue com sucesso. Bom apetite e aproveite sua refeição! ${yum}${yum}${footer}`;
       case 'cancelled':
-        return `${greeting}\n❌ *Pedido Cancelado.* Lamentamos informar, mas seu pedido *#${orderId}* foi cancelado. Se tiver qualquer dúvida, estamos à disposição por aqui.${footer}`;
+        return `${greeting}\n${cancel} *Pedido Cancelado.* Lamentamos informar, mas seu pedido *#${orderId}* foi cancelado. Se tiver qualquer dúvida, estamos à disposição por aqui.${footer}`;
       default:
         return '';
     }
