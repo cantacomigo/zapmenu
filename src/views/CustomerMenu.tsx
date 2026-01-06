@@ -45,6 +45,27 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
       scheduledTime: '',
   });
 
+  // Manifesto Dinâmico com URL absoluta para estabilidade
+  const updateManifest = (res: Restaurant) => {
+    const fullUrl = window.location.origin + window.location.pathname + window.location.hash;
+    const myManifest = {
+      "name": res.name,
+      "short_name": res.name,
+      "description": `Cardápio Digital - ${res.name}`,
+      "start_url": fullUrl,
+      "display": "standalone",
+      "background_color": "#ffffff",
+      "theme_color": "#059669",
+      "icons": [
+        { "src": res.logo, "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+        { "src": res.logo, "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+      ]
+    };
+    const blob = new Blob([JSON.stringify(myManifest)], {type: 'application/json'});
+    const manifestURL = URL.createObjectURL(blob);
+    document.querySelector('#manifest-link')?.setAttribute('href', manifestURL);
+  };
+
   const isStoreOpen = useMemo(() => {
     if (!restaurant?.openingTime || !restaurant?.closingTime) return true;
     const now = new Date();
@@ -78,7 +99,7 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
             const r = await db.getRestaurantBySlug(slug);
             if (r) {
               setRestaurant(r);
-              // Atualiza metadados visuais para parecer um app da própria loja
+              updateManifest(r);
               document.title = `${r.name} - ZapMenu`;
               const favicon = document.querySelector("link[rel*='icon']") as HTMLLinkElement;
               if (favicon) favicon.href = r.logo;
@@ -109,9 +130,11 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
     };
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
 
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
     const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
     setIsIOS(isIOSDevice);
-    if (isIOSDevice && !window.matchMedia('(display-mode: standalone)').matches) {
+    
+    if (!isStandalone) {
         setShowInstallBanner(true);
     }
 
@@ -133,7 +156,7 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
           return;
       }
       if (!deferredPrompt) {
-          toast.success("O app já está instalado ou não é suportado pelo seu navegador.");
+          toast("Para instalar, use o menu do seu navegador (três pontinhos) e clique em 'Instalar Aplicativo'.", { icon: 'ℹ️' });
           return;
       }
       deferredPrompt.prompt();
@@ -320,7 +343,7 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
 
   return (
     <div className="bg-slate-50 min-h-screen pb-32 md:pb-12 font-sans select-none">
-      {/* PWA Install Banner */}
+      {/* PWA Install Banner - Mais agressivo e visível */}
       {showInstallBanner && (
           <div className="fixed top-20 left-4 right-4 z-[100] bg-slate-900 text-white p-4 rounded-3xl shadow-2xl animate-in slide-in-from-top duration-700 flex items-center justify-between border border-white/10 backdrop-blur-md">
               <div className="flex items-center gap-3">
@@ -330,14 +353,14 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
                   <div className="min-w-0 flex-1">
                       <p className="text-xs font-black uppercase tracking-widest leading-none mb-1">App {restaurant?.name || 'ZapMenu'}</p>
                       <p className="text-[10px] text-slate-400 font-medium truncate">
-                        {isIOS ? 'Adicione à Tela de Início' : 'Instale para pedir mais rápido!'}
+                        Instale para pedir em 1 clique!
                       </p>
                   </div>
               </div>
               <div className="flex items-center gap-2 ml-4">
                   <button onClick={() => setShowInstallBanner(false)} className="p-2 text-slate-500"><X size={18} /></button>
                   <button onClick={handleInstallApp} className="bg-emerald-600 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest active:scale-95 transition-all">
-                      {isIOS ? 'Como?' : 'Instalar'}
+                      {isIOS ? 'Como?' : 'Baixar'}
                   </button>
               </div>
           </div>
@@ -353,7 +376,7 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
             <button onClick={onBack} className="p-2.5 bg-white/10 rounded-full text-white backdrop-blur-md active:scale-90 transition-all"><ArrowLeft className="w-5 h-5" /></button>
             <div className="flex gap-2">
                 <button onClick={handleInstallApp} className="p-2.5 bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 rounded-full backdrop-blur-md active:scale-90 transition-all flex items-center gap-2 px-4">
-                    <Download className="w-4 h-4" /> <span className="text-[10px] font-black uppercase tracking-wider">App</span>
+                    <Download className="w-4 h-4" /> <span className="text-[10px] font-black uppercase tracking-wider">Baixar App</span>
                 </button>
                 {currentUser && <button onClick={() => setIsOrdersModalOpen(true)} className="p-2.5 bg-white/10 rounded-full text-white backdrop-blur-md active:scale-90 transition-all"><ClipboardList className="w-5 h-5" /></button>}
                 {currentUser ? (
@@ -603,7 +626,7 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
               </div>
 
               <div className="space-y-3">
-                <Input label="Onde Entregar?" value={customerInfo.address} onChange={e => setCustomerInfo({...customerInfo, address: e.target.value})} placeholder="Rua, Número, Complemento" />
+                <Input label="Onde Entregar?" value={customerInfo.address} onChange={e => setCustomerInfo({...customerInfo, address: e.target.value})} placeholder="Rua, Número, Bairro" />
                 <div className="space-y-2">
                     <label className="block text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Pagamento</label>
                     <div className="grid grid-cols-2 gap-2">
