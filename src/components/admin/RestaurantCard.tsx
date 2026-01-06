@@ -1,7 +1,7 @@
 import React from 'react';
 import { Restaurant } from '../../types';
 import { Button, Badge } from '../ui';
-import { ExternalLink, ChefHat, Edit2, Trash2, Building2 } from 'lucide-react';
+import { ExternalLink, ChefHat, Edit2, Trash2, Building2, Key } from 'lucide-react';
 
 interface RestaurantCardProps {
   rest: Restaurant;
@@ -9,9 +9,10 @@ interface RestaurantCardProps {
   onManage: (id: string) => void;
   onEdit: (rest: Restaurant) => void;
   onDelete: (id: string) => void;
+  onCreateAccess: (rest: Restaurant) => void;
 }
 
-export const RestaurantCard: React.FC<RestaurantCardProps> = ({ rest, onNavigate, onManage, onEdit, onDelete }) => (
+export const RestaurantCard: React.FC<RestaurantCardProps> = ({ rest, onNavigate, onManage, onEdit, onDelete, onCreateAccess }) => (
   <div className="group bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
     <div className="h-40 bg-slate-100 overflow-hidden relative">
       <img src={rest.coverImage} alt={rest.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
@@ -36,8 +37,11 @@ export const RestaurantCard: React.FC<RestaurantCardProps> = ({ rest, onNavigate
         <Button variant="secondary" className="flex-1" onClick={() => onNavigate(rest.slug)}>
           <ExternalLink className="w-4 h-4 mr-2" /> Menu
         </Button>
-        <Button variant="secondary" className="px-3" onClick={() => onManage(rest.id)} title="Gerenciar">
+        <Button variant="secondary" className="px-3" onClick={() => onManage(rest.id)} title="Dashboard">
           <ChefHat className="w-4 h-4 text-slate-600" />
+        </Button>
+        <Button variant="secondary" className="px-3 bg-orange-50 text-orange-600 border-orange-100 hover:bg-orange-600 hover:text-white" onClick={() => onCreateAccess(rest)} title="Criar Acesso">
+          <Key className="w-4 h-4" />
         </Button>
         <Button variant="ghost" className="px-3" onClick={() => onEdit(rest)}>
           <Edit2 className="w-4 h-4 text-slate-500" />

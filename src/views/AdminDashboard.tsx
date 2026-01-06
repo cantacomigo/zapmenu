@@ -2,10 +2,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { db } from '../services/db';
-import { Restaurant, AdminUser } from '../types';
+import { Restaurant, AdminUser, RestaurantStaff } from '../types';
 import { Button, Modal, Input, Card, Badge } from '../components/ui';
 import { RestaurantCard } from '../components/admin/RestaurantCard';
-import { Plus, LogOut, Shield, Mail, Trash2, UserPlus, Building2 } from 'lucide-react';
+import { Plus, LogOut, Shield, Mail, Trash2, UserPlus, Building2, Lock, User } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 interface AdminDashboardProps {
@@ -26,6 +26,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate, onMa
 
   const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
   const [newAdmin, setNewAdmin] = useState<Partial<AdminUser>>({ role: 'support' });
+
+  const [isAccessModalOpen, setIsAccessModalOpen] = useState(false);
+  const [newStaff, setNewStaff] = useState<Partial<RestaurantStaff>>({ role: 'manager' });
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -55,6 +58,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate, onMa
     }
     await fetchData();
     setIsRestModalOpen(false);
+  };
+
+  const handleSaveAccess = async () => {
+    if (!newStaff.name || !newStaff.email || !newStaff.password) {
+        toast.error("Preencha todos os campos do acesso.");
+        return;
+    }
+    await db.addStaff(newStaff);
+    toast.success("Acesso do gerente criado com sucesso!");
+    setIsAccessModalOpen(false);
   };
 
   const handleAddAdmin = async () => {
@@ -124,6 +137,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate, onMa
                       onManage={onManage} 
                       onEdit={(r) => { setIsEditingRest(true); setCurrentRest(r); setIsRestModalOpen(true); }}
                       onDelete={async (id) => { if(confirm("Remover este restaurante permanentemente?")) { await db.deleteRestaurant(id); fetchData(); } }}
+                      onCreateAccess={(r) => { setNewStaff({ restaurantId: r.id, role: 'manager' }); setIsAccessModalOpen(true); }}
                     />
                   ))}
                 </div>
@@ -182,6 +196,21 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate, onMa
                 {isEditingRest ? "Salvar Alterações" : "Cadastrar Restaurante"}
             </Button>
           </div>
+        </Modal>
+
+        {/* MODAL ACESSO LOJA */}
+        <Modal isOpen={isAccessModalOpen} onClose={() => setIsAccessModalOpen(false)} title="Criar Acesso do Gerente">
+            <div className="space-y-4">
+                <div className="bg-orange-50 p-4 rounded-xl border border-orange-100 mb-2">
+                    <p className="text-xs text-orange-700 font-medium">Este login permitirá que o restaurante gerencie seu cardápio e receba pedidos.</p>
+                </div>
+                <Input label="Nome do Gerente" value={newStaff.name || ''} onChange={e => setNewStaff({...newStaff, name: e.target.value})} placeholder="Ex: João da Silva" />
+                <Input label="E-mail de Login" value={newStaff.email || ''} onChange={e => setNewStaff({...newStaff, email: e.target.value})} placeholder="gerente@loja.com" />
+                <Input label="Senha Temporária" type="password" value={newStaff.password || ''} onChange={e => setNewStaff({...newStaff, password: e.target.value})} placeholder="••••••••" />
+                <Button className="w-full bg-orange-600 hover:bg-orange-700 py-4 mt-2" onClick={handleSaveAccess}>
+                    <Lock className="w-4 h-4 mr-2" /> Gerar Credenciais
+                </Button>
+            </div>
         </Modal>
 
         {/* MODAL ADMIN */}

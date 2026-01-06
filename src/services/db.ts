@@ -57,6 +57,16 @@ export const db = {
     };
   },
 
+  addStaff: async (staff: Partial<RestaurantStaff>) => {
+    return await supabase.from('restaurant_staff').insert({
+        restaurant_id: staff.restaurantId,
+        name: staff.name,
+        email: staff.email,
+        password: staff.password,
+        role: staff.role || 'manager'
+    });
+  },
+
   getRestaurants: async () => {
     const { data } = await supabase.from('restaurants').select('*').order('name');
     return (data || []).map(fromDbRestaurant);
