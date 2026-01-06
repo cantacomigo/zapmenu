@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { db } from '../services/db';
 import { CartItem, Category, MenuItem, Restaurant, Order, CustomerUser, Promotion, Giveaway } from '../types';
 import { Button, Modal, Input } from '../components/ui';
-import { ShoppingBag, Minus, Plus, Search, MapPin, ArrowLeft, Send, Check, Star, Clock, AlertCircle, Banknote, QrCode, Copy, User, LogIn, LogOut, Store, Megaphone, Gift, Calendar, Trophy, X, Package } from 'lucide-react';
+import { ShoppingBag, Minus, Plus, Search, MapPin, ArrowLeft, Send, Check, Star, Clock, AlertCircle, Banknote, QrCode, Copy, User, LogIn, LogOut, Store, Megaphone, Gift, Calendar, Trophy, X, Package, Utensils } from 'lucide-react';
 
 export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ slug, onBack }) => {
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
@@ -32,7 +32,6 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
   });
   
   const [selectedPromo, setSelectedPromo] = useState<Promotion | null>(null);
-  const [selectedGiveaway, setSelectedGiveaway] = useState<Giveaway | null>(null);
 
   useEffect(() => {
     const fetchMenu = async () => {
@@ -199,19 +198,17 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
                 </div>
                 <div className="flex gap-4 overflow-x-auto hide-scroll pb-4 -mx-4 px-4">
                     {promotions.map(promo => (
-                        <div key={promo.id} onClick={() => setSelectedPromo(promo)} className="min-w-[280px] bg-white rounded-2xl shadow-sm border border-pink-100 overflow-hidden flex flex-col cursor-pointer hover:shadow-md transition-all">
-                            <div className="h-32 bg-slate-100 relative">
-                                <img src={promo.image} className="w-full h-full object-cover" />
-                                <div className="absolute top-2 left-2 bg-pink-600 text-white text-xs font-bold px-2 py-1 rounded-full">Oferta</div>
-                            </div>
-                            <div className="p-3">
+                        <div key={promo.id} className="min-w-[280px] bg-white p-4 rounded-2xl shadow-sm border border-pink-100 flex flex-col hover:shadow-md transition-all">
+                            <div className="flex justify-between items-start mb-2">
                                 <h3 className="font-bold text-slate-800">{promo.title}</h3>
-                                <div className="flex justify-between items-center mt-2">
-                                    <span className="text-lg font-bold text-pink-600">R$ {Number(promo.discountedPrice).toFixed(2)}</span>
-                                    <button onClick={(e) => { e.stopPropagation(); addToCart({ id: `promo_${promo.id}`, name: promo.title, price: promo.discountedPrice, image: promo.image || '', available: true } as MenuItem); }} className="bg-pink-50 text-pink-600 w-8 h-8 rounded-lg flex items-center justify-center hover:bg-pink-600 hover:text-white transition-colors">
-                                        <Plus className="w-5 h-5" />
-                                    </button>
-                                </div>
+                                <div className="bg-pink-100 text-pink-600 text-[10px] font-bold px-2 py-1 rounded-full uppercase">Oferta</div>
+                            </div>
+                            <p className="text-sm text-slate-500 mb-4 line-clamp-2">{promo.description}</p>
+                            <div className="flex justify-between items-center mt-auto">
+                                <span className="text-lg font-bold text-pink-600">R$ {Number(promo.discountedPrice).toFixed(2)}</span>
+                                <button onClick={() => addToCart({ id: `promo_${promo.id}`, name: promo.title, price: promo.discountedPrice, image: '', available: true } as MenuItem)} className="bg-pink-50 text-pink-600 w-8 h-8 rounded-lg flex items-center justify-center hover:bg-pink-600 hover:text-white transition-colors">
+                                    <Plus className="w-5 h-5" />
+                                </button>
                             </div>
                         </div>
                     ))}
@@ -233,21 +230,16 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {filteredItems.map(item => (
-                <div key={item.id} className={`bg-white p-4 rounded-3xl shadow-sm border border-slate-100 flex gap-4 transition-all hover:shadow-md ${(!item.available || (item.stock !== undefined && item.stock !== null && item.stock <= 0)) && 'opacity-60 grayscale'}`}>
-                    <div className="w-28 h-28 rounded-2xl bg-slate-100 overflow-hidden shrink-0 relative">
-                         <img src={item.image} className="w-full h-full object-cover" />
-                         {item.stock !== undefined && item.stock !== null && (
-                             <div className={`absolute top-0 right-0 px-2 py-1 text-[10px] font-bold rounded-bl-xl ${item.stock === 0 ? 'bg-red-500 text-white' : 'bg-slate-800 text-white'}`}>
-                                 {item.stock === 0 ? 'ESGOTADO' : `${item.stock} un.`}
-                             </div>
-                         )}
+                <div key={item.id} className={`bg-white p-5 rounded-3xl shadow-sm border border-slate-100 flex gap-4 transition-all hover:shadow-md ${(!item.available || (item.stock !== undefined && item.stock !== null && item.stock <= 0)) && 'opacity-60 grayscale'}`}>
+                    <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-300 shrink-0">
+                         <Utensils className="w-6 h-6" />
                     </div>
                     <div className="flex flex-col flex-1">
                         <div className="flex-1">
                             <h3 className="font-bold text-slate-800 text-lg leading-tight">{item.name}</h3>
-                            <p className="text-sm text-slate-500 mt-1 line-clamp-2 leading-relaxed">{item.description}</p>
+                            <p className="text-sm text-slate-500 mt-1 line-clamp-3 leading-relaxed">{item.description}</p>
                         </div>
-                        <div className="flex justify-between items-end mt-2">
+                        <div className="flex justify-between items-end mt-4">
                             <span className="font-bold text-lg text-emerald-700">R$ {Number(item.price).toFixed(2)}</span>
                             <button onClick={() => addToCart(item)} disabled={!item.available || (item.stock !== undefined && item.stock !== null && item.stock <= 0)} className="bg-slate-50 text-slate-600 w-10 h-10 rounded-xl flex items-center justify-center hover:bg-emerald-600 hover:text-white hover:shadow-lg hover:shadow-emerald-500/30 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed">
                                 <Plus className="w-5 h-5" />
