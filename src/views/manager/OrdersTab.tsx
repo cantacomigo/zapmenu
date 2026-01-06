@@ -3,7 +3,7 @@ import { db } from '../../services/db';
 import { Order } from '../../types';
 import { Card, Badge, Button, Input } from '../../components/ui';
 import { OrderReceipt } from '../../components/OrderReceipt';
-import { MessageSquare, CheckCircle2, Truck, XCircle, CreditCard, Search, Filter, CheckCheck, Printer, Clock, Calendar } from 'lucide-react';
+import { MessageSquare, CheckCircle2, Truck, XCircle, CreditCard, Search, Filter, CheckCheck, Printer, Clock, Calendar, RefreshCw, MapPin, ClipboardList } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 interface OrdersTabProps {
@@ -99,7 +99,7 @@ export const OrdersTab: React.FC<OrdersTabProps> = ({ orders, onRefresh, restaur
     switch (status) {
       case 'pending': return { label: 'Pendente', color: 'bg-amber-100 text-amber-700' };
       case 'paid': return { label: 'Pago', color: 'bg-emerald-100 text-emerald-700' };
-      case 'shipped': return { label: 'Em Entrega', color: 'bg-purple-100 text-purple-700' };
+      case 'shipped': return { label: 'Enviado', color: 'bg-purple-100 text-purple-700' };
       case 'completed': return { label: 'Finalizado', color: 'bg-slate-100 text-slate-700' };
       case 'cancelled': return { label: 'Cancelado', color: 'bg-red-100 text-red-700' };
       case 'scheduled': return { label: 'Agendados', color: 'bg-blue-100 text-blue-700' };
@@ -120,7 +120,7 @@ export const OrdersTab: React.FC<OrdersTabProps> = ({ orders, onRefresh, restaur
   }, [orders, statusFilter, searchTerm]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       {/* Hidden container for printing */}
       {printingOrder && (
           <OrderReceipt 
@@ -130,31 +130,36 @@ export const OrdersTab: React.FC<OrdersTabProps> = ({ orders, onRefresh, restaur
           />
       )}
 
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <h2 className="text-2xl font-bold text-slate-900">Gestão de Pedidos</h2>
-        <Button variant="secondary" size="sm" onClick={onRefresh}>Atualizar Pedidos</Button>
+      <div className="flex justify-between items-center px-1">
+        <h2 className="text-xl md:text-2xl font-black text-slate-900 tracking-tight">Gestão de Pedidos</h2>
+        <button 
+            onClick={onRefresh} 
+            className="p-2 bg-emerald-50 text-emerald-600 rounded-xl active:rotate-180 transition-all duration-500"
+        >
+            <RefreshCw size={20} />
+        </button>
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-4">
-        <div className="relative flex-1">
+      <div className="space-y-3 sticky top-[-1px] z-30 bg-slate-50 pt-1 pb-3">
+        <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <input 
             type="text" 
-            placeholder="Buscar por cliente ou ID do pedido..." 
-            className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500/20 text-sm"
+            placeholder="Buscar cliente..." 
+            className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-emerald-500/20 text-sm shadow-sm"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        <div className="flex gap-2 overflow-x-auto pb-1 hide-scroll">
+        <div className="flex gap-2 overflow-x-auto pb-1 hide-scroll -mx-4 px-4">
           {(['all', 'pending', 'paid', 'shipped', 'completed', 'cancelled', 'scheduled'] as StatusFilter[]).map((status) => (
             <button
               key={status}
               onClick={() => setStatusFilter(status)}
-              className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all border ${
+              className={`px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-wider whitespace-nowrap transition-all border-2 ${
                 statusFilter === status 
-                  ? 'bg-slate-900 text-white border-slate-900 shadow-sm' 
-                  : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-50'
+                  ? 'bg-slate-900 text-white border-slate-900 shadow-md' 
+                  : 'bg-white text-slate-500 border-transparent shadow-sm hover:bg-slate-50'
               }`}
             >
               {status === 'all' ? 'Todos' : getStatusDisplay(status).label}
@@ -167,93 +172,110 @@ export const OrdersTab: React.FC<OrdersTabProps> = ({ orders, onRefresh, restaur
         {filteredOrders.map(order => {
           const statusInfo = getStatusDisplay(order.status);
           return (
-            <Card key={order.id} className="p-6 hover:shadow-md transition-shadow">
-              <div className="flex flex-col lg:flex-row justify-between gap-6">
-                <div className="space-y-2">
-                  <div className="flex items-center gap-3">
-                    <span className="font-black text-slate-900">#{order.id.slice(-8).toUpperCase()}</span>
-                    <Badge color={`${statusInfo.color} border-transparent text-[10px] font-bold uppercase`}>{statusInfo.label}</Badge>
-                    {order.scheduledTime && (
-                        <Badge color="bg-orange-100 text-orange-700 border-transparent text-[10px] font-black uppercase flex items-center gap-1">
-                            <Clock className="w-3 h-3" /> Agendado
-                        </Badge>
-                    )}
+            <Card key={order.id} className="p-4 md:p-6 border-slate-100 hover:shadow-lg transition-all active:scale-[0.99]">
+              <div className="flex flex-col gap-4">
+                {/* Cabeçalho do Card */}
+                <div className="flex justify-between items-start">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                        <span className="font-black text-slate-900 text-sm">#{order.id.slice(-6).toUpperCase()}</span>
+                        <Badge color={`${statusInfo.color} border-none text-[9px] font-black uppercase tracking-tighter`}>{statusInfo.label}</Badge>
+                    </div>
+                    <h3 className="text-base font-black text-slate-800 leading-tight">{order.customerName}</h3>
                   </div>
-                  <p className="text-sm font-bold text-slate-700">{order.customerName}</p>
-                  <p className="text-xs text-slate-500 max-w-xs">{order.customerAddress}</p>
-                  
-                  {order.scheduledTime && (
-                      <div className="flex items-center gap-2 mt-2 p-2 bg-orange-50 rounded-lg border border-orange-100 w-fit">
-                          <Calendar className="w-3.5 h-3.5 text-orange-600" />
-                          <span className="text-xs font-black text-orange-700">Para: {new Date(order.scheduledTime).toLocaleString('pt-BR')}</span>
-                      </div>
-                  )}
-
-                  <div className="flex items-center gap-2 mt-1">
-                      <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-md ${order.paymentMethod === 'pix' ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-600'}`}>
-                          {order.paymentMethod}
-                      </span>
+                  <div className="text-right">
+                    <p className="text-lg font-black text-emerald-700 leading-none">R$ {order.total.toFixed(2)}</p>
+                    <p className="text-[10px] text-slate-400 font-bold mt-1 uppercase tracking-tighter">
+                        {order.paymentMethod === 'pix' ? '✨ Pix' : `💳 ${order.paymentMethod}`}
+                    </p>
                   </div>
                 </div>
 
-                <div className="flex-1 lg:border-x border-slate-100 px-0 lg:px-6">
-                   <div className="space-y-1">
-                      {order.items.map((item, idx) => (
-                          <div key={idx} className="text-sm text-slate-600 flex justify-between">
-                              <span>{item.quantity}x {item.name}</span>
-                              <span className="font-medium">R$ {(item.price * item.quantity).toFixed(2)}</span>
-                          </div>
-                      ))}
-                      <div className="border-t border-slate-100 mt-2 pt-2 flex justify-between font-bold text-slate-900">
-                          <span>Total</span>
-                          <span>R$ {order.total.toFixed(2)}</span>
+                {/* Info de Entrega/Agendamento */}
+                <div className="bg-slate-50 p-3 rounded-2xl space-y-2">
+                  <div className="flex items-start gap-2">
+                    <MapPin className="w-3.5 h-3.5 text-slate-400 mt-0.5 shrink-0" />
+                    <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed">{order.customerAddress}</p>
+                  </div>
+                  {order.scheduledTime && (
+                      <div className="flex items-center gap-2 py-1.5 px-3 bg-blue-50 rounded-xl border border-blue-100 w-fit">
+                          <Calendar className="w-3.5 h-3.5 text-blue-600" />
+                          <span className="text-[10px] font-black text-blue-700 uppercase">Para: {new Date(order.scheduledTime).toLocaleString('pt-BR')}</span>
                       </div>
+                  )}
+                </div>
+
+                {/* Itens (Resumo Mobile) */}
+                <div className="px-1">
+                   <div className="flex flex-wrap gap-1.5">
+                      {order.items.map((item, idx) => (
+                          <span key={idx} className="bg-slate-100 text-slate-600 px-2 py-1 rounded-lg text-[10px] font-bold">
+                              {item.quantity}x {item.name.split(' ')[0]}...
+                          </span>
+                      ))}
                    </div>
                 </div>
 
-                <div className="flex flex-wrap gap-2 items-center justify-end">
-                  <Button size="sm" variant="secondary" onClick={() => handlePrint(order)} className="bg-slate-100 hover:bg-slate-200 text-slate-700">
-                      <Printer className="w-4 h-4 mr-1.5" /> Imprimir
+                {/* Botões de Ação Otimizados */}
+                <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 pt-2 border-t border-slate-50">
+                  <Button size="sm" variant="secondary" onClick={() => handlePrint(order)} className="bg-slate-100 border-none text-[10px] font-black uppercase tracking-widest py-3">
+                      <Printer className="w-3.5 h-3.5 mr-1.5" /> Recibo
                   </Button>
+                  
                   {order.status === 'pending' && (
-                      <Button size="sm" onClick={() => handleSendConfirmation(order)} className="bg-blue-600">
-                          <CheckCheck className="w-4 h-4 mr-1.5" /> Confirmar
+                      <Button size="sm" onClick={() => handleSendConfirmation(order)} className="bg-blue-600 border-none text-[10px] font-black uppercase tracking-widest py-3">
+                          <CheckCheck className="w-3.5 h-3.5 mr-1.5" /> Confirmar
                       </Button>
                   )}
+                  
                   {order.status === 'pending' && (
-                      <Button size="sm" onClick={() => handleUpdateStatus(order, 'paid')} className="bg-emerald-600">
-                          <CreditCard className="w-4 h-4 mr-1.5" /> Pagar
+                      <Button size="sm" onClick={() => handleUpdateStatus(order, 'paid')} className="bg-emerald-600 border-none text-[10px] font-black uppercase tracking-widest py-3">
+                          <CreditCard className="w-3.5 h-3.5 mr-1.5" /> Pago
                       </Button>
                   )}
+                  
                   {['pending', 'paid'].includes(order.status) && (
-                      <Button size="sm" onClick={() => handleUpdateStatus(order, 'shipped')} className="bg-purple-600">
-                          <Truck className="w-4 h-4 mr-1.5" /> Enviar
+                      <Button size="sm" onClick={() => handleUpdateStatus(order, 'shipped')} className="bg-purple-600 border-none text-[10px] font-black uppercase tracking-widest py-3">
+                          <Truck className="w-3.5 h-3.5 mr-1.5" /> Enviar
                       </Button>
                   )}
+                  
                   {order.status === 'shipped' && (
-                      <Button size="sm" onClick={() => handleUpdateStatus(order, 'completed')} className="bg-slate-700">
-                          <CheckCircle2 className="w-4 h-4 mr-1.5" /> Finalizar
+                      <Button size="sm" onClick={() => handleUpdateStatus(order, 'completed')} className="bg-slate-800 border-none text-[10px] font-black uppercase tracking-widest py-3">
+                          <CheckCircle2 className="w-3.5 h-3.5 mr-1.5" /> Finalizar
                       </Button>
                   )}
-                  {['pending', 'paid'].includes(order.status) && (
-                      <Button size="sm" variant="danger" onClick={() => handleUpdateStatus(order, 'cancelled')}>
-                          <XCircle className="w-4 h-4 mr-1.5" /> Cancelar
-                      </Button>
-                  )}
+
                   <button 
                     onClick={() => {
                       const phone = order.customerPhone.replace(/\D/g, '');
                       window.open(`https://api.whatsapp.com/send?phone=${phone}`, '_blank');
                     }}
-                    className="p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all"
+                    className="flex items-center justify-center p-3 bg-emerald-50 text-emerald-600 rounded-xl hover:bg-emerald-100 transition-all active:scale-90"
                   >
                     <MessageSquare size={18} />
                   </button>
+
+                  {['pending', 'paid'].includes(order.status) && (
+                      <button 
+                        onClick={() => handleUpdateStatus(order, 'cancelled')}
+                        className="p-3 text-red-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
+                      >
+                        <XCircle size={18} />
+                      </button>
+                  )}
                 </div>
               </div>
             </Card>
           );
         })}
+        
+        {filteredOrders.length === 0 && (
+            <div className="py-20 text-center bg-white rounded-[32px] border-2 border-dashed border-slate-100">
+                <ClipboardList className="w-16 h-16 text-slate-100 mx-auto mb-4" />
+                <p className="text-slate-400 font-black uppercase text-xs tracking-widest">Nenhum pedido encontrado</p>
+            </div>
+        )}
       </div>
     </div>
   );
