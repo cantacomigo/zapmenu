@@ -17,7 +17,7 @@ export const ToastProvider = () => (
       },
       success: {
         iconTheme: {
-          primary: '#dc2626',
+          primary: '#059669',
           secondary: '#fff',
         },
       },

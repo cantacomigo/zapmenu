@@ -2,8 +2,6 @@ export type ViewState =
   | { view: 'LANDING' }
   | { view: 'SUPER_ADMIN' }
   | { view: 'MANAGER_LOGIN' }
-  | { view: 'CUSTOMER_LOGIN' }
-  | { view: 'CUSTOMER_REGISTER' }
   | { view: 'MANAGER_DASHBOARD', restaurantId: string }
   | { view: 'CUSTOMER_MENU', slug: string };
 
