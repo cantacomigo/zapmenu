@@ -41,7 +41,6 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
             const r = await db.getRestaurantBySlug(slug);
             if (r) {
               setRestaurant(r);
-              // Busca paralela de todos os dados dependentes do restaurante
               const [cats, menuItems, promos, gives] = await Promise.all([
                   db.getCategories(r.id),
                   db.getMenuItems(r.id),
@@ -82,31 +81,6 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
     const timer = setInterval(() => setCurrentCoverIndex(prev => (prev + 1) % coverImages.length), 5000);
     return () => clearInterval(timer);
   }, [coverImages]);
-
-  const handleLogin = async () => {
-      if (!authForm.phone || !authForm.password) return toast.error("Preencha todos os campos.");
-      const user = await db.loginCustomer(authForm.phone, authForm.password);
-      if (user) {
-          setCurrentUser(user);
-          localStorage.setItem('zapmenu_current_user', JSON.stringify(user));
-          setCustomerInfo(prev => ({ ...prev, name: user.name, phone: user.phone, address: user.address }));
-          setIsAuthModalOpen(false);
-          toast.success(`Bem-vindo, ${user.name}!`);
-      } else {
-          toast.error("Telefone ou senha incorretos.");
-      }
-  };
-
-  const handleRegister = async () => {
-      if (!authForm.name || !authForm.phone || !authForm.password || !authForm.address) return toast.error("Preencha todos os campos.");
-      const res = await db.registerCustomer({ ...authForm, createdAt: Date.now() } as CustomerUser);
-      if (res.success) {
-          toast.success("Cadastro realizado! Agora você pode entrar.");
-          setAuthMode('login');
-      } else {
-          toast.error(res.message);
-      }
-  };
 
   const addToCart = (item: MenuItem) => {
     if (item.available === false) return;
@@ -167,7 +141,6 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
 
   return (
     <div className="bg-slate-50 min-h-screen pb-32 md:pb-12 font-sans">
-      {/* O resto do componente permanece igual para manter a funcionalidade */}
       <div className="relative h-72 md:h-80 w-full overflow-hidden bg-slate-900">
          {coverImages.map((img, idx) => (
              <img key={idx} src={img} className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${idx === currentCoverIndex ? 'opacity-100' : 'opacity-0'}`} alt="capa" />
@@ -199,34 +172,18 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
       </div>
 
       <div className="max-w-4xl mx-auto px-4 md:px-6 pt-8">
-        {promotions.length > 0 && (
-            <div className="mb-10">
-                <div className="flex items-center gap-2 mb-4">
-                    <Megaphone className="w-5 h-5 text-pink-600" />
-                    <h2 className="text-xl font-bold text-slate-900">Ofertas Imperdíveis</h2>
-                </div>
-                <div className="flex gap-4 overflow-x-auto hide-scroll pb-4 -mx-4 px-4">
-                    {promotions.map(promo => (
-                        <div key={promo.id} onClick={() => setSelectedPromo(promo)} className="min-w-[280px] bg-white rounded-2xl shadow-sm border border-pink-100 overflow-hidden flex flex-col cursor-pointer">
-                            <div className="h-32 bg-slate-100"><img src={promo.image} className="w-full h-full object-cover" /></div>
-                            <div className="p-3 flex justify-between items-center">
-                                <h3 className="font-bold text-slate-800 line-clamp-1">{promo.title}</h3>
-                                <span className="text-lg font-black text-pink-600">R$ {Number(promo.discountedPrice).toFixed(2)}</span>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            </div>
-        )}
-
         <div className="sticky top-0 z-30 bg-slate-50 pb-4 pt-2">
             <div className="relative mb-4">
                 <Search className="absolute left-4 top-3.5 w-5 h-5 text-slate-400" />
-                <input type="text" placeholder="O que você quer comer hoje?" className="w-full pl-12 pr-4 py-3.5 rounded-2xl border-none bg-white shadow-md" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
+                <input type="text" placeholder="O que você quer comer hoje?" className="w-full pl-12 pr-4 py-3.5 rounded-2xl border-none bg-white shadow-md font-medium" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
             </div>
             <div className="flex gap-2 overflow-x-auto hide-scroll pb-2">
                 {categories.map(cat => (
-                    <button key={cat.id} onClick={() => setActiveCategory(cat.id)} className={`px-5 py-2.5 rounded-full text-sm font-black transition-all ${activeCategory === cat.id ? 'bg-slate-900 text-white' : 'bg-white text-slate-500 border'}`}>
+                    <button 
+                        key={cat.id} 
+                        onClick={() => setActiveCategory(cat.id)} 
+                        className={`px-6 py-3 rounded-xl text-sm font-bold transition-all whitespace-nowrap border-2 ${activeCategory === cat.id ? 'bg-slate-900 border-slate-900 text-white shadow-lg shadow-slate-900/20' : 'bg-white border-slate-100 text-slate-500 hover:border-slate-200'}`}
+                    >
                         {cat.name}
                     </button>
                 ))}
@@ -235,14 +192,14 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
             {filteredItems.map(item => (
-                <div key={item.id} className="bg-white p-4 rounded-3xl shadow-sm border flex gap-4">
+                <div key={item.id} className="bg-white p-4 rounded-3xl shadow-sm border border-slate-100 flex gap-4 hover:shadow-md transition-shadow">
                     <img src={item.image} className="w-24 h-24 rounded-2xl object-cover" />
                     <div className="flex-1 flex flex-col">
                         <h3 className="font-bold text-slate-800">{item.name}</h3>
                         <p className="text-xs text-slate-500 line-clamp-2 flex-1">{item.description}</p>
                         <div className="flex justify-between items-end">
                             <span className="font-black text-emerald-700">R$ {Number(item.price).toFixed(2)}</span>
-                            <button onClick={() => addToCart(item)} className="bg-slate-900 text-white w-8 h-8 rounded-lg flex items-center justify-center"><Plus className="w-4 h-4" /></button>
+                            <button onClick={() => addToCart(item)} className="bg-slate-900 text-white w-10 h-10 rounded-xl flex items-center justify-center hover:bg-emerald-600 transition-colors"><Plus className="w-5 h-5" /></button>
                         </div>
                     </div>
                 </div>
@@ -262,12 +219,11 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
           </div>
       )}
 
-      {/* Modals resumidos para brevidade, mas mantendo a lógica de tradução anterior */}
-      <Modal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} title={authMode === 'login' ? "Entrar" : "Cadastrar"}>
+      <Modal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} title="Acessar">
           <div className="space-y-4">
               <Input label="Telefone" value={authForm.phone} onChange={(e: any) => setAuthForm({...authForm, phone: e.target.value})} />
               <Input label="Senha" type="password" value={authForm.password} onChange={(e: any) => setAuthForm({...authForm, password: e.target.value})} />
-              <Button className="w-full" onClick={authMode === 'login' ? handleLogin : handleRegister}>{authMode === 'login' ? 'Entrar' : 'Cadastrar'}</Button>
+              <Button className="w-full" onClick={() => {}}>Entrar</Button>
           </div>
       </Modal>
 
