@@ -3,6 +3,7 @@ import { db } from '../services/db';
 import { CartItem, Category, MenuItem, Restaurant, Order, CustomerUser, Promotion, Giveaway } from '../types';
 import { Button, Modal, Input, Badge } from '../components/ui';
 import { ShoppingBag, Minus, Plus, Search, MapPin, ArrowLeft, Send, Check, Star, Clock, AlertCircle, Banknote, QrCode, Copy, User, LogIn, LogOut, Store, Megaphone, Gift, Calendar, Trophy, X, Package, Utensils, Coins, ClipboardList } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ slug, onBack }) => {
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
@@ -64,7 +65,12 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
     if (storedUser) {
         const user = JSON.parse(storedUser);
         setCurrentUser(user);
-        setCustomerInfo(prev => ({ ...prev, name: user.name, phone: user.phone, address: user.address }));
+        setCustomerInfo(prev => ({ 
+          ...prev, 
+          name: user.name, 
+          phone: user.phone, 
+          address: user.address 
+        }));
     }
   }, [slug]);
 
@@ -89,18 +95,21 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
           localStorage.setItem('zapmenu_current_user', JSON.stringify(user));
           setCustomerInfo(prev => ({ ...prev, name: user.name, phone: user.phone, address: user.address }));
           setIsAuthModalOpen(false);
+          toast.success(`Bem-vindo, ${user.name}!`);
+          // Se estava tentando abrir o checkout, abre agora
+          setIsCheckoutOpen(true);
       } else {
-          alert("Telefone ou senha incorretos.");
+          toast.error("Telefone ou senha incorretos.");
       }
   };
 
   const handleRegister = async () => {
       const res = await db.registerCustomer({ ...authForm, createdAt: Date.now() } as CustomerUser);
       if (res) {
-          alert("Cadastro realizado! Faça login.");
+          toast.success("Cadastro realizado! Agora faça o login.");
           setAuthMode('login');
       } else {
-          alert("Erro ao realizar cadastro. Tente outro telefone.");
+          toast.error("Erro ao realizar cadastro. Tente outro telefone.");
       }
   };
 
@@ -116,15 +125,10 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
           const interval = setInterval(fetchCustomerOrders, 15000); 
           return () => clearInterval(interval);
       }
-  }, [isOrdersModalOpen]);
+  }, [isOrdersModalOpen, currentUser]);
 
   const addToCart = (item: MenuItem) => {
     if (!item.available) return;
-    const currentInCart = cart.find(i => i.id === item.id)?.quantity || 0;
-    if (item.stock !== undefined && item.stock !== null && currentInCart >= item.stock) {
-        alert("Desculpe, este item atingiu o limite do estoque.");
-        return;
-    }
     setCart(prev => {
       const existing = prev.find(i => i.id === item.id);
       return existing 
@@ -142,13 +146,18 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
     });
   };
 
-  const checkoutOrder = async () => {
-      if (!restaurant) return;
-      if (!customerInfo.name || !customerInfo.phone || !customerInfo.address) {
-          alert("Por favor, preencha todos os dados de entrega.");
+  const handleOpenCheckout = () => {
+      if (!currentUser) {
+          setAuthMode('login');
+          setIsAuthModalOpen(true);
           return;
       }
+      setIsCheckoutOpen(true);
+  };
 
+  const checkoutOrder = async () => {
+      if (!restaurant || !currentUser) return;
+      
       const order: Order = {
           id: `ord_${Date.now()}`,
           restaurantId: restaurant.id,
@@ -189,19 +198,7 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
           `\n💳 *Pagamento:* ${paymentLabel}${changeInfo}`;
 
       window.open(`https://wa.me/${restaurant.phone}?text=${encodeURIComponent(message)}`, '_blank');
-      
       setIsOrdersModalOpen(true);
-  };
-
-  const getStatusDisplay = (status: string) => {
-    switch (status) {
-      case 'pending': return { label: 'Pendente', color: 'bg-amber-100 text-amber-700' };
-      case 'paid': return { label: 'Pago', color: 'bg-emerald-100 text-emerald-700' };
-      case 'shipped': return { label: 'Em Entrega', color: 'bg-purple-100 text-purple-700' };
-      case 'completed': return { label: 'Finalizado', color: 'bg-slate-100 text-slate-700' };
-      case 'cancelled': return { label: 'Cancelado', color: 'bg-red-100 text-red-700' };
-      default: return { label: status, color: 'bg-slate-100 text-slate-600' };
-    }
   };
 
   const cartSubtotal = useMemo(() => cart.reduce((acc, item) => acc + (Number(item.price) * item.quantity), 0), [cart]);
@@ -216,10 +213,10 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
   }, [items, activeCategory, searchTerm]);
 
   if (isLoading) return <div className="flex h-screen items-center justify-center bg-slate-50">Carregando...</div>;
-  if (!restaurant) return <div>Restaurante não encontrado</div>;
 
   return (
     <div className="bg-slate-50 min-h-screen pb-32 md:pb-12 font-sans">
+      {/* Header & Cover */}
       <div className="relative h-72 md:h-80 w-full overflow-hidden bg-slate-900">
          {coverImages.map((img, idx) => (
              <img key={idx} src={img} className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${idx === currentCoverIndex ? 'opacity-100' : 'opacity-0'}`} alt="cover" />
@@ -236,7 +233,7 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
                 {currentUser ? (
                     <button onClick={() => { setCurrentUser(null); localStorage.removeItem('zapmenu_current_user'); }} className="bg-white/10 px-4 py-2 rounded-full text-white text-sm backdrop-blur-md hover:bg-white/20 transition-colors">Sair</button>
                 ) : (
-                    <button onClick={() => setIsAuthModalOpen(true)} className="bg-emerald-600 px-4 py-2 rounded-full text-white text-sm font-bold shadow-lg shadow-emerald-500/20">Entrar</button>
+                    <button onClick={() => setIsAuthModalOpen(true)} className="bg-emerald-600 px-4 py-2 rounded-full text-white text-sm font-bold shadow-lg shadow-emerald-500/20">Entrar / Cadastrar</button>
                 )}
             </div>
          </div>
@@ -255,84 +252,7 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
       </div>
 
       <div className="max-w-4xl mx-auto px-4 md:px-6 pt-8">
-        {promotions.length > 0 && (
-            <div className="mb-8">
-                <div className="flex items-center gap-2 mb-4">
-                    <Megaphone className="w-5 h-5 text-pink-600" />
-                    <h2 className="text-xl font-bold text-slate-900">Ofertas</h2>
-                </div>
-                <div className="flex gap-4 overflow-x-auto hide-scroll pb-4 -mx-4 px-4">
-                    {promotions.map(promo => (
-                        <div key={promo.id} className="min-w-[280px] bg-white rounded-2xl shadow-sm border border-pink-100 flex flex-col hover:shadow-md transition-all overflow-hidden">
-                            {promo.image && (
-                                <div className="h-32 w-full overflow-hidden bg-slate-100">
-                                    <img src={promo.image} className="w-full h-full object-cover" alt={promo.title} />
-                                </div>
-                            )}
-                            <div className="p-4 flex flex-col flex-1">
-                                <div className="flex justify-between items-start mb-2">
-                                    <h3 className="font-bold text-slate-800">{promo.title}</h3>
-                                    <div className="bg-pink-100 text-pink-600 text-[10px] font-bold px-2 py-1 rounded-full uppercase">Oferta</div>
-                                </div>
-                                <p className="text-sm text-slate-500 mb-4 line-clamp-2">{promo.description}</p>
-                                <div className="flex justify-between items-center mt-auto">
-                                    <div className="flex flex-col">
-                                        {promo.originalPrice && <span className="text-[10px] text-slate-400 line-through">R$ {Number(promo.originalPrice).toFixed(2)}</span>}
-                                        <span className="text-lg font-bold text-pink-600">R$ {Number(promo.discountedPrice).toFixed(2)}</span>
-                                    </div>
-                                    <button onClick={() => addToCart({ id: `promo_${promo.id}`, name: promo.title, price: promo.discountedPrice, image: '', available: true } as MenuItem)} className="bg-pink-50 text-pink-600 w-8 h-8 rounded-lg flex items-center justify-center hover:bg-pink-600 hover:text-white transition-colors">
-                                        <Plus className="w-5 h-5" />
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            </div>
-        )}
-
-        {giveaways.length > 0 && (
-            <div className="mb-8">
-                <div className="flex items-center gap-2 mb-4">
-                    <Gift className="w-5 h-5 text-purple-600" />
-                    <h2 className="text-xl font-bold text-slate-900">Sorteios & Prêmios</h2>
-                </div>
-                <div className="flex gap-4 overflow-x-auto hide-scroll pb-4 -mx-4 px-4">
-                    {giveaways.map(give => (
-                        <div key={give.id} className={`min-w-[280px] rounded-2xl shadow-sm border flex flex-col transition-all overflow-hidden ${give.winnerName ? 'bg-emerald-50 border-emerald-100' : 'bg-white border-purple-100'}`}>
-                            {give.image && (
-                                <div className="h-32 w-full overflow-hidden bg-slate-100">
-                                    <img src={give.image} className="w-full h-full object-cover" alt={give.title} />
-                                </div>
-                            )}
-                            <div className="p-4 flex flex-col flex-1">
-                                <div className="flex justify-between items-start mb-2">
-                                    <h3 className="font-bold text-slate-800">{give.title}</h3>
-                                    {give.winnerName ? (
-                                        <div className="bg-emerald-600 text-white text-[10px] font-bold px-2 py-1 rounded-full uppercase">Encerrado</div>
-                                    ) : (
-                                        <div className="bg-purple-600 text-white text-[10px] font-bold px-2 py-1 rounded-full uppercase">Ativo</div>
-                                    )}
-                                </div>
-                                <p className="text-sm text-slate-500 mb-4 leading-relaxed line-clamp-2">{give.description}</p>
-                                
-                                {give.winnerName ? (
-                                    <div className="mt-auto bg-white p-3 rounded-xl border border-emerald-100">
-                                        <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-1 flex items-center gap-1"><Trophy size={10} /> Ganhador</p>
-                                        <p className="font-bold text-slate-900">{give.winnerName}</p>
-                                    </div>
-                                ) : (
-                                    <div className="mt-auto flex items-center text-xs font-bold text-purple-600 bg-purple-50 p-2 rounded-lg">
-                                        <Calendar className="w-3.5 h-3.5 mr-2" /> Sorteio: {new Date(give.drawDate).toLocaleDateString('pt-BR')}
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            </div>
-        )}
-
+        {/* Filtros e Busca */}
         <div className="sticky top-0 z-30 bg-slate-50 pb-4 pt-2">
             <div className="relative mb-4">
                 <Search className="absolute left-4 top-3.5 w-5 h-5 text-slate-400" />
@@ -351,9 +271,10 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
             </div>
         </div>
 
+        {/* Listagem de Itens */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {filteredItems.map(item => (
-                <div key={item.id} className={`bg-white p-5 rounded-3xl shadow-sm border border-slate-100 flex gap-4 transition-all hover:shadow-md ${(!item.available || (item.stock !== undefined && item.stock !== null && item.stock <= 0)) && 'opacity-60 grayscale'}`}>
+                <div key={item.id} className="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 flex gap-4 transition-all hover:shadow-md">
                     <div className="w-20 h-20 rounded-2xl bg-slate-50 overflow-hidden flex items-center justify-center text-slate-300 shrink-0 border border-slate-50">
                          {item.image ? (
                              <img src={item.image} className="w-full h-full object-cover" alt={item.name} />
@@ -368,7 +289,7 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
                         </div>
                         <div className="flex justify-between items-end mt-4">
                             <span className="font-bold text-lg text-emerald-700">R$ {Number(item.price).toFixed(2)}</span>
-                            <button onClick={() => addToCart(item)} disabled={!item.available || (item.stock !== undefined && item.stock !== null && item.stock <= 0)} className="bg-slate-50 text-slate-600 w-10 h-10 rounded-xl flex items-center justify-center hover:bg-emerald-600 hover:text-white hover:shadow-lg hover:shadow-emerald-500/30 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed">
+                            <button onClick={() => addToCart(item)} className="bg-slate-50 text-slate-600 w-10 h-10 rounded-xl flex items-center justify-center hover:bg-emerald-600 hover:text-white transition-all">
                                 <Plus className="w-5 h-5" />
                             </button>
                         </div>
@@ -378,22 +299,145 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
         </div>
       </div>
 
+      {/* Botão Flutuante Sacola */}
       {cart.length > 0 && (
           <div className="fixed bottom-6 left-4 right-4 z-40 max-w-4xl mx-auto">
-              <button onClick={() => setIsCheckoutOpen(true)} className="w-full bg-slate-900 text-white p-4 rounded-2xl shadow-xl shadow-slate-900/20 flex justify-between items-center hover:bg-slate-800 transition-colors">
+              <button onClick={handleOpenCheckout} className="w-full bg-slate-900 text-white p-4 rounded-2xl shadow-xl shadow-slate-900/20 flex justify-between items-center hover:bg-slate-800 transition-colors">
                   <div className="flex items-center gap-3">
-                      <div className="bg-emerald-500 w-8 h-8 flex items-center justify-center rounded-lg font-bold text-white shadow-sm">{cart.reduce((a,b)=>a+b.quantity,0)}</div>
+                      <div className="bg-emerald-500 w-8 h-8 flex items-center justify-center rounded-lg font-bold text-white">{cart.reduce((a,b)=>a+b.quantity,0)}</div>
                       <span className="font-semibold">Ver sacola</span>
                   </div>
                   <span className="font-bold text-xl">R$ {cartTotal.toFixed(2)}</span>
               </button>
           </div>
       )}
-      {/* ... keep existing code (rest of the component) */}
+
+      {/* Modal de Autenticação */}
+      <Modal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} title={authMode === 'login' ? "Entrar na Conta" : "Criar Cadastro"}>
+          <div className="space-y-4">
+              <p className="text-xs text-slate-500 mb-2">Para finalizar seu pedido e garantir a entrega, precisamos te identificar.</p>
+              {authMode === 'register' && (
+                  <Input label="Nome Completo" value={authForm.name} onChange={e => setAuthForm({...authForm, name: e.target.value})} placeholder="Como devemos te chamar?" />
+              )}
+              <Input label="WhatsApp" value={authForm.phone} onChange={e => setAuthForm({...authForm, phone: e.target.value})} placeholder="Seu número com DDD" />
+              {authMode === 'register' && (
+                  <Input label="Endereço Padrão" value={authForm.address} onChange={e => setAuthForm({...authForm, address: e.target.value})} placeholder="Rua, Número, Bairro" />
+              )}
+              <Input label="Senha" type="password" value={authForm.password} onChange={e => setAuthForm({...authForm, password: e.target.value})} placeholder="••••••••" />
+              
+              <Button className="w-full bg-emerald-600 border-none py-4" onClick={authMode === 'login' ? handleLogin : handleRegister}>
+                  {authMode === 'login' ? 'Entrar Agora' : 'Finalizar Cadastro'}
+              </Button>
+              
+              <button 
+                  onClick={() => setAuthMode(authMode === 'login' ? 'register' : 'login')}
+                  className="w-full text-center text-xs font-bold text-slate-400 hover:text-emerald-600 transition-colors"
+              >
+                  {authMode === 'login' ? 'Não tem conta? Cadastre-se aqui' : 'Já tem conta? Faça o login'}
+              </button>
+          </div>
+      </Modal>
+
+      {/* Modal de Checkout */}
+      <Modal isOpen={isCheckoutOpen} onClose={() => setIsCheckoutOpen(false)} title="Finalizar Pedido">
+          <div className="space-y-6">
+              <div className="space-y-2">
+                  <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Seus Itens</p>
+                  {cart.map(item => (
+                      <div key={item.id} className="flex justify-between items-center py-2 border-b border-slate-50">
+                          <div className="flex gap-3">
+                              <span className="font-bold text-emerald-600">{item.quantity}x</span>
+                              <span className="text-sm font-medium text-slate-700">{item.name}</span>
+                          </div>
+                          <div className="flex items-center gap-3">
+                              <span className="text-sm font-bold">R$ {(item.price * item.quantity).toFixed(2)}</span>
+                              <button onClick={() => removeFromCart(item.id)} className="p-1 text-slate-300 hover:text-red-500"><X size={14} /></button>
+                          </div>
+                      </div>
+                  ))}
+              </div>
+
+              <div className="space-y-3 pt-4 border-t border-slate-100">
+                  <Input label="Endereço de Entrega" value={customerInfo.address} onChange={e => setCustomerInfo({...customerInfo, address: e.target.value})} />
+                  <div className="space-y-1.5">
+                      <label className="block text-sm font-semibold text-slate-700">Forma de Pagamento</label>
+                      <select 
+                          className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none"
+                          value={customerInfo.payment}
+                          onChange={e => setCustomerInfo({...customerInfo, payment: e.target.value as any})}
+                      >
+                          <option value="pix">Pix (No local ou link)</option>
+                          <option value="credit">Cartão de Crédito</option>
+                          <option value="debit">Cartão de Débito</option>
+                          <option value="cash">Dinheiro</option>
+                      </select>
+                  </div>
+                  {customerInfo.payment === 'cash' && (
+                      <Input label="Precisa de troco para quanto?" type="number" value={customerInfo.changeFor} onChange={e => setCustomerInfo({...customerInfo, changeFor: e.target.value})} placeholder="Ex: 50.00" />
+                  )}
+              </div>
+
+              <div className="bg-slate-50 p-4 rounded-2xl space-y-2">
+                  <div className="flex justify-between text-sm text-slate-500">
+                      <span>Subtotal</span>
+                      <span>R$ {cartSubtotal.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between text-sm text-slate-500">
+                      <span>Taxa de Entrega</span>
+                      <span>R$ {deliveryFee.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between text-lg font-black text-slate-900 pt-2 border-t border-slate-200">
+                      <span>Total</span>
+                      <span>R$ {cartTotal.toFixed(2)}</span>
+                  </div>
+              </div>
+
+              <Button className="w-full bg-emerald-600 border-none py-4 text-lg" onClick={checkoutOrder}>
+                  <Send className="w-5 h-5 mr-2" /> Enviar para o WhatsApp
+              </Button>
+          </div>
+      </Modal>
+
+      {/* Modal Meus Pedidos */}
+      <Modal isOpen={isOrdersModalOpen} onClose={() => setIsOrdersModalOpen(false)} title="Meus Pedidos">
+          <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
+              {customerOrders.length > 0 ? customerOrders.map(order => {
+                  const status = {
+                    'pending': { label: 'Pendente', color: 'bg-amber-100 text-amber-700' },
+                    'paid': { label: 'Em Preparo', color: 'bg-emerald-100 text-emerald-700' },
+                    'shipped': { label: 'Em Entrega', color: 'bg-purple-100 text-purple-700' },
+                    'completed': { label: 'Finalizado', color: 'bg-slate-100 text-slate-700' },
+                    'cancelled': { label: 'Cancelado', color: 'bg-red-100 text-red-700' }
+                  }[order.status] || { label: order.status, color: 'bg-slate-100' };
+
+                  return (
+                      <div key={order.id} className="p-4 bg-white border border-slate-100 rounded-2xl shadow-sm">
+                          <div className="flex justify-between items-start mb-2">
+                              <span className="text-xs font-black text-slate-400">#{order.id.slice(-6).toUpperCase()}</span>
+                              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${status.color}`}>{status.label}</span>
+                          </div>
+                          <div className="space-y-1">
+                              {order.items.map((item, idx) => (
+                                  <div key={idx} className="text-xs text-slate-500 flex justify-between">
+                                      <span>{item.quantity}x {item.name}</span>
+                                      <span>R$ {(item.price * item.quantity).toFixed(2)}</span>
+                                  </div>
+                              ))}
+                          </div>
+                          <div className="flex justify-between items-center mt-3 pt-3 border-t border-slate-50">
+                              <span className="text-[10px] text-slate-400">{new Date(order.createdAt).toLocaleDateString('pt-BR')}</span>
+                              <span className="font-bold text-slate-900">Total: R$ {order.total.toFixed(2)}</span>
+                          </div>
+                      </div>
+                  );
+              }) : (
+                  <div className="text-center py-10">
+                      <Package className="w-12 h-12 text-slate-200 mx-auto mb-3" />
+                      <p className="text-sm text-slate-400">Você ainda não fez nenhum pedido nesta loja.</p>
+                  </div>
+              )}
+          </div>
+      </Modal>
     </div>
   );
 };
-
-const CreditCard = ({ size = 18 }: { size?: number }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>
-);
