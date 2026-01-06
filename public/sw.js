@@ -1,7 +1,17 @@
-// Service Worker Minimalista para PWA
-const CACHE_NAME = 'zapmenu-v2';
+const CACHE_NAME = 'zapmenu-v3';
+const ASSETS_TO_CACHE = [
+  '/',
+  '/index.html',
+  '/manifest.json',
+  '/sw.js'
+];
 
 self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => {
+      return cache.addAll(ASSETS_TO_CACHE);
+    })
+  );
   self.skipWaiting();
 });
 
@@ -17,9 +27,15 @@ self.addEventListener('activate', (event) => {
       );
     })
   );
+  self.clients.claim();
 });
 
 self.addEventListener('fetch', (event) => {
-  // Apenas repassa a requisição para a rede para evitar tela branca por cache corrompido
-  event.respondWith(fetch(event.request));
+  // Estratégia: Tenta rede primeiro, se falhar ou estiver offline, usa cache.
+  // Isso evita o erro de "offline version" enquanto permite o funcionamento offline básico.
+  event.respondWith(
+    fetch(event.request).catch(() => {
+      return caches.match(event.request);
+    })
+  );
 });
