@@ -22,6 +22,8 @@ export interface Restaurant {
   minOrderValue?: number;
   estimatedTime?: string;
   pixKey?: string;
+  openingTime?: string;
+  closingTime?: string;
 }
 
 export interface AdminUser {
@@ -63,6 +65,7 @@ export interface Order {
   customerAddress: string;
   paymentMethod: 'pix' | 'credit' | 'debit' | 'cash';
   paymentDetails?: string;
+  scheduledTime?: string;
   items: CartItem[];
   total: number;
   status: 'pending' | 'confirmed' | 'paid' | 'shipped' | 'completed' | 'cancelled';

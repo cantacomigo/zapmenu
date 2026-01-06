@@ -14,7 +14,9 @@ const fromDbRestaurant = (r: any): Restaurant => ({
     deliveryFee: Number(r.delivery_fee),
     minOrderValue: Number(r.min_order_value),
     estimatedTime: r.estimated_time,
-    pixKey: r.pix_key
+    pixKey: r.pix_key,
+    openingTime: r.opening_time,
+    closingTime: r.closing_time
 });
 
 const fromDbOrder = (o: any): Order => ({
@@ -24,6 +26,8 @@ const fromDbOrder = (o: any): Order => ({
     customerPhone: o.customer_phone,
     customerAddress: o.customer_address,
     paymentMethod: o.payment_method,
+    paymentDetails: o.payment_details,
+    scheduledTime: o.scheduled_time,
     items: o.items as CartItem[],
     total: Number(o.total),
     status: o.status,
@@ -101,7 +105,9 @@ export const db = {
   addRestaurant: async (rest: Restaurant) => {
     return await supabase.from('restaurants').insert({ 
         name: rest.name, slug: rest.slug, phone: rest.phone, address: rest.address,
-        logo: rest.logo, cover_image: rest.coverImage, is_active: true 
+        logo: rest.logo, cover_image: rest.coverImage, is_active: true,
+        opening_time: rest.openingTime || '08:00',
+        closing_time: rest.closingTime || '22:00'
     });
   },
 
@@ -109,7 +115,8 @@ export const db = {
     return await supabase.from('restaurants').update({
         name: rest.name, slug: rest.slug, phone: rest.phone, address: rest.address,
         logo: rest.logo, cover_image: rest.coverImage, min_order_value: rest.minOrderValue, 
-        delivery_fee: rest.deliveryFee, pix_key: rest.pixKey
+        delivery_fee: rest.deliveryFee, pix_key: rest.pixKey,
+        opening_time: rest.openingTime, closing_time: rest.closingTime
     }).eq('id', rest.id);
   },
 
@@ -174,6 +181,8 @@ export const db = {
         customer_phone: order.customerPhone,
         customer_address: order.customerAddress,
         payment_method: order.paymentMethod,
+        payment_details: order.paymentDetails,
+        scheduled_time: order.scheduledTime,
         items: order.items,
         total: order.total,
         status: 'pending'

@@ -32,7 +32,28 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
       address: '', 
       payment: 'credit' as 'credit' | 'pix' | 'cash' | 'debit', 
       changeFor: '',
+      scheduledTime: '',
   });
+
+  const isStoreOpen = useMemo(() => {
+    if (!restaurant?.openingTime || !restaurant?.closingTime) return true;
+    
+    const now = new Date();
+    const currentTime = now.getHours() * 60 + now.getMinutes();
+    
+    const [openH, openM] = restaurant.openingTime.split(':').map(Number);
+    const [closeH, closeM] = restaurant.closingTime.split(':').map(Number);
+    
+    const openMinutes = openH * 60 + openM;
+    const closeMinutes = closeH * 60 + closeM;
+    
+    // Lida com fechamento após meia-noite
+    if (closeMinutes < openMinutes) {
+        return currentTime >= openMinutes || currentTime < closeMinutes;
+    }
+    
+    return currentTime >= openMinutes && currentTime < closeMinutes;
+  }, [restaurant]);
   
   useEffect(() => {
     const fetchMenu = async () => {
@@ -157,6 +178,11 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
   const checkoutOrder = async () => {
       if (!restaurant || !currentUser) return;
       
+      if (!isStoreOpen && !customerInfo.scheduledTime) {
+          toast.error("Por favor, selecione um horário para agendar seu pedido.");
+          return;
+      }
+
       const order: Order = {
           id: `ord_${Date.now()}`,
           restaurantId: restaurant.id,
@@ -165,6 +191,7 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
           customerAddress: customerInfo.address,
           paymentMethod: customerInfo.payment as any,
           paymentDetails: customerInfo.payment === 'cash' && customerInfo.changeFor ? `Troco para R$ ${customerInfo.changeFor}` : undefined,
+          scheduledTime: customerInfo.scheduledTime || undefined,
           items: cart,
           total: cartTotal,
           status: 'pending',
@@ -189,7 +216,8 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
           rocket: String.fromCodePoint(0x1F680),
           time: String.fromCodePoint(0x1F552),
           spark: String.fromCodePoint(0x2728),
-          bill: String.fromCodePoint(0x1F4B5)
+          bill: String.fromCodePoint(0x1F4B5),
+          calendar: String.fromCodePoint(0x1F4C5)
       };
 
       const paymentLabel = {
@@ -203,6 +231,10 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
           ? `\n${e.money} *Troco para:* R$ ${customerInfo.changeFor}` 
           : '';
           
+      const scheduleInfo = order.scheduledTime 
+          ? `\n${e.calendar} *AGENDADO PARA:* ${order.scheduledTime}` 
+          : '';
+
       const pixReminder = customerInfo.payment === 'pix' 
           ? `\n\n${e.pin} *Atenção:* Vou enviar o comprovante do Pix em seguida! ${e.rocket}` 
           : '';
@@ -210,7 +242,7 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
       const message = `*${e.bento} Novo Pedido: ${restaurant.name}*\n\n` +
           `${e.user} *Cliente:* ${order.customerName}\n` +
           `${e.phone} *Fone:* ${order.customerPhone}\n` +
-          `${e.pin} *Endereço:* ${order.customerAddress}\n\n` +
+          `${e.pin} *Endereço:* ${order.customerAddress}${scheduleInfo}\n\n` +
           `${e.cart} *Itens do Pedido:*\n` + 
           cart.map(i => `${e.check} ${i.quantity}x ${i.name} (R$ ${(i.price * i.quantity).toFixed(2)})`).join('\n') + 
           `\n\n${e.motor} *Taxa de Entrega:* R$ ${deliveryFee.toFixed(2)}` +
@@ -263,10 +295,15 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
             <div className="flex items-end gap-4 max-w-4xl mx-auto">
                 <img src={restaurant?.logo} className="w-24 h-24 rounded-2xl bg-white p-1 object-cover shadow-lg" alt="logo" />
                 <div className="text-white mb-2">
-                    <h1 className="text-3xl font-bold">{restaurant?.name}</h1>
+                    <div className="flex items-center gap-2 mb-1">
+                        <h1 className="text-3xl font-bold">{restaurant?.name}</h1>
+                        <Badge color={isStoreOpen ? 'bg-emerald-500 text-white' : 'bg-red-500 text-white'}>
+                            {isStoreOpen ? 'Aberto' : 'Fechado (Aceita Agendamento)'}
+                        </Badge>
+                    </div>
                     <div className="flex gap-3 text-sm font-medium text-slate-200 mt-1">
                         <span className="flex items-center"><Star className="w-4 h-4 text-yellow-400 mr-1" /> 4.8</span>
-                        <span className="flex items-center"><Clock className="w-4 h-4 mr-1" /> {restaurant?.estimatedTime}</span>
+                        <span className="flex items-center"><Clock className="w-4 h-4 mr-1" /> {restaurant?.openingTime} - {restaurant?.closingTime}</span>
                     </div>
                 </div>
             </div>
@@ -274,6 +311,16 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
       </div>
 
       <div className="max-w-4xl mx-auto px-4 md:px-6 pt-8">
+        {!isStoreOpen && (
+            <div className="bg-red-50 p-4 rounded-2xl border border-red-100 flex items-center gap-3 mb-6">
+                <AlertCircle className="w-5 h-5 text-red-600 shrink-0" />
+                <div>
+                    <p className="text-sm font-bold text-red-900 leading-tight">Estamos fechados no momento!</p>
+                    <p className="text-xs text-red-700">Mas não se preocupe, você ainda pode montar seu carrinho e agendar a entrega para quando abrirmos.</p>
+                </div>
+            </div>
+        )}
+
         <div className="sticky top-0 z-30 bg-slate-50 pb-4 pt-2">
             <div className="relative mb-4">
                 <Search className="absolute left-4 top-3.5 w-5 h-5 text-slate-400" />
@@ -324,7 +371,7 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
               <button onClick={handleOpenCheckout} className="w-full bg-slate-900 text-white p-4 rounded-2xl shadow-xl shadow-slate-900/20 flex justify-between items-center hover:bg-slate-800 transition-colors">
                   <div className="flex items-center gap-3">
                       <div className="bg-emerald-500 w-8 h-8 flex items-center justify-center rounded-lg font-bold text-white">{cart.reduce((a,b)=>a+b.quantity,0)}</div>
-                      <span className="font-semibold">Ver sacola</span>
+                      <span className="font-semibold">{isStoreOpen ? 'Ver sacola' : 'Agendar Pedido'}</span>
                   </div>
                   <span className="font-bold text-xl">R$ {cartTotal.toFixed(2)}</span>
               </button>
@@ -358,6 +405,18 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
 
       <Modal isOpen={isCheckoutOpen} onClose={() => setIsCheckoutOpen(false)} title="Finalizar Pedido">
           <div className="space-y-6">
+              {!isStoreOpen && (
+                  <div className="bg-amber-50 p-4 rounded-2xl border border-amber-200">
+                      <label className="block text-xs font-black uppercase text-amber-700 tracking-widest mb-2">Selecione o horário do agendamento</label>
+                      <input 
+                        type="datetime-local" 
+                        className="w-full bg-white border border-amber-200 rounded-xl px-4 py-3 outline-none"
+                        value={customerInfo.scheduledTime}
+                        onChange={e => setCustomerInfo({...customerInfo, scheduledTime: e.target.value})}
+                      />
+                  </div>
+              )}
+
               <div className="space-y-2">
                   <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Seus Itens</p>
                   {cart.map(item => (
@@ -391,25 +450,6 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
                   </div>
                   {customerInfo.payment === 'cash' && (
                       <Input label="Precisa de troco para quanto?" type="number" value={customerInfo.changeFor} onChange={e => setCustomerInfo({...customerInfo, changeFor: e.target.value})} placeholder="Ex: 50.00" />
-                  )}
-                  
-                  {customerInfo.payment === 'pix' && restaurant?.pixKey && (
-                      <div className="bg-emerald-50 p-5 rounded-2xl border border-emerald-100 space-y-3">
-                          <div className="flex items-center justify-between">
-                              <span className="text-[10px] font-black uppercase text-emerald-600 tracking-widest">Chave Pix</span>
-                              <button 
-                                onClick={() => {
-                                    navigator.clipboard.writeText(restaurant?.pixKey || '');
-                                    toast.success("Chave Pix copiada!");
-                                }}
-                                className="text-emerald-700 font-bold text-xs flex items-center gap-1.5 hover:underline"
-                              >
-                                <Copy size={12} /> Copiar Chave
-                              </button>
-                          </div>
-                          <p className="text-lg font-black text-slate-900 break-all">{restaurant.pixKey}</p>
-                          <p className="text-[10px] font-medium text-emerald-600/70">Pague agora e envie o comprovante no WhatsApp após confirmar o pedido.</p>
-                      </div>
                   )}
               </div>
 

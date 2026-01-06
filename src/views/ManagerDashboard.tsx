@@ -10,7 +10,7 @@ import { ReportsTab } from '@/src/views/manager/ReportsTab';
 import { MarketingTab } from '@/src/views/manager/MarketingTab';
 import { QRCodeSVG } from 'qrcode.react';
 import toast from 'react-hot-toast';
-import { Utensils, ClipboardList, LogOut, Settings, QrCode, Copy, ExternalLink, Users, BarChart3, Megaphone } from 'lucide-react';
+import { Utensils, ClipboardList, LogOut, Settings, QrCode, Copy, ExternalLink, Users, BarChart3, Megaphone, Clock } from 'lucide-react';
 
 interface ManagerDashboardProps {
   restaurantId: string;
@@ -128,6 +128,18 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({ restaurantId
                                     <Input label="WhatsApp (DDD + Número)" value={restaurant.phone} onChange={(e: any) => setRestaurant({...restaurant, phone: e.target.value})} />
                                 </div>
                                 <Input label="Endereço Completo" value={restaurant.address} onChange={(e: any) => setRestaurant({...restaurant, address: e.target.value})} />
+                                
+                                <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100 space-y-4">
+                                    <div className="flex items-center gap-2 text-slate-900 font-bold text-sm">
+                                        <Clock className="w-4 h-4 text-emerald-600" /> Horário de Funcionamento
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <Input label="Abre às" type="time" value={restaurant.openingTime || '08:00'} onChange={(e: any) => setRestaurant({...restaurant, openingTime: e.target.value})} />
+                                        <Input label="Fecha às" type="time" value={restaurant.closingTime || '22:00'} onChange={(e: any) => setRestaurant({...restaurant, closingTime: e.target.value})} />
+                                    </div>
+                                    <p className="text-[10px] text-slate-400 font-medium">Os clientes poderão agendar pedidos fora deste horário.</p>
+                                </div>
+
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <Input label="Pedido Mínimo (R$)" type="number" value={restaurant.minOrderValue || ''} onChange={(e: any) => setRestaurant({...restaurant, minOrderValue: Number(e.target.value)})} />
                                     <Input label="Taxa de Entrega (R$)" type="number" value={restaurant.deliveryFee || ''} onChange={(e: any) => setRestaurant({...restaurant, deliveryFee: Number(e.target.value)})} />
