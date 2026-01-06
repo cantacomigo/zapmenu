@@ -208,7 +208,7 @@ export const OrdersTab: React.FC<OrdersTabProps> = ({ orders, onRefresh, restaur
                     ))}
                 </div>
 
-                {/* BOTÕES ESTILO REFERÊNCIA */}
+                {/* BOTÕES DE AÇÃO */}
                 <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-50">
                   {/* Imprimir */}
                   <button 
@@ -218,7 +218,7 @@ export const OrdersTab: React.FC<OrdersTabProps> = ({ orders, onRefresh, restaur
                     <Printer size={14} /> Imprimir
                   </button>
 
-                  {/* Confirmar */}
+                  {/* Confirmar Recebimento */}
                   {order.status === 'pending' && (
                     <button 
                       onClick={() => handleSendConfirmation(order)}
@@ -228,7 +228,7 @@ export const OrdersTab: React.FC<OrdersTabProps> = ({ orders, onRefresh, restaur
                     </button>
                   )}
 
-                  {/* Pagar */}
+                  {/* Confirmar Pagamento */}
                   {order.status === 'pending' && (
                     <button 
                       onClick={() => handleUpdateStatus(order, 'paid')}
@@ -238,7 +238,7 @@ export const OrdersTab: React.FC<OrdersTabProps> = ({ orders, onRefresh, restaur
                     </button>
                   )}
 
-                  {/* Enviar */}
+                  {/* Enviar para Entrega */}
                   {order.status === 'paid' && (
                     <button 
                       onClick={() => handleUpdateStatus(order, 'shipped')}
@@ -248,7 +248,7 @@ export const OrdersTab: React.FC<OrdersTabProps> = ({ orders, onRefresh, restaur
                     </button>
                   )}
 
-                  {/* Finalizar */}
+                  {/* Finalizar Entrega */}
                   {order.status === 'shipped' && (
                     <button 
                       onClick={() => handleUpdateStatus(order, 'completed')}
@@ -258,7 +258,7 @@ export const OrdersTab: React.FC<OrdersTabProps> = ({ orders, onRefresh, restaur
                     </button>
                   )}
 
-                  {/* Spacer para empurrar Cancelar e Chat para a direita ou próxima linha */}
+                  {/* Spacer */}
                   <div className="flex-1 min-w-[10px]"></div>
 
                   {/* Cancelar */}
@@ -271,7 +271,7 @@ export const OrdersTab: React.FC<OrdersTabProps> = ({ orders, onRefresh, restaur
                     </button>
                   )}
 
-                  {/* Chat Icon */}
+                  {/* Chat Direto */}
                   <button 
                     onClick={() => {
                       const phone = order.customerPhone.replace(/\D/g, '');
