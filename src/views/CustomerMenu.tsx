@@ -225,9 +225,15 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
                 <Search className="absolute left-4 top-3.5 w-5 h-5 text-slate-400" />
                 <input type="text" placeholder="Buscar itens..." className="w-full pl-12 pr-4 py-3.5 rounded-2xl border-none bg-white shadow-sm font-medium text-slate-700 placeholder-slate-400 focus:ring-2 focus:ring-emerald-500/20" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
             </div>
-            <div className="flex gap-2 overflow-x-auto hide-scroll pb-2 -mx-4 px-4">
+            <div className="flex flex-wrap gap-2 pb-2">
                 {categories.map(cat => (
-                    <button key={cat.id} onClick={() => setActiveCategory(cat.id)} className={`px-5 py-2.5 rounded-full text-sm font-bold whitespace-nowrap transition-all ${activeCategory === cat.id ? 'bg-slate-900 text-white shadow-lg' : 'bg-white text-slate-600 border border-slate-200'}`}>{cat.name}</button>
+                    <button 
+                        key={cat.id} 
+                        onClick={() => setActiveCategory(cat.id)} 
+                        className={`px-3 py-1.5 rounded-full text-[10px] font-bold transition-all ${activeCategory === cat.id ? 'bg-slate-900 text-white shadow-md' : 'bg-white text-slate-600 border border-slate-200'}`}
+                    >
+                        {cat.name}
+                    </button>
                 ))}
             </div>
         </div>
