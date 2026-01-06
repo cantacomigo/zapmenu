@@ -131,35 +131,35 @@ export const OrdersTab: React.FC<OrdersTabProps> = ({ orders, onRefresh, restaur
       )}
 
       <div className="flex justify-between items-center px-1">
-        <h2 className="text-2xl font-black text-slate-900 tracking-tight">Gestão de Pedidos</h2>
+        <h2 className="text-xl md:text-2xl font-black text-slate-900 tracking-tight">Pedidos</h2>
         <button 
             onClick={onRefresh} 
-            className="p-2.5 bg-emerald-50 text-emerald-600 rounded-2xl active:rotate-180 transition-all duration-500 shadow-sm"
+            className="p-2 bg-emerald-50 text-emerald-600 rounded-xl active:rotate-180 transition-all duration-500 shadow-sm"
         >
             <RefreshCw size={20} />
         </button>
       </div>
 
-      <div className="space-y-4 sticky top-[-1px] z-30 bg-slate-50 pt-1 pb-4">
+      <div className="space-y-3 sticky top-[-1px] z-30 bg-slate-50 pt-1 pb-3">
         <div className="relative">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-slate-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <input 
             type="text" 
-            placeholder="Buscar por nome ou #ID..." 
-            className="w-full pl-11 pr-4 py-4 bg-white border border-slate-200 rounded-[20px] outline-none focus:ring-4 focus:ring-emerald-500/10 text-sm shadow-sm transition-all"
+            placeholder="Buscar por cliente..." 
+            className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-emerald-500/20 text-sm shadow-sm transition-all"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        <div className="flex gap-2.5 overflow-x-auto pb-1 hide-scroll -mx-4 px-4 snap-x">
+        <div className="flex gap-2 overflow-x-auto pb-1 hide-scroll -mx-4 px-4 snap-x">
           {(['all', 'pending', 'paid', 'shipped', 'completed', 'cancelled', 'scheduled'] as StatusFilter[]).map((status) => (
             <button
               key={status}
               onClick={() => setStatusFilter(status)}
-              className={`px-5 py-2.5 rounded-full text-[10px] font-black uppercase tracking-wider whitespace-nowrap transition-all border-2 snap-center ${
+              className={`px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-wider whitespace-nowrap transition-all border-2 snap-center ${
                 statusFilter === status 
-                  ? 'bg-slate-900 text-white border-slate-900 shadow-lg shadow-slate-200' 
-                  : 'bg-white text-slate-400 border-transparent shadow-sm hover:bg-slate-50'
+                  ? 'bg-slate-900 text-white border-slate-900 shadow-md' 
+                  : 'bg-white text-slate-500 border-transparent shadow-sm hover:bg-slate-50'
               }`}
             >
               {status === 'all' ? 'Todos' : getStatusDisplay(status).label}
@@ -168,100 +168,100 @@ export const OrdersTab: React.FC<OrdersTabProps> = ({ orders, onRefresh, restaur
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-5">
+      <div className="grid grid-cols-1 gap-4">
         {filteredOrders.map(order => {
           const statusInfo = getStatusDisplay(order.status);
           return (
-            <Card key={order.id} className="p-5 md:p-6 border-slate-100 shadow-sm hover:shadow-xl transition-all active:scale-[0.98] rounded-[28px] overflow-hidden">
-              <div className="flex flex-col gap-5">
-                {/* Cabeçalho do Card */}
+            <Card key={order.id} className="p-4 border-slate-100 shadow-sm hover:shadow-lg transition-all active:scale-[0.99] rounded-[24px]">
+              <div className="space-y-4">
+                {/* Header */}
                 <div className="flex justify-between items-start">
-                  <div className="space-y-1.5">
-                    <div className="flex items-center gap-2">
-                        <span className="font-black text-slate-400 text-[11px] tracking-widest uppercase bg-slate-50 px-2 py-0.5 rounded-lg">#{order.id.slice(-6).toUpperCase()}</span>
-                        <Badge color={`${statusInfo.color} border-none text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full`}>{statusInfo.label}</Badge>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2 mb-0.5">
+                        <span className="font-black text-slate-400 text-[10px] tracking-widest uppercase">#{order.id.slice(-6).toUpperCase()}</span>
+                        <Badge color={`${statusInfo.color} border-none text-[8px] font-black uppercase tracking-tighter px-1.5 py-0.5 rounded-full`}>{statusInfo.label}</Badge>
                     </div>
-                    <h3 className="text-lg font-black text-slate-900 leading-tight">{order.customerName}</h3>
+                    <h3 className="text-sm font-black text-slate-900 leading-tight truncate">{order.customerName}</h3>
                   </div>
-                  <div className="text-right">
-                    <p className="text-xl font-black text-emerald-600 leading-none">R$ {order.total.toFixed(2)}</p>
-                    <p className="text-[10px] text-slate-400 font-black mt-2 uppercase tracking-widest bg-slate-50 px-2 py-0.5 rounded-lg inline-block">
-                        {order.paymentMethod === 'pix' ? '✨ Pix' : `💳 ${order.paymentMethod}`}
-                    </p>
+                  <div className="text-right pl-3">
+                    <p className="text-base font-black text-emerald-600 leading-none">R$ {order.total.toFixed(2)}</p>
+                    <span className="text-[8px] text-slate-400 font-black mt-1 uppercase bg-slate-50 px-1.5 py-0.5 rounded-md inline-block">
+                        {order.paymentMethod === 'pix' ? 'PIX' : order.paymentMethod.toUpperCase()}
+                    </span>
                   </div>
                 </div>
 
-                {/* Info de Entrega/Agendamento */}
-                <div className="bg-slate-50/80 p-4 rounded-[22px] space-y-3 border border-slate-100">
-                  <div className="flex items-start gap-3">
-                    <MapPin className="w-4 h-4 text-slate-400 mt-0.5 shrink-0" />
-                    <p className="text-xs text-slate-500 font-medium leading-relaxed">{order.customerAddress}</p>
+                {/* Info de Entrega */}
+                <div className="bg-slate-50/50 p-2.5 rounded-[18px] border border-slate-100 space-y-1.5">
+                  <div className="flex items-start gap-2">
+                    <MapPin className="w-3 h-3 text-slate-400 mt-0.5 shrink-0" />
+                    <p className="text-[11px] text-slate-500 font-medium leading-relaxed truncate">{order.customerAddress}</p>
                   </div>
                   {order.scheduledTime && (
-                      <div className="flex items-center gap-2.5 py-2 px-3 bg-white rounded-xl border border-blue-100 w-fit shadow-sm">
-                          <Calendar className="w-4 h-4 text-blue-600" />
-                          <span className="text-[10px] font-black text-blue-700 uppercase tracking-wider">Agendado: {new Date(order.scheduledTime).toLocaleString('pt-BR')}</span>
+                      <div className="flex items-center gap-1.5 py-1 px-2 bg-blue-50/50 rounded-lg border border-blue-100 w-fit">
+                          <Calendar className="w-3 h-3 text-blue-600" />
+                          <span className="text-[9px] font-black text-blue-700 uppercase">Para: {new Date(order.scheduledTime).toLocaleString('pt-BR')}</span>
                       </div>
                   )}
                 </div>
 
-                {/* Itens */}
-                <div className="flex flex-wrap gap-2">
+                {/* Resumo Itens */}
+                <div className="flex flex-wrap gap-1">
                     {order.items.map((item, idx) => (
-                        <div key={idx} className="bg-white border border-slate-100 text-slate-600 px-3 py-1.5 rounded-xl text-[10px] font-black shadow-sm flex items-center gap-2">
-                            <span className="text-emerald-600">{item.quantity}x</span>
-                            <span className="truncate max-w-[120px]">{item.name}</span>
+                        <div key={idx} className="bg-white border border-slate-100 text-slate-600 px-2 py-1 rounded-lg text-[9px] font-bold shadow-sm">
+                            <span className="text-emerald-600">{item.quantity}x</span> {item.name.split(' ')[0]}
                         </div>
                     ))}
                 </div>
 
-                {/* Botões de Ação Refinados */}
-                <div className="flex flex-col gap-2 pt-2 border-t border-slate-50">
-                  <div className="flex gap-2">
-                      <Button variant="secondary" onClick={() => handlePrint(order)} className="flex-1 bg-white border-slate-200 text-slate-500 text-[10px] font-black uppercase tracking-widest py-4 rounded-[18px]">
-                          <Printer className="w-4 h-4 mr-2" /> Recibo
+                {/* Grade de Botões 2x2 para Mobile */}
+                <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-50">
+                  <Button variant="secondary" onClick={() => handlePrint(order)} className="w-full bg-slate-50 border-none text-[9px] font-black uppercase tracking-widest h-10 rounded-xl">
+                      <Printer className="w-3 h-3 mr-1.5" /> Recibo
+                  </Button>
+                  
+                  {order.status === 'pending' && (
+                      <Button onClick={() => handleSendConfirmation(order)} className="w-full bg-blue-600 text-white border-none text-[9px] font-black uppercase tracking-widest h-10 rounded-xl shadow-lg shadow-blue-50">
+                          <CheckCheck className="w-3 h-3 mr-1.5" /> Confirmar
                       </Button>
-                      
-                      {order.status === 'pending' && (
-                          <Button onClick={() => handleSendConfirmation(order)} className="flex-[1.5] bg-blue-600 text-white border-none text-[10px] font-black uppercase tracking-widest py-4 rounded-[18px] shadow-lg shadow-blue-100">
-                              <CheckCheck className="w-4 h-4 mr-2" /> Confirmar
-                          </Button>
-                      )}
-                      
-                      {order.status === 'paid' && (
-                          <Button onClick={() => handleUpdateStatus(order, 'shipped')} className="flex-[1.5] bg-purple-600 text-white border-none text-[10px] font-black uppercase tracking-widest py-4 rounded-[18px] shadow-lg shadow-purple-100">
-                              <Truck className="w-4 h-4 mr-2" /> Enviar
-                          </Button>
-                      )}
+                  )}
+                  
+                  {order.status === 'paid' && (
+                      <Button onClick={() => handleUpdateStatus(order, 'shipped')} className="w-full bg-purple-600 text-white border-none text-[9px] font-black uppercase tracking-widest h-10 rounded-xl shadow-lg shadow-purple-50">
+                          <Truck className="w-3 h-3 mr-1.5" /> Enviar
+                      </Button>
+                  )}
 
-                      {order.status === 'shipped' && (
-                          <Button onClick={() => handleUpdateStatus(order, 'completed')} className="flex-[1.5] bg-slate-900 text-white border-none text-[10px] font-black uppercase tracking-widest py-4 rounded-[18px] shadow-lg shadow-slate-200">
-                              <CheckCircle2 className="w-4 h-4 mr-2" /> Finalizar
-                          </Button>
-                      )}
-                  </div>
+                  {order.status === 'shipped' && (
+                      <Button onClick={() => handleUpdateStatus(order, 'completed')} className="w-full bg-slate-900 text-white border-none text-[9px] font-black uppercase tracking-widest h-10 rounded-xl">
+                          <CheckCircle2 className="w-3 h-3 mr-1.5" /> Finalizar
+                      </Button>
+                  )}
 
-                  <div className="flex gap-2">
+                  {['completed', 'cancelled'].includes(order.status) && (
+                      <div className="h-10"></div> /* Placeholder para manter a grade */
+                  )}
+
+                  <button 
+                    onClick={() => {
+                      const phone = order.customerPhone.replace(/\D/g, '');
+                      window.open(`https://api.whatsapp.com/send?phone=${phone}`, '_blank');
+                    }}
+                    className="flex items-center justify-center gap-2 h-10 bg-emerald-50 text-emerald-600 rounded-xl hover:bg-emerald-100 transition-all active:scale-95 text-[9px] font-black uppercase tracking-widest"
+                  >
+                    <MessageSquare size={14} /> WhatsApp
+                  </button>
+
+                  {['pending', 'paid', 'shipped'].includes(order.status) ? (
                       <button 
-                        onClick={() => {
-                          const phone = order.customerPhone.replace(/\D/g, '');
-                          window.open(`https://api.whatsapp.com/send?phone=${phone}`, '_blank');
-                        }}
-                        className="flex-1 flex items-center justify-center gap-2 py-4 bg-emerald-50 text-emerald-600 rounded-[18px] hover:bg-emerald-100 transition-all active:scale-95 text-[10px] font-black uppercase tracking-widest"
+                        onClick={() => handleUpdateStatus(order, 'cancelled')}
+                        className="flex items-center justify-center gap-2 h-10 bg-red-50 text-red-400 rounded-xl hover:bg-red-100 transition-all active:scale-95 text-[9px] font-black uppercase tracking-widest"
                       >
-                        <MessageSquare size={18} /> WhatsApp
+                        <XCircle size={14} /> Cancelar
                       </button>
-
-                      {['pending', 'paid', 'shipped'].includes(order.status) && (
-                          <button 
-                            onClick={() => handleUpdateStatus(order, 'cancelled')}
-                            className="p-4 text-red-300 hover:text-red-500 hover:bg-red-50 rounded-[18px] transition-all active:scale-95"
-                            title="Cancelar Pedido"
-                          >
-                            <XCircle size={20} />
-                          </button>
-                      )}
-                  </div>
+                  ) : (
+                      <div className="h-10"></div>
+                  )}
                 </div>
               </div>
             </Card>
@@ -269,10 +269,9 @@ export const OrdersTab: React.FC<OrdersTabProps> = ({ orders, onRefresh, restaur
         })}
         
         {filteredOrders.length === 0 && (
-            <div className="py-24 text-center bg-white rounded-[40px] border-2 border-dashed border-slate-100">
-                <ClipboardList className="w-16 h-16 text-slate-100 mx-auto mb-4" />
-                <p className="text-slate-400 font-black uppercase text-xs tracking-widest">Nenhum pedido encontrado</p>
-                <p className="text-[10px] text-slate-300 mt-2 font-medium">Tente mudar o filtro ou buscar outro nome.</p>
+            <div className="py-20 text-center bg-white rounded-[32px] border-2 border-dashed border-slate-100">
+                <ClipboardList className="w-12 h-12 text-slate-100 mx-auto mb-3" />
+                <p className="text-slate-400 font-black uppercase text-[10px] tracking-widest">Nenhum pedido</p>
             </div>
         )}
       </div>
