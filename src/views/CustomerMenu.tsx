@@ -390,33 +390,36 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
           </div>
       )}
 
+      {/* MODAL DETALHE ITEM (ACRÉSCIMOS OTIMIZADO) */}
       <Modal isOpen={isItemDetailOpen} onClose={() => setIsItemDetailOpen(false)} title={selectedItem?.name || ''}>
-          <div className="space-y-6">
-              <div className="space-y-2">
-                  <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Deseja algum adicional?</p>
-                  <div className="space-y-2">
+          <div className="flex flex-col h-full max-h-[85vh]">
+              <div className="flex-1 overflow-y-auto pr-1 space-y-4 max-h-[400px] mb-4 hide-scroll">
+                  <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest sticky top-0 bg-white py-2">Deseja algum adicional?</p>
+                  <div className="space-y-1.5">
                       {selectedItem?.addons?.map(addon => (
-                          <label key={addon.id} className={`flex items-center justify-between p-4 rounded-2xl border transition-all cursor-pointer ${tempAddons.find(a => a.id === addon.id) ? 'bg-orange-50 border-orange-200 text-orange-700' : 'bg-slate-50 border-transparent text-slate-600'}`}>
+                          <label key={addon.id} className={`flex items-center justify-between px-4 py-3 rounded-xl border transition-all cursor-pointer ${tempAddons.find(a => a.id === addon.id) ? 'bg-orange-50 border-orange-200 text-orange-700' : 'bg-slate-50 border-transparent text-slate-500 hover:bg-slate-100'}`}>
                               <div className="flex items-center gap-3">
                                   <input 
                                     type="checkbox" 
-                                    className="w-5 h-5 accent-orange-600"
+                                    className="w-4 h-4 accent-orange-600 rounded"
                                     checked={!!tempAddons.find(a => a.id === addon.id)}
                                     onChange={(e) => {
                                         if (e.target.checked) setTempAddons([...tempAddons, addon]);
                                         else setTempAddons(tempAddons.filter(a => a.id !== addon.id));
                                     }}
                                   />
-                                  <span className="font-bold text-sm">{addon.name}</span>
+                                  <span className="font-bold text-xs">{addon.name}</span>
                               </div>
-                              <span className="text-xs font-black">+ R$ {addon.price.toFixed(2)}</span>
+                              <span className="text-[10px] font-black">+ R$ {addon.price.toFixed(2)}</span>
                           </label>
                       ))}
                   </div>
               </div>
-              <Button className="w-full py-4 bg-emerald-600" onClick={() => selectedItem && addToCart(selectedItem, tempAddons)}>
-                  Adicionar ao Pedido <Plus className="w-4 h-4 ml-2" />
-              </Button>
+              <div className="pt-4 border-t border-slate-50">
+                  <Button className="w-full py-4 bg-emerald-600 shadow-lg shadow-emerald-100" onClick={() => selectedItem && addToCart(selectedItem, tempAddons)}>
+                      Adicionar ao Pedido <Plus className="w-4 h-4 ml-2" />
+                  </Button>
+              </div>
           </div>
       </Modal>
 
