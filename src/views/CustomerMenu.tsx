@@ -78,23 +78,26 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
             const r = await db.getRestaurantBySlug(slug);
             if (r) {
               setRestaurant(r);
-              const cats = await db.getCategories(r.id);
+              const [cats, menuItems, promos, gives] = await Promise.all([
+                db.getCategories(r.id),
+                db.getMenuItems(r.id),
+                db.getPromotions(r.id),
+                db.getGiveaways(r.id)
+              ]);
               setCategories(cats);
-              setItems(await db.getMenuItems(r.id));
-              const promos = await db.getPromotions(r.id);
+              setItems(menuItems);
               setPromotions(promos.filter(p => p.isActive));
-              const gives = await db.getGiveaways(r.id);
               setGiveaways(gives.filter(g => g.isActive || g.winnerName));
               if (cats.length > 0) setActiveCategory(cats[0].id);
             }
         } catch (e) { console.error("Failed to load menu", e); }
         finally { 
-            setTimeout(() => setIsLoading(false), 1200);
+            setTimeout(() => setIsLoading(false), 800);
         }
     };
     fetchMenu();
     
-    // PWA Logic
+    // PWA Logic safer
     const handleBeforeInstallPrompt = (e: any) => {
         e.preventDefault();
         setDeferredPrompt(e);
@@ -111,9 +114,11 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
 
     const storedUser = localStorage.getItem('zapmenu_current_user');
     if (storedUser) {
-        const user = JSON.parse(storedUser);
-        setCurrentUser(user);
-        setCustomerInfo(prev => ({ ...prev, name: user.name, phone: user.phone, address: user.address }));
+        try {
+          const user = JSON.parse(storedUser);
+          setCurrentUser(user);
+          setCustomerInfo(prev => ({ ...prev, name: user.name, phone: user.phone, address: user.address }));
+        } catch(e) {}
     }
 
     return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
@@ -121,10 +126,13 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
 
   const handleInstallApp = async () => {
       if (isIOS) {
-          toast("No iPhone: Toque em Compartilhar e depois em 'Adicionar à Tela de Início'", { duration: 6000, icon: '📱' });
+          toast("No iPhone: Toque no ícone de 'Compartilhar' abaixo e depois em 'Adicionar à Tela de Início'", { duration: 6000, icon: '📱' });
           return;
       }
-      if (!deferredPrompt) return;
+      if (!deferredPrompt) {
+          toast.success("O app já está instalado ou não é suportado pelo seu navegador.");
+          return;
+      }
       deferredPrompt.prompt();
       const { outcome } = await deferredPrompt.userChoice;
       if (outcome === 'accepted') {
@@ -287,7 +295,7 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
   }, [selectedItem, categories]);
 
   if (isLoading) return (
-    <div className="flex flex-col h-screen items-center justify-center bg-white p-6 text-center animate-in fade-in duration-500">
+    <div className="flex flex-col h-screen items-center justify-center bg-white p-6 text-center">
         <div className="relative mb-8">
             <div className="absolute inset-0 bg-emerald-500/10 rounded-full blur-2xl animate-pulse"></div>
             <div className="w-28 h-28 bg-white border-4 border-emerald-50 rounded-[40px] flex items-center justify-center shadow-2xl relative z-10 animate-bounce overflow-hidden">
@@ -302,13 +310,8 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
             {restaurant ? `Bem-vindo ao ${restaurant.name}!` : "Bem-vindo!"}
         </h2>
         <p className="text-slate-500 mt-2 font-medium max-w-xs mx-auto">
-            Estamos preparando nossas delícias para você... 🍱
+            Carregando o cardápio... 🍱
         </p>
-        <div className="mt-8 flex gap-1.5">
-            <div className="w-2 h-2 bg-emerald-600 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
-            <div className="w-2 h-2 bg-emerald-600 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
-            <div className="w-2 h-2 bg-emerald-600 rounded-full animate-bounce"></div>
-        </div>
     </div>
   );
 
@@ -322,17 +325,15 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
                   <div className="min-w-0 flex-1">
                       <p className="text-xs font-black uppercase tracking-widest leading-none mb-1">App {restaurant?.name || 'ZapMenu'}</p>
                       <p className="text-[10px] text-slate-400 font-medium truncate">
-                        {isIOS ? 'Toque em compartilhar e Add à Tela de Início' : 'Instale para pedir mais rápido!'}
+                        {isIOS ? 'Adicione à Tela de Início' : 'Instale para pedir mais rápido!'}
                       </p>
                   </div>
               </div>
               <div className="flex items-center gap-2 ml-4">
                   <button onClick={() => setShowInstallBanner(false)} className="p-2 text-slate-500"><X size={18} /></button>
-                  {!isIOS ? (
-                    <button onClick={handleInstallApp} className="bg-emerald-600 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest active:scale-95 transition-all">Instalar</button>
-                  ) : (
-                    <div className="bg-slate-800 p-2 rounded-xl text-emerald-400"><Share size={18} /></div>
-                  )}
+                  <button onClick={handleInstallApp} className="bg-emerald-600 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest active:scale-95 transition-all">
+                      {isIOS ? 'Como?' : 'Instalar'}
+                  </button>
               </div>
           </div>
       )}

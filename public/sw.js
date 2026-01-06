@@ -1,7 +1,25 @@
-const CACHE_NAME = 'zapmenu-v1';
+// Service Worker Minimalista para PWA
+const CACHE_NAME = 'zapmenu-v2';
+
 self.addEventListener('install', (event) => {
-  event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(['/'])));
+  self.skipWaiting();
 });
+
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames.map((cacheName) => {
+          if (cacheName !== CACHE_NAME) {
+            return caches.delete(cacheName);
+          }
+        })
+      );
+    })
+  );
+});
+
 self.addEventListener('fetch', (event) => {
-  event.respondWith(caches.match(event.request).then((response) => response || fetch(event.request)));
+  // Apenas repassa a requisição para a rede para evitar tela branca por cache corrompido
+  event.respondWith(fetch(event.request));
 });
