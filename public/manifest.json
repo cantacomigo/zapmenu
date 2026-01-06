@@ -1,0 +1,21 @@
+{
+  "name": "ZapMenu - Pedidos via WhatsApp",
+  "short_name": "ZapMenu",
+  "description": "Seu cardápio digital inteligente",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#059669",
+  "icons": [
+    {
+      "src": "https://wqrtjugvhhfjezqyhhle.supabase.co/storage/v1/object/public/assets/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://wqrtjugvhhfjezqyhhle.supabase.co/storage/v1/object/public/assets/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

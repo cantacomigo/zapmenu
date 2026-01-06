@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { db } from '../services/db';
 import { CartItem, Category, MenuItem, Restaurant, Order, CustomerUser, Promotion, Giveaway, ProductAddon } from '../types';
 import { Button, Modal, Input, Badge } from '../components/ui';
-import { ShoppingBag, Minus, Plus, Search, MapPin, ArrowLeft, Send, Check, Star, Clock, AlertCircle, Banknote, QrCode, Copy, User, LogIn, LogOut, Store, Megaphone, Gift, Calendar, Trophy, X, Package, Utensils, Coins, ClipboardList, Sparkles, ChevronRight } from 'lucide-react';
+import { ShoppingBag, Minus, Plus, Search, MapPin, ArrowLeft, Send, Check, Star, Clock, AlertCircle, Banknote, QrCode, Copy, User, LogIn, LogOut, Store, Megaphone, Gift, Calendar, Trophy, X, Package, Utensils, Coins, ClipboardList, Sparkles, ChevronRight, Smartphone } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ slug, onBack }) => {
@@ -29,6 +29,9 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
   const [isItemDetailOpen, setIsItemDetailOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
   const [tempAddons, setTempAddons] = useState<ProductAddon[]>([]);
+
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [showInstallBanner, setShowInstallBanner] = useState(false);
 
   const categoryRef = useRef<HTMLDivElement>(null);
 
@@ -89,13 +92,34 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
         }
     };
     fetchMenu();
+    
+    // PWA Install Logic
+    const handleBeforeInstallPrompt = (e: any) => {
+        e.preventDefault();
+        setDeferredPrompt(e);
+        setShowInstallBanner(true);
+    };
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
     const storedUser = localStorage.getItem('zapmenu_current_user');
     if (storedUser) {
         const user = JSON.parse(storedUser);
         setCurrentUser(user);
         setCustomerInfo(prev => ({ ...prev, name: user.name, phone: user.phone, address: user.address }));
     }
+
+    return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
   }, [slug]);
+
+  const handleInstallApp = async () => {
+      if (!deferredPrompt) return;
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      if (outcome === 'accepted') {
+          setDeferredPrompt(null);
+          setShowInstallBanner(false);
+      }
+  };
 
   useEffect(() => {
     if (activeCategory && categoryRef.current) {
@@ -278,6 +302,23 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
 
   return (
     <div className="bg-slate-50 min-h-screen pb-32 md:pb-12 font-sans select-none">
+      {/* PWA Install Banner */}
+      {showInstallBanner && (
+          <div className="fixed top-20 left-4 right-4 z-[100] bg-slate-900 text-white p-4 rounded-3xl shadow-2xl animate-in slide-in-from-top duration-700 flex items-center justify-between border border-white/10 backdrop-blur-md">
+              <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-emerald-600 rounded-xl flex items-center justify-center shadow-lg"><Smartphone size={20} /></div>
+                  <div>
+                      <p className="text-xs font-black uppercase tracking-widest leading-none mb-1">App ZapMenu</p>
+                      <p className="text-[10px] text-slate-400 font-medium">Instale para pedir mais rápido!</p>
+                  </div>
+              </div>
+              <div className="flex items-center gap-2">
+                  <button onClick={() => setShowInstallBanner(false)} className="p-2 text-slate-500"><X size={18} /></button>
+                  <button onClick={handleInstallApp} className="bg-emerald-600 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest active:scale-95 transition-all">Instalar</button>
+              </div>
+          </div>
+      )}
+
       {/* Hero Header */}
       <div className="relative h-64 md:h-80 w-full overflow-hidden bg-slate-900">
          {coverImages.map((img, idx) => (
