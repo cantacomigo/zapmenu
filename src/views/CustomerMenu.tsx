@@ -233,6 +233,13 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
     return res;
   }, [items, activeCategory, searchTerm]);
 
+  // Identifica se o item atual é uma bebida para mudar os textos
+  const isBebida = useMemo(() => {
+    if (!selectedItem) return false;
+    const cat = categories.find(c => c.id === selectedItem.categoryId);
+    return cat?.name.toLowerCase().includes('bebida');
+  }, [selectedItem, categories]);
+
   if (isLoading) return (
     <div className="flex flex-col h-screen items-center justify-center bg-white p-6 text-center animate-in fade-in duration-500">
         <div className="w-20 h-20 bg-emerald-50 text-emerald-600 rounded-3xl flex items-center justify-center mb-6 animate-bounce shadow-inner">
@@ -412,13 +419,19 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
           </div>
       )}
 
-      {/* MODAL DETALHE ITEM (ACRÉSCIMOS OTIMIZADO) */}
+      {/* MODAL DETALHE ITEM (PERSONALIZADO POR CATEGORIA) */}
       <Modal isOpen={isItemDetailOpen} onClose={() => setIsItemDetailOpen(false)} title={selectedItem?.name || ''}>
           <div className="flex flex-col h-full max-h-[85vh]">
               <div className="flex-1 overflow-y-auto pr-1 space-y-4 max-h-[400px] mb-4 hide-scroll">
                   <div className="sticky top-0 bg-white py-2 z-10">
-                      <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest leading-tight">Deseja algum adicional?</p>
-                      <p className="text-[11px] text-slate-500 mt-1 leading-tight font-medium">Após acrescentar (ou se não quiser nada), basta clicar em adicionar ao pedido.</p>
+                      <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest leading-tight">
+                          {isBebida ? "Escolha uma opção" : "Deseja algum adicional?"}
+                      </p>
+                      <p className="text-[11px] text-slate-500 mt-1 leading-tight font-medium">
+                          {isBebida 
+                            ? "Selecione o sabor ou tamanho desejado abaixo." 
+                            : "Após acrescentar (ou se não quiser nada), basta clicar em adicionar ao pedido."}
+                      </p>
                   </div>
                   <div className="space-y-1.5">
                       {selectedItem?.addons?.map(addon => (
