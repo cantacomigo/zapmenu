@@ -65,7 +65,7 @@ export interface Order {
   paymentDetails?: string;
   items: CartItem[];
   total: number;
-  status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
+  status: 'pending' | 'confirmed' | 'paid' | 'shipped' | 'completed' | 'cancelled';
   createdAt: number;
 }
 
