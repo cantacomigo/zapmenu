@@ -92,9 +92,20 @@ export default function App() {
           const hash = window.location.hash.slice(1);
           if (hash.startsWith('menu/')) {
               const slug = hash.split('/')[1];
-              if (slug) setViewState({ view: 'CUSTOMER_MENU', slug });
+              if (slug) {
+                  localStorage.setItem('zapmenu_last_slug', slug);
+                  setViewState({ view: 'CUSTOMER_MENU', slug });
+              }
           } else if (hash === '') {
-              setViewState({ view: 'LANDING' });
+              // Verifica se estamos abrindo o app instalado e se tem um slug salvo
+              const lastSlug = localStorage.getItem('zapmenu_last_slug');
+              const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
+              
+              if (isStandalone && lastSlug) {
+                  window.location.hash = `menu/${lastSlug}`;
+              } else {
+                  setViewState({ view: 'LANDING' });
+              }
           }
       };
       window.addEventListener('hashchange', handleHashChange);
@@ -106,8 +117,12 @@ export default function App() {
       if (role === 'admin') setViewState({ view: 'ADMIN_LOGIN' });
       else if (role === 'manager') setViewState({ view: 'MANAGER_LOGIN' });
       else if (role === 'customer') {
-          const saved = localStorage.getItem('zapmenu_customer');
-          setViewState(saved ? { view: 'CUSTOMER_LOGIN' } : { view: 'CUSTOMER_LOGIN' });
+          const lastSlug = localStorage.getItem('zapmenu_last_slug');
+          if (lastSlug) {
+              window.location.hash = `menu/${lastSlug}`;
+          } else {
+              setViewState({ view: 'CUSTOMER_LOGIN' });
+          }
       }
   };
 

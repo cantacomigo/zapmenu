@@ -45,37 +45,6 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
       scheduledTime: '',
   });
 
-  // Função para criar manifesto dinâmico com a logo do restaurante
-  const updateManifest = (res: Restaurant) => {
-    const myManifest = {
-      "name": res.name,
-      "short_name": res.name,
-      "description": `Cardápio Digital - ${res.name}`,
-      "start_url": window.location.href,
-      "display": "standalone",
-      "background_color": "#ffffff",
-      "theme_color": "#059669",
-      "icons": [
-        {
-          "src": res.logo,
-          "sizes": "192x192",
-          "type": "image/png",
-          "purpose": "any maskable"
-        },
-        {
-          "src": res.logo,
-          "sizes": "512x512",
-          "type": "image/png",
-          "purpose": "any maskable"
-        }
-      ]
-    };
-    const stringManifest = JSON.stringify(myManifest);
-    const blob = new Blob([stringManifest], {type: 'application/json'});
-    const manifestURL = URL.createObjectURL(blob);
-    document.querySelector('#manifest-link')?.setAttribute('href', manifestURL);
-  };
-
   const isStoreOpen = useMemo(() => {
     if (!restaurant?.openingTime || !restaurant?.closingTime) return true;
     const now = new Date();
@@ -109,7 +78,11 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
             const r = await db.getRestaurantBySlug(slug);
             if (r) {
               setRestaurant(r);
-              updateManifest(r); // Atualiza o manifesto com a logo do restaurante
+              // Atualiza metadados visuais para parecer um app da própria loja
+              document.title = `${r.name} - ZapMenu`;
+              const favicon = document.querySelector("link[rel*='icon']") as HTMLLinkElement;
+              if (favicon) favicon.href = r.logo;
+
               const [cats, menuItems, promos, gives] = await Promise.all([
                 db.getCategories(r.id),
                 db.getMenuItems(r.id),
