@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { db } from '../services/db';
 import { CartItem, Category, MenuItem, Restaurant, Order, CustomerUser, Promotion, Giveaway } from '../types';
 import { Button, Modal, Input } from '../components/ui';
-import { ShoppingBag, Minus, Plus, Search, MapPin, ArrowLeft, Send, Check, Star, Clock, AlertCircle, Banknote, QrCode, Copy, User, LogIn, LogOut, Store, Megaphone, Gift, Calendar, Trophy, X, Package, Utensils } from 'lucide-react';
+import { ShoppingBag, Minus, Plus, Search, MapPin, ArrowLeft, Send, Check, Star, Clock, AlertCircle, Banknote, QrCode, Copy, User, LogIn, LogOut, Store, Megaphone, Gift, Calendar, Trophy, X, Package, Utensils, Coins } from 'lucide-react';
 
 export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ slug, onBack }) => {
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
@@ -26,13 +26,10 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
       name: '', 
       phone: '', 
       address: '', 
-      payment: 'credit', 
+      payment: 'credit' as 'credit' | 'pix' | 'cash' | 'debit', 
       changeFor: '',
-      paymentTiming: 'delivery' 
   });
   
-  const [selectedPromo, setSelectedPromo] = useState<Promotion | null>(null);
-
   useEffect(() => {
     const fetchMenu = async () => {
         setIsLoading(true);
@@ -48,7 +45,6 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
               const gives = await db.getGiveaways(r.id);
               setGiveaways(gives.filter(g => g.isActive || g.winnerName));
               
-              // Seleciona a primeira categoria por padrão
               if (cats.length > 0) {
                   setActiveCategory(cats[0].id);
               }
@@ -130,6 +126,11 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
 
   const checkoutOrder = async () => {
       if (!restaurant) return;
+      if (!customerInfo.name || !customerInfo.phone || !customerInfo.address) {
+          alert("Por favor, preencha todos os dados de entrega.");
+          return;
+      }
+
       const order: Order = {
           id: `ord_${Date.now()}`,
           restaurantId: restaurant.id,
@@ -137,16 +138,38 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
           customerPhone: customerInfo.phone,
           customerAddress: customerInfo.address,
           paymentMethod: customerInfo.payment as any,
-          paymentDetails: customerInfo.payment === 'cash' && customerInfo.changeFor ? `Troco para ${customerInfo.changeFor}` : undefined,
+          paymentDetails: customerInfo.payment === 'cash' && customerInfo.changeFor ? `Troco para R$ ${customerInfo.changeFor}` : undefined,
           items: cart,
           total: cartTotal,
           status: 'pending',
           createdAt: Date.now()
       };
+      
       await db.addOrder(order);
       setCart([]);
       setIsCheckoutOpen(false);
-      const message = `*Novo Pedido: ${restaurant.name}*\n\n👤 *Cliente:* ${order.customerName}\n📍 *Endereço:* ${order.customerAddress}\n\n🛒 *Itens:*\n` + cart.map(i => `${i.quantity}x ${i.name}`).join('\n') + `\n\n💰 *Total:* R$ ${order.total.toFixed(2)}\n💳 *Pagamento:* ${customerInfo.payment}`;
+
+      const paymentLabel = {
+          'credit': 'Cartão de Crédito',
+          'debit': 'Cartão de Débito',
+          'pix': 'Pix',
+          'cash': 'Dinheiro'
+      }[customerInfo.payment];
+
+      const changeInfo = (customerInfo.payment === 'cash' && customerInfo.changeFor) 
+          ? `\n💰 *Troco para:* R$ ${customerInfo.changeFor}` 
+          : '';
+
+      const message = `*Novo Pedido: ${restaurant.name}*\n\n` +
+          `👤 *Cliente:* ${order.customerName}\n` +
+          `📞 *Fone:* ${order.customerPhone}\n` +
+          `📍 *Endereço:* ${order.customerAddress}\n\n` +
+          `🛒 *Itens:*\n` + 
+          cart.map(i => `${i.quantity}x ${i.name} (R$ ${(i.price * i.quantity).toFixed(2)})`).join('\n') + 
+          `\n\n🛵 *Taxa de Entrega:* R$ ${deliveryFee.toFixed(2)}` +
+          `\n💰 *Total:* R$ ${order.total.toFixed(2)}` +
+          `\n💳 *Pagamento:* ${paymentLabel}${changeInfo}`;
+
       window.open(`https://wa.me/${restaurant.phone}?text=${encodeURIComponent(message)}`, '_blank');
   };
 
@@ -223,7 +246,7 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
         <div className="sticky top-0 z-30 bg-slate-50 pb-4 pt-2">
             <div className="relative mb-4">
                 <Search className="absolute left-4 top-3.5 w-5 h-5 text-slate-400" />
-                <input type="text" placeholder="Buscar itens..." className="w-full pl-12 pr-4 py-3.5 rounded-2xl border-none bg-white shadow-sm font-medium text-slate-700 placeholder-slate-400 focus:ring-2 focus:ring-emerald-500/20" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
+                <input type="text" placeholder="Buscar no cardápio..." className="w-full pl-12 pr-4 py-3.5 rounded-2xl border-none bg-white shadow-sm font-medium text-slate-700 placeholder-slate-400 focus:ring-2 focus:ring-emerald-500/20" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
             </div>
             <div className="flex flex-wrap gap-2 pb-2">
                 {categories.map(cat => (
@@ -275,49 +298,85 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
 
       <Modal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} title="Identificação">
           <div className="space-y-4">
-              <Input placeholder="Telefone" value={authForm.phone} onChange={(e: any) => setAuthForm({...authForm, phone: e.target.value})} />
-              <Input type="password" placeholder="Senha" value={authForm.password} onChange={(e: any) => setAuthForm({...authForm, password: e.target.value})} />
-              {authMode === 'register' && <Input placeholder="Nome" value={authForm.name} onChange={(e: any) => setAuthForm({...authForm, name: e.target.value})} />}
-              {authMode === 'register' && <Input placeholder="Endereço" value={authForm.address} onChange={(e: any) => setAuthForm({...authForm, address: e.target.value})} />}
+              <Input label="Telefone" placeholder="DDD + Número" value={authForm.phone} onChange={(e: any) => setAuthForm({...authForm, phone: e.target.value})} />
+              <Input label="Senha" type="password" placeholder="Sua senha" value={authForm.password} onChange={(e: any) => setAuthForm({...authForm, password: e.target.value})} />
+              {authMode === 'register' && <Input label="Nome Completo" placeholder="Ex: João Silva" value={authForm.name} onChange={(e: any) => setAuthForm({...authForm, name: e.target.value})} />}
+              {authMode === 'register' && <Input label="Endereço de Entrega" placeholder="Rua, Número, Bairro" value={authForm.address} onChange={(e: any) => setAuthForm({...authForm, address: e.target.value})} />}
               <Button className="w-full" onClick={authMode === 'login' ? handleLogin : handleRegister}>{authMode === 'login' ? 'Entrar' : 'Cadastrar'}</Button>
               <button onClick={() => setAuthMode(m => m === 'login' ? 'register' : 'login')} className="w-full text-center text-sm text-slate-500 mt-2">
-                  {authMode === 'login' ? 'Criar conta' : 'Já tenho conta'}
+                  {authMode === 'login' ? 'Ainda não tem conta? Criar conta' : 'Já tem conta? Fazer login'}
               </button>
           </div>
       </Modal>
 
-      <Modal isOpen={isCheckoutOpen} onClose={() => setIsCheckoutOpen(false)} title="Checkout">
-           <div className="space-y-4 max-h-[60vh] overflow-y-auto">
-               {cart.map(i => (
-                   <div key={i.id} className="flex justify-between items-center bg-slate-50 p-3 rounded-xl">
-                       <div className="font-medium text-slate-700">{i.name} <span className="text-xs text-slate-500 ml-1">x{i.quantity}</span></div>
-                       <div className="flex items-center gap-2">
-                           <button onClick={() => removeFromCart(i.id)} className="p-1.5 bg-white border border-slate-200 rounded-lg hover:bg-slate-100 text-slate-500"><Minus className="w-4 h-4" /></button>
-                           <button onClick={() => addToCart(i)} className="p-1.5 bg-white border border-slate-200 rounded-lg hover:bg-slate-100 text-emerald-600"><Plus className="w-4 h-4" /></button>
+      <Modal isOpen={isCheckoutOpen} onClose={() => setIsCheckoutOpen(false)} title="Finalizar Pedido">
+           <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-1">
+               <div className="space-y-2">
+                   <h3 className="text-sm font-bold text-slate-900">Itens da Sacola</h3>
+                   {cart.map(i => (
+                       <div key={i.id} className="flex justify-between items-center bg-slate-50 p-3 rounded-xl border border-slate-100">
+                           <div className="font-medium text-slate-700 text-sm">{i.name} <span className="text-xs text-slate-500 ml-1">x{i.quantity}</span></div>
+                           <div className="flex items-center gap-2">
+                               <button onClick={() => removeFromCart(i.id)} className="p-1.5 bg-white border border-slate-200 rounded-lg hover:bg-slate-100 text-slate-500"><Minus className="w-4 h-4" /></button>
+                               <button onClick={() => addToCart(i)} className="p-1.5 bg-white border border-slate-200 rounded-lg hover:bg-slate-100 text-emerald-600"><Plus className="w-4 h-4" /></button>
+                           </div>
                        </div>
-                   </div>
-               ))}
-               <div className="border-t border-slate-100 pt-4 mt-2">
-                   <div className="flex justify-between text-slate-500 mb-1"><span>Subtotal</span><span>R$ {cartSubtotal.toFixed(2)}</span></div>
-                   <div className="flex justify-between text-slate-500 mb-3"><span>Entrega</span><span>R$ {deliveryFee.toFixed(2)}</span></div>
-                   <div className="flex justify-between font-bold text-xl text-slate-900"><span>Total</span><span>R$ {cartTotal.toFixed(2)}</span></div>
+                   ))}
                </div>
+
+               <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                   <div className="flex justify-between text-slate-500 text-sm mb-1"><span>Subtotal</span><span>R$ {cartSubtotal.toFixed(2)}</span></div>
+                   <div className="flex justify-between text-slate-500 text-sm mb-3"><span>Taxa de Entrega</span><span>R$ {deliveryFee.toFixed(2)}</span></div>
+                   <div className="flex justify-between font-bold text-lg text-slate-900 border-t border-slate-200 pt-2"><span>Total</span><span>R$ {cartTotal.toFixed(2)}</span></div>
+               </div>
+
                <div className="space-y-3 pt-2">
-                    <Input placeholder="Seu Nome" value={customerInfo.name} onChange={(e: any) => setCustomerInfo({...customerInfo, name: e.target.value})} />
-                    <Input placeholder="Endereço de Entrega" value={customerInfo.address} onChange={(e: any) => setCustomerInfo({...customerInfo, address: e.target.value})} />
-                    <Input placeholder="WhatsApp para Contato" value={customerInfo.phone} onChange={(e: any) => setCustomerInfo({...customerInfo, phone: e.target.value})} />
+                    <h3 className="text-sm font-bold text-slate-900">Dados de Entrega</h3>
+                    <Input label="Seu Nome" placeholder="Quem vai receber?" value={customerInfo.name} onChange={(e: any) => setCustomerInfo({...customerInfo, name: e.target.value})} />
+                    <Input label="Endereço Completo" placeholder="Rua, Número, Bairro, Complemento" value={customerInfo.address} onChange={(e: any) => setCustomerInfo({...customerInfo, address: e.target.value})} />
+                    <Input label="WhatsApp" placeholder="DDD + Número" value={customerInfo.phone} onChange={(e: any) => setCustomerInfo({...customerInfo, phone: e.target.value})} />
                </div>
-               <div>
-                   <label className="block text-sm font-semibold text-slate-700 mb-2">Forma de Pagamento</label>
+
+               <div className="space-y-3 pt-2">
+                   <h3 className="text-sm font-bold text-slate-900">Forma de Pagamento</h3>
                    <div className="grid grid-cols-2 gap-2">
-                       {['credit', 'pix', 'cash'].map(p => (
-                           <button key={p} onClick={() => setCustomerInfo({...customerInfo, payment: p as any})} className={`p-3 border rounded-xl font-medium text-sm transition-all ${customerInfo.payment === p ? 'bg-emerald-50 border-emerald-500 text-emerald-700' : 'bg-white border-slate-200 text-slate-600'}`}>{p.toUpperCase()}</button>
-                       ))}
+                       <button onClick={() => setCustomerInfo({...customerInfo, payment: 'pix'})} className={`p-3 border rounded-xl font-bold text-xs flex flex-col items-center gap-1 transition-all ${customerInfo.payment === 'pix' ? 'bg-emerald-50 border-emerald-500 text-emerald-700' : 'bg-white border-slate-200 text-slate-600'}`}>
+                           <QrCode size={18} /> PIX
+                       </button>
+                       <button onClick={() => setCustomerInfo({...customerInfo, payment: 'credit'})} className={`p-3 border rounded-xl font-bold text-xs flex flex-col items-center gap-1 transition-all ${customerInfo.payment === 'credit' ? 'bg-emerald-50 border-emerald-500 text-emerald-700' : 'bg-white border-slate-200 text-slate-600'}`}>
+                           <Banknote size={18} /> CARTÃO
+                       </button>
+                       <button onClick={() => setCustomerInfo({...customerInfo, payment: 'cash'})} className={`p-3 border rounded-xl font-bold text-xs flex flex-col items-center gap-1 transition-all ${customerInfo.payment === 'cash' ? 'bg-emerald-50 border-emerald-500 text-emerald-700' : 'bg-white border-slate-200 text-slate-600'}`}>
+                           <Coins size={18} /> DINHEIRO
+                       </button>
+                       <button onClick={() => setCustomerInfo({...customerInfo, payment: 'debit'})} className={`p-3 border rounded-xl font-bold text-xs flex flex-col items-center gap-1 transition-all ${customerInfo.payment === 'debit' ? 'bg-emerald-50 border-emerald-500 text-emerald-700' : 'bg-white border-slate-200 text-slate-600'}`}>
+                           <CreditCard size={18} /> DÉBITO
+                       </button>
                    </div>
+                   
+                   {customerInfo.payment === 'cash' && (
+                       <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+                           <Input 
+                               label="Troco para quanto?" 
+                               placeholder="Ex: 50,00 (deixe vazio se não precisar)" 
+                               type="number"
+                               value={customerInfo.changeFor} 
+                               onChange={(e: any) => setCustomerInfo({...customerInfo, changeFor: e.target.value})} 
+                           />
+                       </div>
+                   )}
                </div>
-               <Button className="w-full text-lg py-4" onClick={checkoutOrder}>Confirmar Pedido</Button>
+
+               <Button className="w-full text-lg py-4 mt-4 bg-emerald-600 border-none shadow-lg shadow-emerald-500/20" onClick={checkoutOrder}>
+                   Enviar Pedido via WhatsApp <Send className="ml-2 w-4 h-4" />
+               </Button>
            </div>
       </Modal>
     </div>
   );
 };
+
+// Import inline to fix missing icon in local context
+const CreditCard = ({ size = 18 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>
+);
