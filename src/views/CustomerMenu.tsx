@@ -300,6 +300,9 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
                     <div className="flex flex-wrap gap-y-1 gap-x-3 text-[10px] font-bold uppercase tracking-widest text-slate-300">
                         <span className="flex items-center"><Star className="w-3 h-3 text-yellow-400 mr-1" /> 4.8</span>
                         <span className="flex items-center"><Clock className="w-3 h-3 mr-1" /> {restaurant?.openingTime} - {restaurant?.closingTime}</span>
+                        {restaurant?.address && (
+                            <span className="flex items-center"><MapPin className="w-3 h-3 mr-1" /> {restaurant.address}</span>
+                        )}
                     </div>
                 </div>
             </div>
@@ -587,7 +590,7 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
                           </div>
                           <div className="space-y-1.5 py-3 border-y border-slate-50">
                               {order.items.map((item, idx) => (
-                                  <div key={idx} className="text-xs text-slate-500 font-bold flex justify-between">
+                                  <div key={idx} className="text-xs text-slate-500 flex justify-between">
                                       <span>{item.quantity}x {item.name}</span>
                                       <span>R$ {(item.price * item.quantity).toFixed(2)}</span>
                                   </div>
