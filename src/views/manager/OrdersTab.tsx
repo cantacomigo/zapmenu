@@ -3,7 +3,7 @@ import { db } from '../../services/db';
 import { Order } from '../../types';
 import { Card, Badge, Button, Input } from '../../components/ui';
 import { OrderReceipt } from '../../components/OrderReceipt';
-import { MessageSquare, CheckCircle2, Truck, XCircle, CreditCard, Search, Filter, CheckCheck, Printer } from 'lucide-react';
+import { MessageSquare, CheckCircle2, Truck, XCircle, CreditCard, Search, Filter, CheckCheck, Printer, Clock, Calendar } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 interface OrdersTabProps {
@@ -13,7 +13,7 @@ interface OrdersTabProps {
   restaurantLogo?: string;
 }
 
-type StatusFilter = 'all' | Order['status'];
+type StatusFilter = 'all' | Order['status'] | 'scheduled';
 
 export const OrdersTab: React.FC<OrdersTabProps> = ({ orders, onRefresh, restaurantName, restaurantLogo }) => {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
@@ -102,13 +102,16 @@ export const OrdersTab: React.FC<OrdersTabProps> = ({ orders, onRefresh, restaur
       case 'shipped': return { label: 'Em Entrega', color: 'bg-purple-100 text-purple-700' };
       case 'completed': return { label: 'Finalizado', color: 'bg-slate-100 text-slate-700' };
       case 'cancelled': return { label: 'Cancelado', color: 'bg-red-100 text-red-700' };
+      case 'scheduled': return { label: 'Agendados', color: 'bg-blue-100 text-blue-700' };
       default: return { label: status, color: 'bg-slate-100 text-slate-600' };
     }
   };
 
   const filteredOrders = useMemo(() => {
     return orders.filter(order => {
-      const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
+      const matchesStatus = statusFilter === 'all' || 
+        (statusFilter === 'scheduled' ? !!order.scheduledTime : order.status === statusFilter);
+      
       const matchesSearch = 
         order.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         order.id.toLowerCase().includes(searchTerm.toLowerCase());
@@ -144,7 +147,7 @@ export const OrdersTab: React.FC<OrdersTabProps> = ({ orders, onRefresh, restaur
           />
         </div>
         <div className="flex gap-2 overflow-x-auto pb-1 hide-scroll">
-          {(['all', 'pending', 'paid', 'shipped', 'completed', 'cancelled'] as StatusFilter[]).map((status) => (
+          {(['all', 'pending', 'paid', 'shipped', 'completed', 'cancelled', 'scheduled'] as StatusFilter[]).map((status) => (
             <button
               key={status}
               onClick={() => setStatusFilter(status)}
@@ -170,9 +173,22 @@ export const OrdersTab: React.FC<OrdersTabProps> = ({ orders, onRefresh, restaur
                   <div className="flex items-center gap-3">
                     <span className="font-black text-slate-900">#{order.id.slice(-8).toUpperCase()}</span>
                     <Badge color={`${statusInfo.color} border-transparent text-[10px] font-bold uppercase`}>{statusInfo.label}</Badge>
+                    {order.scheduledTime && (
+                        <Badge color="bg-orange-100 text-orange-700 border-transparent text-[10px] font-black uppercase flex items-center gap-1">
+                            <Clock className="w-3 h-3" /> Agendado
+                        </Badge>
+                    )}
                   </div>
                   <p className="text-sm font-bold text-slate-700">{order.customerName}</p>
                   <p className="text-xs text-slate-500 max-w-xs">{order.customerAddress}</p>
+                  
+                  {order.scheduledTime && (
+                      <div className="flex items-center gap-2 mt-2 p-2 bg-orange-50 rounded-lg border border-orange-100 w-fit">
+                          <Calendar className="w-3.5 h-3.5 text-orange-600" />
+                          <span className="text-xs font-black text-orange-700">Para: {new Date(order.scheduledTime).toLocaleString('pt-BR')}</span>
+                      </div>
+                  )}
+
                   <div className="flex items-center gap-2 mt-1">
                       <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-md ${order.paymentMethod === 'pix' ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-600'}`}>
                           {order.paymentMethod}
