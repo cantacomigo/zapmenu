@@ -17,8 +17,6 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
   const [isLoading, setIsLoading] = useState(true);
   
   const [currentCoverIndex, setCurrentCoverIndex] = useState(0);
-  const [currentUser, setCurrentUser] = useState<CustomerUser | null>(null);
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [customerInfo, setCustomerInfo] = useState({ 
       name: '', 
@@ -62,10 +60,14 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
 
   const checkoutOrder = async () => {
       if (!restaurant) return;
-      if (!customerInfo.name || !customerInfo.phone || !customerInfo.address) return toast.error("Preencha seus dados.");
+      if (!customerInfo.name || !customerInfo.phone || !customerInfo.address) {
+          toast.error("Por favor, preencha todos os dados de entrega.");
+          return;
+      }
       
+      const orderId = `ORD-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
       const order: Order = {
-          id: `ord_${Date.now()}`,
+          id: orderId,
           restaurantId: restaurant.id,
           customerName: customerInfo.name,
           customerPhone: customerInfo.phone,
@@ -79,17 +81,47 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
 
       await db.addOrder(order);
       
+      // Construção da mensagem formatada para WhatsApp
       const paymentLabels: any = { pix: 'PIX', credit: 'Cartão de Crédito', debit: 'Cartão de Débito', cash: 'Dinheiro' };
-      let message = `*Novo Pedido: ${restaurant.name}*\n\n`;
-      message += cart.map(i => `${i.quantity}x ${i.name}`).join('\n');
-      message += `\n\n📍 *Endereço:* ${customerInfo.address}`;
-      message += `\n💳 *Pagamento:* ${paymentLabels[customerInfo.payment]}`;
-      if (customerInfo.payment === 'cash' && customerInfo.changeFor) message += `\n💵 *Troco para:* R$ ${customerInfo.changeFor}`;
-      message += `\n\n💰 *Total:* R$ ${order.total.toFixed(2)}`;
       
-      window.open(`https://wa.me/${restaurant.phone}?text=${encodeURIComponent(message)}`, '_blank');
+      let message = `🚀 *NOVO PEDIDO REALIZADO!*\n`;
+      message += `------------------------------------------\n`;
+      message += `🆔 *ID:* #${orderId}\n`;
+      message += `🏢 *Loja:* ${restaurant.name}\n`;
+      message += `------------------------------------------\n\n`;
+      
+      message += `📋 *ITENS DO PEDIDO:*\n`;
+      cart.forEach(item => {
+          message += `• ${item.quantity}x ${item.name} (R$ ${(item.price * item.quantity).toFixed(2)})\n`;
+      });
+      message += `\n`;
+
+      message += `🛵 *DADOS DE ENTREGA:*\n`;
+      message += `👤 *Nome:* ${customerInfo.name}\n`;
+      message += `📞 *Fone:* ${customerInfo.phone}\n`;
+      message += `📍 *Endereço:* ${customerInfo.address}\n\n`;
+
+      message += `💳 *PAGAMENTO:*\n`;
+      message += `💰 *Método:* ${paymentLabels[customerInfo.payment]}\n`;
+      if (customerInfo.payment === 'cash' && customerInfo.changeFor) {
+          message += `💵 *Troco para:* R$ ${customerInfo.changeFor}\n`;
+      }
+      message += `\n`;
+
+      message += `📊 *RESUMO FINANCEIRO:*\n`;
+      message += `Subtotal: R$ ${cartSubtotal.toFixed(2)}\n`;
+      message += `Entrega: R$ ${deliveryFee.toFixed(2)}\n`;
+      message += `✅ *TOTAL: R$ ${cartTotal.toFixed(2)}*\n\n`;
+      
+      message += `------------------------------------------\n`;
+      message += `_Pedido enviado via ZapMenu_`;
+      
+      const whatsappUrl = `https://wa.me/${restaurant.phone}?text=${encodeURIComponent(message)}`;
+      window.open(whatsappUrl, '_blank');
+      
       setCart([]);
       setIsCheckoutOpen(false);
+      toast.success("Pedido enviado com sucesso!");
   };
 
   const addToCart = (item: MenuItem) => {
@@ -112,7 +144,7 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
 
   return (
     <div className="bg-slate-50 min-h-screen pb-32 font-sans">
-      {/* Header and Content Area */}
+      {/* Header Area */}
       <div className="relative h-64 w-full overflow-hidden bg-slate-900">
          <img src={restaurant.coverImage} className="w-full h-full object-cover opacity-60" />
          <div className="absolute inset-0 bg-gradient-to-t from-slate-900 to-transparent"></div>
@@ -136,7 +168,7 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
             </div>
             <div className="flex gap-2 overflow-x-auto hide-scroll pb-2">
                 {categories.map(cat => (
-                    <button key={cat.id} onClick={() => setActiveCategory(cat.id)} className={`px-6 py-3 rounded-xl text-sm font-bold transition-all whitespace-nowrap border-2 ${activeCategory === cat.id ? 'bg-slate-900 border-slate-900 text-white' : 'bg-white border-slate-100 text-slate-500'}`}>
+                    <button key={cat.id} onClick={() => setActiveCategory(cat.id)} className={`px-6 py-3 rounded-xl text-sm font-bold transition-all whitespace-nowrap border-2 ${activeCategory === cat.id ? 'bg-slate-900 border-slate-900 text-white shadow-lg shadow-slate-900/10' : 'bg-white border-slate-100 text-slate-500 hover:border-slate-300'}`}>
                         {cat.name}
                     </button>
                 ))}
@@ -145,14 +177,14 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
             {filteredItems.map(item => (
-                <div key={item.id} className="bg-white p-4 rounded-3xl shadow-sm border border-slate-100 flex gap-4">
+                <div key={item.id} className="bg-white p-4 rounded-3xl shadow-sm border border-slate-100 flex gap-4 hover:shadow-md transition-shadow">
                     <img src={item.image} className="w-24 h-24 rounded-2xl object-cover" />
                     <div className="flex-1 flex flex-col">
                         <h3 className="font-bold text-slate-800">{item.name}</h3>
                         <p className="text-xs text-slate-500 line-clamp-2 flex-1">{item.description}</p>
                         <div className="flex justify-between items-end">
                             <span className="font-black text-emerald-700">R$ {Number(item.price).toFixed(2)}</span>
-                            <button onClick={() => addToCart(item)} className="bg-slate-900 text-white w-10 h-10 rounded-xl flex items-center justify-center"><Plus className="w-5 h-5" /></button>
+                            <button onClick={() => addToCart(item)} className="bg-slate-900 text-white w-10 h-10 rounded-xl flex items-center justify-center hover:bg-emerald-600 transition-colors"><Plus className="w-5 h-5" /></button>
                         </div>
                     </div>
                 </div>
@@ -162,7 +194,7 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
 
       {cart.length > 0 && (
           <div className="fixed bottom-6 left-4 right-4 z-40 max-w-4xl mx-auto">
-              <button onClick={() => setIsCheckoutOpen(true)} className="w-full bg-slate-900 text-white p-4 rounded-2xl shadow-xl flex justify-between items-center">
+              <button onClick={() => setIsCheckoutOpen(true)} className="w-full bg-slate-900 text-white p-4 rounded-2xl shadow-xl flex justify-between items-center group active:scale-95 transition-all">
                   <div className="flex items-center gap-3">
                       <div className="bg-emerald-500 w-8 h-8 flex items-center justify-center rounded-lg font-black">{cart.reduce((a,b)=>a+b.quantity,0)}</div>
                       <span className="font-bold">Ver Sacola</span>
@@ -176,8 +208,18 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
            <div className="space-y-6">
                <div className="space-y-3">
                    <h4 className="text-xs font-black uppercase tracking-widest text-slate-400">Itens na Sacola</h4>
-                   {cart.map(i => <div key={i.id} className="flex justify-between font-bold text-slate-700"><span>{i.quantity}x {i.name}</span><span>R$ {(i.price * i.quantity).toFixed(2)}</span></div>)}
-                   <div className="flex justify-between text-sm text-slate-500"><span>Taxa de Entrega</span><span>R$ {deliveryFee.toFixed(2)}</span></div>
+                   <div className="space-y-2 max-h-40 overflow-y-auto custom-scrollbar pr-2">
+                       {cart.map(i => (
+                           <div key={i.id} className="flex justify-between font-bold text-slate-700">
+                               <span>{i.quantity}x {i.name}</span>
+                               <span>R$ {(i.price * i.quantity).toFixed(2)}</span>
+                           </div>
+                       ))}
+                   </div>
+                   <div className="flex justify-between text-sm text-slate-500 pt-2 border-t border-slate-50">
+                       <span>Taxa de Entrega</span>
+                       <span>R$ {deliveryFee.toFixed(2)}</span>
+                   </div>
                </div>
 
                <div className="p-6 bg-slate-900 text-white rounded-[2rem] shadow-xl shadow-slate-900/20">
@@ -186,9 +228,9 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
 
                <div className="space-y-4">
                     <h4 className="text-xs font-black uppercase tracking-widest text-slate-400">Dados da Entrega</h4>
-                    <Input label="Seu Nome" value={customerInfo.name} onChange={(e: any) => setCustomerInfo({...customerInfo, name: e.target.value})} />
-                    <Input label="Telefone / WhatsApp" value={customerInfo.phone} onChange={(e: any) => setCustomerInfo({...customerInfo, phone: e.target.value})} />
-                    <Input label="Endereço Completo" value={customerInfo.address} onChange={(e: any) => setCustomerInfo({...customerInfo, address: e.target.value})} />
+                    <Input label="Seu Nome" placeholder="Como devemos te chamar?" value={customerInfo.name} onChange={(e: any) => setCustomerInfo({...customerInfo, name: e.target.value})} />
+                    <Input label="Telefone / WhatsApp" placeholder="(00) 00000-0000" value={customerInfo.phone} onChange={(e: any) => setCustomerInfo({...customerInfo, phone: e.target.value})} />
+                    <Input label="Endereço Completo" placeholder="Rua, número, bairro e referência" value={customerInfo.address} onChange={(e: any) => setCustomerInfo({...customerInfo, address: e.target.value})} />
                </div>
 
                <div className="space-y-4">
