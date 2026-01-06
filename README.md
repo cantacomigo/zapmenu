@@ -18,4 +18,4 @@ Este projeto contém o código-fonte do ZapMenu, um sistema de cardápio digital
 2. `npm run dev`
 
 ---
-*Status de sincronização: Atualizado em 05/01/2026*
+*Status: Pronto para Sincronização Forçada (Force Push)*
