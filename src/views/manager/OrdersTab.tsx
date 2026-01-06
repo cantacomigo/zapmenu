@@ -197,71 +197,90 @@ export const OrdersTab: React.FC<OrdersTabProps> = ({ orders, onRefresh, restaur
                     <MapPin className="w-3 h-3 text-slate-400 mt-0.5 shrink-0" />
                     <p className="text-[11px] text-slate-500 font-medium leading-relaxed truncate">{order.customerAddress}</p>
                   </div>
-                  {order.scheduledTime && (
-                      <div className="flex items-center gap-1.5 py-1 px-2 bg-blue-50/50 rounded-lg border border-blue-100 w-fit">
-                          <Calendar className="w-3 h-3 text-blue-600" />
-                          <span className="text-[9px] font-black text-blue-700 uppercase">Para: {new Date(order.scheduledTime).toLocaleString('pt-BR')}</span>
-                      </div>
-                  )}
                 </div>
 
                 {/* Resumo Itens */}
                 <div className="flex flex-wrap gap-1">
                     {order.items.map((item, idx) => (
-                        <div key={idx} className="bg-white border border-slate-100 text-slate-600 px-2 py-1 rounded-lg text-[9px] font-bold shadow-sm">
+                        <div key={idx} className="bg-white border border-slate-100 text-slate-600 px-2 py-0.5 rounded-lg text-[9px] font-bold shadow-sm">
                             <span className="text-emerald-600">{item.quantity}x</span> {item.name.split(' ')[0]}
                         </div>
                     ))}
                 </div>
 
-                {/* Grade de Botões 2x2 para Mobile */}
-                <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-50">
-                  <Button variant="secondary" onClick={() => handlePrint(order)} className="w-full bg-slate-50 border-none text-[9px] font-black uppercase tracking-widest h-10 rounded-xl">
-                      <Printer className="w-3 h-3 mr-1.5" /> Recibo
-                  </Button>
-                  
+                {/* BOTÕES ESTILO REFERÊNCIA */}
+                <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-50">
+                  {/* Imprimir */}
+                  <button 
+                    onClick={() => handlePrint(order)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-full text-slate-900 text-[10px] font-black uppercase tracking-tight shadow-sm active:scale-95 transition-all"
+                  >
+                    <Printer size={14} /> Imprimir
+                  </button>
+
+                  {/* Confirmar */}
                   {order.status === 'pending' && (
-                      <Button onClick={() => handleSendConfirmation(order)} className="w-full bg-blue-600 text-white border-none text-[9px] font-black uppercase tracking-widest h-10 rounded-xl shadow-lg shadow-blue-50">
-                          <CheckCheck className="w-3 h-3 mr-1.5" /> Confirmar
-                      </Button>
+                    <button 
+                      onClick={() => handleSendConfirmation(order)}
+                      className="flex items-center gap-1.5 px-4 py-1.5 bg-[#059669] text-white rounded-full text-[10px] font-black uppercase tracking-tight shadow-md active:scale-95 transition-all"
+                    >
+                      <CheckCheck size={14} /> Confirmar
+                    </button>
                   )}
-                  
+
+                  {/* Pagar */}
+                  {order.status === 'pending' && (
+                    <button 
+                      onClick={() => handleUpdateStatus(order, 'paid')}
+                      className="flex items-center gap-1.5 px-4 py-1.5 bg-[#0D9488] text-white rounded-full text-[10px] font-black uppercase tracking-tight shadow-md active:scale-95 transition-all"
+                    >
+                      <CreditCard size={14} /> Pagar
+                    </button>
+                  )}
+
+                  {/* Enviar */}
                   {order.status === 'paid' && (
-                      <Button onClick={() => handleUpdateStatus(order, 'shipped')} className="w-full bg-purple-600 text-white border-none text-[9px] font-black uppercase tracking-widest h-10 rounded-xl shadow-lg shadow-purple-50">
-                          <Truck className="w-3 h-3 mr-1.5" /> Enviar
-                      </Button>
+                    <button 
+                      onClick={() => handleUpdateStatus(order, 'shipped')}
+                      className="flex items-center gap-1.5 px-4 py-1.5 bg-[#9333EA] text-white rounded-full text-[10px] font-black uppercase tracking-tight shadow-md active:scale-95 transition-all"
+                    >
+                      <Truck size={14} /> Enviar
+                    </button>
                   )}
 
+                  {/* Finalizar */}
                   {order.status === 'shipped' && (
-                      <Button onClick={() => handleUpdateStatus(order, 'completed')} className="w-full bg-slate-900 text-white border-none text-[9px] font-black uppercase tracking-widest h-10 rounded-xl">
-                          <CheckCircle2 className="w-3 h-3 mr-1.5" /> Finalizar
-                      </Button>
+                    <button 
+                      onClick={() => handleUpdateStatus(order, 'completed')}
+                      className="flex items-center gap-1.5 px-4 py-1.5 bg-slate-900 text-white rounded-full text-[10px] font-black uppercase tracking-tight shadow-md active:scale-95 transition-all"
+                    >
+                      <CheckCircle2 size={14} /> Finalizar
+                    </button>
                   )}
 
-                  {['completed', 'cancelled'].includes(order.status) && (
-                      <div className="h-10"></div> /* Placeholder para manter a grade */
+                  {/* Spacer para empurrar Cancelar e Chat para a direita ou próxima linha */}
+                  <div className="flex-1 min-w-[10px]"></div>
+
+                  {/* Cancelar */}
+                  {['pending', 'paid', 'shipped'].includes(order.status) && (
+                    <button 
+                      onClick={() => handleUpdateStatus(order, 'cancelled')}
+                      className="flex items-center gap-1.5 px-4 py-1.5 bg-[#FEF2F2] text-[#DC2626] rounded-full text-[10px] font-black uppercase tracking-tight shadow-sm active:scale-95 transition-all"
+                    >
+                      <XCircle size={14} /> Cancelar
+                    </button>
                   )}
 
+                  {/* Chat Icon */}
                   <button 
                     onClick={() => {
                       const phone = order.customerPhone.replace(/\D/g, '');
                       window.open(`https://api.whatsapp.com/send?phone=${phone}`, '_blank');
                     }}
-                    className="flex items-center justify-center gap-2 h-10 bg-emerald-50 text-emerald-600 rounded-xl hover:bg-emerald-100 transition-all active:scale-95 text-[9px] font-black uppercase tracking-widest"
+                    className="p-1.5 text-slate-400 hover:text-emerald-600 transition-colors"
                   >
-                    <MessageSquare size={14} /> WhatsApp
+                    <MessageSquare size={20} />
                   </button>
-
-                  {['pending', 'paid', 'shipped'].includes(order.status) ? (
-                      <button 
-                        onClick={() => handleUpdateStatus(order, 'cancelled')}
-                        className="flex items-center justify-center gap-2 h-10 bg-red-50 text-red-400 rounded-xl hover:bg-red-100 transition-all active:scale-95 text-[9px] font-black uppercase tracking-widest"
-                      >
-                        <XCircle size={14} /> Cancelar
-                      </button>
-                  ) : (
-                      <div className="h-10"></div>
-                  )}
                 </div>
               </div>
             </Card>
