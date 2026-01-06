@@ -1,5 +1,6 @@
 {
   "name": "ZapMenu - SaaS Digital Menu",
   "description": "A multi-tenant digital menu and ordering system. Features a Super Admin panel, Restaurant Manager dashboard, and a customer-facing mobile-first menu with WhatsApp ordering integration.",
+  "version": "2.0.2",
   "requestFramePermissions": []
 }
