@@ -2,18 +2,50 @@ import React from 'react';
 import { db } from '../../services/db';
 import { Order } from '../../types';
 import { Card, Badge, Button } from '../../components/ui';
+import { MessageSquare } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 interface OrdersTabProps {
   orders: Order[];
   onRefresh: () => void;
+  restaurantName?: string;
 }
 
-export const OrdersTab: React.FC<OrdersTabProps> = ({ orders, onRefresh }) => {
+export const OrdersTab: React.FC<OrdersTabProps> = ({ orders, onRefresh, restaurantName }) => {
+  const getWhatsAppMessage = (order: Order, status: Order['status']) => {
+    const orderId = order.id.slice(0, 4).toUpperCase();
+    const greeting = `Olá *${order.customerName}*!`;
+    const footer = `\n\nAgradecemos a preferência!\n*${restaurantName || 'ZapMenu'}*`;
+
+    switch (status) {
+      case 'confirmed':
+        return `${greeting}\nSeu pedido *#${orderId}* foi aceito e já está em preparo! 👨‍🍳${footer}`;
+      case 'completed':
+        return `${greeting}\nNotícia boa! Seu pedido *#${orderId}* acabou de sair para entrega ou já está pronto para retirada! 🛵💨${footer}`;
+      case 'cancelled':
+        return `${greeting}\nLamentamos informar, mas seu pedido *#${orderId}* precisou ser cancelado. Entre em contato conosco para mais detalhes.${footer}`;
+      default:
+        return '';
+    }
+  };
+
   const handleUpdateStatus = async (order: Order, status: Order['status']) => {
-    await db.updateOrder({ ...order, status });
-    toast.success(`Pedido #${order.id.slice(0, 4)} atualizado!`);
-    onRefresh();
+    try {
+      await db.updateOrder({ ...order, status });
+      toast.success(`Pedido #${order.id.slice(0, 4)} atualizado!`);
+      
+      // Envio automático via WhatsApp
+      const message = getWhatsAppMessage(order, status);
+      if (message) {
+        const phone = order.customerPhone.replace(/\D/g, '');
+        const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+        window.open(url, '_blank');
+      }
+      
+      onRefresh();
+    } catch (error) {
+      toast.error("Erro ao atualizar status");
+    }
   };
 
   const getStatusColor = (status: string) => {
@@ -75,6 +107,16 @@ export const OrdersTab: React.FC<OrdersTabProps> = ({ orders, onRefresh }) => {
                     {['pending', 'confirmed'].includes(order.status) && (
                         <Button size="sm" variant="danger" onClick={() => handleUpdateStatus(order, 'cancelled')}>Cancelar</Button>
                     )}
+                    <button 
+                      onClick={() => {
+                        const phone = order.customerPhone.replace(/\D/g, '');
+                        window.open(`https://wa.me/${phone}`, '_blank');
+                      }}
+                      className="p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all"
+                      title="Conversar no WhatsApp"
+                    >
+                      <MessageSquare size={18} />
+                    </button>
                 </div>
               </div>
             </div>

@@ -95,7 +95,7 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({ restaurantId
       <main className="flex-1 overflow-y-auto bg-slate-50">
         <div className="max-w-6xl mx-auto p-6 md:p-12">
             {tab === 'menu' && <MenuTab restaurantId={restaurantId} categories={categories} items={items} onRefresh={refreshData} />}
-            {tab === 'orders' && <OrdersTab orders={orders} onRefresh={refreshData} />}
+            {tab === 'orders' && <OrdersTab orders={orders} onRefresh={refreshData} restaurantName={restaurant.name} />}
             {tab === 'customers' && <CustomersTab restaurantId={restaurantId} />}
             {tab === 'reports' && <ReportsTab restaurantId={restaurantId} />}
             {tab === 'marketing' && <MarketingTab restaurantId={restaurantId} />}
