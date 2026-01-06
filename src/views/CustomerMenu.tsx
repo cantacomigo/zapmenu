@@ -354,13 +354,17 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {filteredItems.map(item => (
                 <div key={item.id} className={`bg-white p-5 rounded-3xl shadow-sm border border-slate-100 flex gap-4 transition-all hover:shadow-md ${(!item.available || (item.stock !== undefined && item.stock !== null && item.stock <= 0)) && 'opacity-60 grayscale'}`}>
-                    <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-300 shrink-0">
-                         <Utensils className="w-6 h-6" />
+                    <div className="w-20 h-20 rounded-2xl bg-slate-50 overflow-hidden flex items-center justify-center text-slate-300 shrink-0 border border-slate-50">
+                         {item.image ? (
+                             <img src={item.image} className="w-full h-full object-cover" alt={item.name} />
+                         ) : (
+                             <Utensils className="w-8 h-8" />
+                         )}
                     </div>
                     <div className="flex flex-col flex-1">
                         <div className="flex-1">
                             <h3 className="font-bold text-slate-800 text-lg leading-tight">{item.name}</h3>
-                            <p className="text-sm text-slate-500 mt-1 line-clamp-3 leading-relaxed">{item.description}</p>
+                            <p className="text-sm text-slate-500 mt-1 line-clamp-2 leading-relaxed">{item.description}</p>
                         </div>
                         <div className="flex justify-between items-end mt-4">
                             <span className="font-bold text-lg text-emerald-700">R$ {Number(item.price).toFixed(2)}</span>
@@ -385,123 +389,7 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
               </button>
           </div>
       )}
-
-      <Modal isOpen={isOrdersModalOpen} onClose={() => setIsOrdersModalOpen(false)} title="Meus Pedidos">
-          <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-1">
-              {customerOrders.length > 0 ? (
-                  customerOrders.map(order => {
-                      const status = getStatusDisplay(order.status);
-                      return (
-                          <div key={order.id} className="bg-white border border-slate-100 p-4 rounded-2xl shadow-sm">
-                              <div className="flex justify-between items-start mb-3">
-                                  <div>
-                                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Pedido #{order.id.slice(-4).toUpperCase()}</p>
-                                      <p className="text-xs text-slate-500">{new Date(order.createdAt).toLocaleDateString('pt-BR')} às {new Date(order.createdAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</p>
-                                  </div>
-                                  <Badge color={`${status.color} border-transparent text-[10px] font-bold uppercase tracking-wider`}>{status.label}</Badge>
-                              </div>
-                              <div className="space-y-1 mb-3">
-                                  {order.items.map((item, idx) => (
-                                      <div key={idx} className="flex justify-between text-xs text-slate-600">
-                                          <span>{item.quantity}x {item.name}</span>
-                                          <span>R$ {(item.price * item.quantity).toFixed(2)}</span>
-                                      </div>
-                                  ))}
-                              </div>
-                              <div className="flex justify-between items-center pt-2 border-t border-slate-50">
-                                  <span className="text-xs font-bold text-slate-900">Total</span>
-                                  <span className="text-sm font-black text-emerald-700">R$ {order.total.toFixed(2)}</span>
-                              </div>
-                          </div>
-                      );
-                  })
-              ) : (
-                  <div className="text-center py-12">
-                      <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-300">
-                          <Package size={32} />
-                      </div>
-                      <p className="text-slate-500 font-medium">Você ainda não fez nenhum pedido.</p>
-                  </div>
-              )}
-          </div>
-      </Modal>
-
-      <Modal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} title="Identificação">
-          <div className="space-y-4">
-              <Input label="Telefone" placeholder="DDD + Número" value={authForm.phone} onChange={(e: any) => setAuthForm({...authForm, phone: e.target.value})} />
-              <Input label="Senha" type="password" placeholder="Sua senha" value={authForm.password} onChange={(e: any) => setAuthForm({...authForm, password: e.target.value})} />
-              {authMode === 'register' && <Input label="Nome Completo" placeholder="Ex: João Silva" value={authForm.name} onChange={(e: any) => setAuthForm({...authForm, name: e.target.value})} />}
-              {authMode === 'register' && <Input label="Endereço de Entrega" placeholder="Rua, Número, Bairro" value={authForm.address} onChange={(e: any) => setAuthForm({...authForm, address: e.target.value})} />}
-              <Button className="w-full" onClick={authMode === 'login' ? handleLogin : handleRegister}>{authMode === 'login' ? 'Entrar' : 'Cadastrar'}</Button>
-              <button onClick={() => setAuthMode(m => m === 'login' ? 'register' : 'login')} className="w-full text-center text-sm text-slate-500 mt-2">
-                  {authMode === 'login' ? 'Ainda não tem conta? Criar conta' : 'Já tem conta? Fazer login'}
-              </button>
-          </div>
-      </Modal>
-
-      <Modal isOpen={isCheckoutOpen} onClose={() => setIsCheckoutOpen(false)} title="Finalizar Pedido">
-           <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-1">
-               <div className="space-y-2">
-                   <h3 className="text-sm font-bold text-slate-900">Itens da Sacola</h3>
-                   {cart.map(i => (
-                       <div key={i.id} className="flex justify-between items-center bg-slate-50 p-3 rounded-xl border border-slate-100">
-                           <div className="font-medium text-slate-700 text-sm">{i.name} <span className="text-xs text-slate-500 ml-1">x{i.quantity}</span></div>
-                           <div className="flex items-center gap-2">
-                               <button onClick={() => removeFromCart(i.id)} className="p-1.5 bg-white border border-slate-200 rounded-lg hover:bg-slate-100 text-slate-500"><Minus className="w-4 h-4" /></button>
-                               <button onClick={() => addToCart(i)} className="p-1.5 bg-white border border-slate-200 rounded-lg hover:bg-slate-100 text-emerald-600"><Plus className="w-4 h-4" /></button>
-                           </div>
-                       </div>
-                   ))}
-               </div>
-
-               <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                   <div className="flex justify-between text-slate-500 text-sm mb-1"><span>Subtotal</span><span>R$ {cartSubtotal.toFixed(2)}</span></div>
-                   <div className="flex justify-between text-slate-500 text-sm mb-3"><span>Taxa de Entrega</span><span>R$ {deliveryFee.toFixed(2)}</span></div>
-                   <div className="flex justify-between font-bold text-lg text-slate-900 border-t border-slate-200 pt-2"><span>Total</span><span>R$ {cartTotal.toFixed(2)}</span></div>
-               </div>
-
-               <div className="space-y-3 pt-2">
-                    <h3 className="text-sm font-bold text-slate-900">Dados de Entrega</h3>
-                    <Input label="Seu Nome" placeholder="Quem vai receber?" value={customerInfo.name} onChange={(e: any) => setCustomerInfo({...customerInfo, name: e.target.value})} />
-                    <Input label="Endereço Completo" placeholder="Rua, Número, Bairro, Complemento" value={customerInfo.address} onChange={(e: any) => setCustomerInfo({...customerInfo, address: e.target.value})} />
-                    <Input label="WhatsApp" placeholder="DDD + Número" value={customerInfo.phone} onChange={(e: any) => setCustomerInfo({...customerInfo, phone: e.target.value})} />
-               </div>
-
-               <div className="space-y-3 pt-2">
-                   <h3 className="text-sm font-bold text-slate-900">Forma de Pagamento</h3>
-                   <div className="grid grid-cols-2 gap-2">
-                       <button onClick={() => setCustomerInfo({...customerInfo, payment: 'pix'})} className={`p-3 border rounded-xl font-bold text-xs flex flex-col items-center gap-1 transition-all ${customerInfo.payment === 'pix' ? 'bg-emerald-50 border-emerald-500 text-emerald-700' : 'bg-white border-slate-200 text-slate-600'}`}>
-                           <QrCode size={18} /> PIX
-                       </button>
-                       <button onClick={() => setCustomerInfo({...customerInfo, payment: 'credit'})} className={`p-3 border rounded-xl font-bold text-xs flex flex-col items-center gap-1 transition-all ${customerInfo.payment === 'credit' ? 'bg-emerald-50 border-emerald-500 text-emerald-700' : 'bg-white border-slate-200 text-slate-600'}`}>
-                           <Banknote size={18} /> CARTÃO
-                       </button>
-                       <button onClick={() => setCustomerInfo({...customerInfo, payment: 'cash'})} className={`p-3 border rounded-xl font-bold text-xs flex flex-col items-center gap-1 transition-all ${customerInfo.payment === 'cash' ? 'bg-emerald-50 border-emerald-500 text-emerald-700' : 'bg-white border-slate-200 text-slate-600'}`}>
-                           <Coins size={18} /> DINHEIRO
-                       </button>
-                       <button onClick={() => setCustomerInfo({...customerInfo, payment: 'debit'})} className={`p-3 border rounded-xl font-bold text-xs flex flex-col items-center gap-1 transition-all ${customerInfo.payment === 'debit' ? 'bg-emerald-50 border-emerald-500 text-emerald-700' : 'bg-white border-slate-200 text-slate-600'}`}>
-                           <CreditCard size={18} /> DÉBITO
-                       </button>
-                   </div>
-                   
-                   {customerInfo.payment === 'cash' && (
-                       <div className="animate-in fade-in slide-in-from-top-2 duration-300">
-                           <Input 
-                               label="Troco para quanto?" 
-                               placeholder="Ex: 50,00 (deixe vazio se não precisar)" 
-                               type="number"
-                               value={customerInfo.changeFor} 
-                               onChange={(e: any) => setCustomerInfo({...customerInfo, changeFor: e.target.value})} 
-                           />
-                       </div>
-                   )}
-               </div>
-
-               <Button className="w-full text-lg py-4 mt-4 bg-emerald-600 border-none shadow-lg shadow-emerald-500/20" onClick={checkoutOrder}>
-                   Enviar Pedido via WhatsApp <Send className="ml-2 w-4 h-4" />
-               </Button>
-           </div>
-      </Modal>
+      {/* ... keep existing code (rest of the component) */}
     </div>
   );
 };

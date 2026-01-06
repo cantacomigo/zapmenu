@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { db } from '../../services/db';
 import { Category, MenuItem } from '../../types';
 import { Button, Card, Input, Modal } from '../../components/ui';
+import { ImageUpload } from '../../components/ImageUpload';
 import { Plus, Edit2, Trash2, Tag, Utensils } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -80,8 +81,12 @@ export const MenuTab: React.FC<MenuTabProps> = ({ restaurantId, categories, item
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {items.filter(i => i.categoryId === cat.id).map(item => (
                 <Card key={item.id} className="p-4 flex items-center gap-4">
-                  <div className="w-12 h-12 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400">
-                    <Utensils className="w-6 h-6" />
+                  <div className="w-12 h-12 bg-slate-50 rounded-xl overflow-hidden flex items-center justify-center text-slate-400">
+                    {item.image ? (
+                        <img src={item.image} className="w-full h-full object-cover" alt={item.name} />
+                    ) : (
+                        <Utensils className="w-6 h-6" />
+                    )}
                   </div>
                   <div className="flex-1 min-w-0">
                     <h4 className="font-bold text-slate-900 truncate">{item.name}</h4>
@@ -120,6 +125,7 @@ export const MenuTab: React.FC<MenuTabProps> = ({ restaurantId, categories, item
             </select>
           </div>
           <Input label="Descrição" value={currentItem.description || ''} onChange={(e: any) => setCurrentItem({...currentItem, description: e.target.value})} />
+          <ImageUpload label="Foto do Produto" value={currentItem.image} onChange={(val) => setCurrentItem({...currentItem, image: val})} />
           <Button className="w-full" onClick={handleSaveItem}>Salvar Item</Button>
         </div>
       </Modal>
