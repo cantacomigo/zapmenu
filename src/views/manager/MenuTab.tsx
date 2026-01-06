@@ -44,6 +44,19 @@ export const MenuTab: React.FC<MenuTabProps> = ({ restaurantId, categories, item
     onRefresh();
   };
 
+  const handleDeleteCategory = async (category: Category) => {
+    const hasItems = items.some(i => i.categoryId === category.id);
+    const message = hasItems 
+      ? `Esta categoria possui produtos vinculados. Deseja realmente excluí-la? Os produtos não serão apagados, mas ficarão sem categoria.`
+      : `Deseja realmente excluir a categoria "${category.name}"?`;
+
+    if (confirm(message)) {
+      await db.deleteCategory(category.id);
+      toast.success("Categoria removida!");
+      onRefresh();
+    }
+  };
+
   const handleSaveItem = async () => {
     if (!currentItem.name || !currentItem.price || !currentItem.categoryId) {
         toast.error("Preencha os campos obrigatórios");
@@ -111,7 +124,10 @@ export const MenuTab: React.FC<MenuTabProps> = ({ restaurantId, categories, item
                         <div className="flex items-center gap-2">
                             <Tag className="w-6 h-6 text-emerald-600" />
                             <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">{parent.name}</h3>
-                            <button onClick={() => { setCurrentCategory(parent); setIsCategoryModalOpen(true); }} className="p-1 hover:bg-slate-100 rounded text-slate-400"><Edit2 className="w-3.5 h-3.5" /></button>
+                            <div className="flex gap-1">
+                                <button onClick={() => { setCurrentCategory(parent); setIsCategoryModalOpen(true); }} className="p-1 hover:bg-slate-100 rounded text-slate-400" title="Editar"><Edit2 className="w-3.5 h-3.5" /></button>
+                                <button onClick={() => handleDeleteCategory(parent)} className="p-1 hover:bg-red-50 rounded text-slate-400 hover:text-red-500" title="Excluir"><Trash2 className="w-3.5 h-3.5" /></button>
+                            </div>
                         </div>
                     </div>
 
@@ -138,7 +154,10 @@ export const MenuTab: React.FC<MenuTabProps> = ({ restaurantId, categories, item
                             <div className="flex items-center gap-2 border-b border-slate-100 pb-1">
                                 <ChevronRight className="w-4 h-4 text-slate-400" />
                                 <h4 className="font-bold text-slate-600">{child.name}</h4>
-                                <button onClick={() => { setCurrentCategory(child); setIsCategoryModalOpen(true); }} className="p-1 hover:bg-slate-100 rounded text-slate-300"><Edit2 className="w-3 h-3" /></button>
+                                <div className="flex gap-1">
+                                    <button onClick={() => { setCurrentCategory(child); setIsCategoryModalOpen(true); }} className="p-1 hover:bg-slate-100 rounded text-slate-300 hover:text-slate-600" title="Editar"><Edit2 className="w-3 h-3" /></button>
+                                    <button onClick={() => handleDeleteCategory(child)} className="p-1 hover:bg-red-50 rounded text-slate-300 hover:text-red-500" title="Excluir"><Trash2 className="w-3 h-3" /></button>
+                                </div>
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                 {items.filter(i => i.categoryId === child.id).map(item => (
