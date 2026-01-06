@@ -146,33 +146,45 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
 
   return (
     <div className="bg-slate-50 min-h-screen pb-24 font-sans">
+      {/* Header Estilo App */}
       <div className="relative h-44 w-full overflow-hidden bg-slate-900">
          <img src={restaurant.coverImage} className="w-full h-full object-cover opacity-60" loading="eager" />
          <div className="absolute inset-0 bg-gradient-to-t from-slate-900 to-transparent"></div>
          <div className="absolute top-3 left-3 z-10">
-            <button onClick={onBack} className="p-1.5 bg-white/10 rounded-full text-white backdrop-blur-md"><ArrowLeft className="w-4 h-4" /></button>
+            <button onClick={onBack} className="p-1.5 bg-white/10 rounded-full text-white backdrop-blur-md">
+                <ArrowLeft className="w-4 h-4" />
+            </button>
          </div>
          <div className="absolute bottom-4 left-4 z-10 flex items-center gap-3">
             <img src={restaurant.logo} className="w-16 h-16 rounded-xl bg-white p-0.5 object-cover shadow-lg" loading="eager" />
             <div className="text-white">
                 <h1 className="text-xl font-black leading-tight">{restaurant.name}</h1>
-                <p className="text-[10px] text-slate-300 flex items-center gap-1 uppercase tracking-wider font-bold"><Clock size={10} /> {restaurant.estimatedTime || '30-45 min'}</p>
+                <p className="text-[10px] text-slate-300 flex items-center gap-1 uppercase tracking-wider font-bold">
+                    <Clock size={10} /> {restaurant.estimatedTime || '30-45 min'}
+                </p>
             </div>
          </div>
       </div>
 
       <div className="max-w-4xl mx-auto px-3 pt-4">
+        {/* Busca e Categorias Fixas */}
         <div className="sticky top-0 z-30 bg-slate-50 pb-3">
             <div className="relative mb-3">
                 <Search className="absolute left-3.5 top-2.5 w-4 h-4 text-slate-400" />
-                <input type="text" placeholder="Buscar no cardápio..." className="w-full pl-10 pr-4 py-2.5 rounded-xl border-none bg-white shadow-sm font-medium text-sm" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
+                <input 
+                    type="text" 
+                    placeholder="Buscar no cardápio..." 
+                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border-none bg-white shadow-sm font-medium text-sm focus:ring-2 focus:ring-red-500/10 transition-all"
+                    value={searchTerm}
+                    onChange={e => setSearchTerm(e.target.value)}
+                />
             </div>
-            <div className="flex flex-wrap gap-1.5">
+            <div className="flex overflow-x-auto gap-1.5 hide-scroll">
                 {categories.map(cat => (
                     <button 
                         key={cat.id} 
                         onClick={() => setActiveCategory(cat.id)} 
-                        className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all border-2 ${activeCategory === cat.id ? 'bg-red-600 border-red-600 text-white shadow-sm' : 'bg-white border-slate-100 text-slate-500'}`}
+                        className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all border-2 whitespace-nowrap ${activeCategory === cat.id ? 'bg-red-600 border-red-600 text-white shadow-sm' : 'bg-white border-slate-100 text-slate-500'}`}
                     >
                         {cat.name}
                     </button>
@@ -180,6 +192,7 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
             </div>
         </div>
 
+        {/* Itens do Menu */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
             {filteredItems.map(item => (
                 <div key={item.id} className="bg-white p-3 rounded-2xl shadow-sm border border-slate-100 flex gap-3 hover:shadow-md transition-shadow">
@@ -189,30 +202,47 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
                         <p className="text-[10px] text-slate-500 line-clamp-2 flex-1 leading-snug">{item.description}</p>
                         <div className="flex justify-between items-end mt-1">
                             <span className="font-black text-sm text-red-600">R$ {Number(item.price).toFixed(2)}</span>
-                            <button onClick={() => addToCart(item)} className="bg-red-600 text-white w-8 h-8 rounded-lg flex items-center justify-center active:scale-90 transition-transform"><Plus className="w-4 h-4" /></button>
+                            <button 
+                                onClick={() => addToCart(item)}
+                                className="bg-red-600 text-white w-8 h-8 rounded-lg flex items-center justify-center active:scale-90 transition-transform shadow-lg shadow-red-600/20"
+                            >
+                                <Plus className="w-4 h-4" />
+                            </button>
                         </div>
                     </div>
                 </div>
             ))}
+            {filteredItems.length === 0 && (
+                <div className="col-span-full py-20 text-center text-slate-400 font-medium">
+                    Nenhum item encontrado.
+                </div>
+            )}
         </div>
       </div>
 
+      {/* Sacola Flutuante Otimizada */}
       {cart.length > 0 && (
           <div className="fixed bottom-4 left-3 right-3 z-40 max-w-4xl mx-auto">
-              <button onClick={() => setIsCheckoutOpen(true)} className="w-full bg-red-600 text-white p-3.5 rounded-xl shadow-xl flex justify-between items-center active:scale-95 transition-all">
+              <button 
+                onClick={() => setIsCheckoutOpen(true)} 
+                className="w-full bg-red-600 text-white p-3.5 rounded-xl shadow-xl flex justify-between items-center active:scale-95 transition-all animate-in slide-in-from-bottom"
+              >
                   <div className="flex items-center gap-2.5">
-                      <div className="bg-white text-red-600 w-6 h-6 flex items-center justify-center rounded text-xs font-black">{cart.reduce((a,b)=>a+b.quantity,0)}</div>
-                      <span className="font-bold text-sm">Sacola</span>
+                      <div className="bg-white text-red-600 w-6 h-6 flex items-center justify-center rounded text-xs font-black">
+                        {cart.reduce((a,b)=>a+b.quantity,0)}
+                      </div>
+                      <span className="font-bold text-sm">Ver Sacola</span>
                   </div>
                   <span className="font-black text-sm">R$ {cartTotal.toFixed(2)}</span>
               </button>
           </div>
       )}
 
+      {/* Modal de Checkout Profissional */}
       <Modal isOpen={isCheckoutOpen} onClose={() => setIsCheckoutOpen(false)} title="Finalizar Pedido">
            <div className="space-y-4 max-h-[80vh] overflow-y-auto pr-1">
                <div className="space-y-2">
-                   <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400">Sacola</h4>
+                   <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400">Sua Escolha</h4>
                    <div className="space-y-1.5 max-h-32 overflow-y-auto pr-1">
                        {cart.map(i => (
                            <div key={i.id} className="flex justify-between text-xs font-bold text-slate-700">
@@ -223,23 +253,24 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
                    </div>
                </div>
 
-               <div className="p-4 bg-red-600 text-white rounded-2xl flex justify-between font-black text-lg">
-                   <span>Total</span><span>R$ {cartTotal.toFixed(2)}</span>
+               <div className="p-4 bg-red-600 text-white rounded-2xl flex justify-between font-black text-lg shadow-lg shadow-red-600/10">
+                   <span>Total</span>
+                   <span>R$ {cartTotal.toFixed(2)}</span>
                </div>
 
                <div className="space-y-3">
                     <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400">Entrega</h4>
-                    <Input label="Nome" size="sm" value={customerInfo.name} onChange={(e: any) => setCustomerInfo({...customerInfo, name: e.target.value})} />
-                    <Input label="Telefone" size="sm" value={customerInfo.phone} onChange={(e: any) => setCustomerInfo({...customerInfo, phone: e.target.value})} />
-                    <Input label="Endereço" size="sm" value={customerInfo.address} onChange={(e: any) => setCustomerInfo({...customerInfo, address: e.target.value})} />
+                    <Input label="Seu Nome" size="sm" value={customerInfo.name} onChange={(e: any) => setCustomerInfo({...customerInfo, name: e.target.value})} />
+                    <Input label="WhatsApp" size="sm" value={customerInfo.phone} onChange={(e: any) => setCustomerInfo({...customerInfo, phone: e.target.value})} />
+                    <Input label="Endereço Completo" size="sm" value={customerInfo.address} onChange={(e: any) => setCustomerInfo({...customerInfo, address: e.target.value})} />
                </div>
 
                <div className="space-y-3">
-                    <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400">Pagamento</h4>
+                    <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400">Forma de Pagamento</h4>
                     <div className="grid grid-cols-2 gap-2">
                         {[
                             { id: 'pix', label: 'PIX', icon: QrCode },
-                            { id: 'credit', label: 'Cartão', icon: CreditCard },
+                            { id: 'credit', label: 'Crédito', icon: CreditCard },
                             { id: 'debit', label: 'Débito', icon: CreditCard },
                             { id: 'cash', label: 'Dinheiro', icon: Banknote }
                         ].map(method => (
@@ -254,12 +285,12 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
                         ))}
                     </div>
                     {customerInfo.payment === 'cash' && (
-                        <Input label="Troco p/ quanto?" size="sm" value={customerInfo.changeFor} onChange={(e: any) => setCustomerInfo({...customerInfo, changeFor: e.target.value})} />
+                        <Input label="Troco para quanto?" size="sm" value={customerInfo.changeFor} onChange={(e: any) => setCustomerInfo({...customerInfo, changeFor: e.target.value})} />
                     )}
                </div>
 
                <Button className="w-full py-4 text-sm bg-red-600 hover:bg-red-700 border-0" onClick={checkoutOrder}>
-                   <Send className="w-4 h-4 mr-2" /> Enviar Pedido
+                   <Send className="w-4 h-4 mr-2" /> Enviar para WhatsApp
                </Button>
            </div>
       </Modal>
