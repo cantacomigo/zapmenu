@@ -72,7 +72,7 @@ const LandingPage: React.FC<{
                 <h2 className="text-xl font-bold mb-2 text-white">Cardápio Digital</h2>
                 <p className="text-sm text-slate-300 mb-6 leading-relaxed">Visualize como os clientes veem sua loja online.</p>
                 
-                <Button variant="primary" size="sm" className="w-full bg-red-600 border-0">
+                <Button variant="primary" size="sm" className="w-full bg-red-600 border-0 pointer-events-none">
                     Acessar Menu <ExternalLink className="ml-1.5 w-3.5 h-3.5" />
                 </Button>
             </div>
@@ -97,7 +97,6 @@ export default function App() {
                   setViewState({ view: 'CUSTOMER_MENU', slug });
               }
           } else if (hash === '') {
-              // Verifica se estamos abrindo o app instalado e se tem um slug salvo
               const lastSlug = localStorage.getItem('zapmenu_last_slug');
               const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
               
@@ -113,7 +112,7 @@ export default function App() {
       return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
 
-  const handleRoleSelect = (role: 'admin' | 'manager' | 'customer') => {
+  const handleRoleSelect = async (role: 'admin' | 'manager' | 'customer') => {
       if (role === 'admin') setViewState({ view: 'ADMIN_LOGIN' });
       else if (role === 'manager') setViewState({ view: 'MANAGER_LOGIN' });
       else if (role === 'customer') {
@@ -121,7 +120,13 @@ export default function App() {
           if (lastSlug) {
               window.location.hash = `menu/${lastSlug}`;
           } else {
-              setViewState({ view: 'CUSTOMER_LOGIN' });
+              // Se não tiver slug salvo, busca o primeiro restaurante para demonstrar o menu
+              const restaurants = await db.getRestaurants();
+              if (restaurants.length > 0) {
+                  window.location.hash = `menu/${restaurants[0].slug}`;
+              } else {
+                  setViewState({ view: 'CUSTOMER_LOGIN' });
+              }
           }
       }
   };
@@ -138,7 +143,6 @@ export default function App() {
       case 'SUPER_ADMIN_DASHBOARD':
         return <AdminDashboard 
             onNavigate={(slug) => {
-                setViewState({ view: 'CUSTOMER_MENU', slug });
                 window.location.hash = `menu/${slug}`;
             }} 
             onManage={(id) => setViewState({ view: 'MANAGER_DASHBOARD', restaurantId: id })}
@@ -152,10 +156,9 @@ export default function App() {
       case 'CUSTOMER_LOGIN':
         return <CustomerLogin 
             onLogin={async (customer) => {
-                localStorage.setItem('zapmenu_customer', JSON.stringify(customer));
+                localStorage.setItem('zapmenu_current_user', JSON.stringify(customer));
                 const restaurants = await db.getRestaurants();
                 if (restaurants.length > 0) {
-                    setViewState({ view: 'CUSTOMER_MENU', slug: restaurants[0].slug });
                     window.location.hash = `menu/${restaurants[0].slug}`;
                 }
             }}
@@ -165,10 +168,9 @@ export default function App() {
       case 'CUSTOMER_REGISTER':
         return <CustomerRegister 
             onRegister={async (customer) => {
-                localStorage.setItem('zapmenu_customer', JSON.stringify(customer));
+                localStorage.setItem('zapmenu_current_user', JSON.stringify(customer));
                 const restaurants = await db.getRestaurants();
                 if (restaurants.length > 0) {
-                    setViewState({ view: 'CUSTOMER_MENU', slug: restaurants[0].slug });
                     window.location.hash = `menu/${restaurants[0].slug}`;
                 }
             }}
@@ -177,7 +179,10 @@ export default function App() {
       case 'MANAGER_DASHBOARD':
         return <ManagerDashboard restaurantId={viewState.restaurantId} onLogout={() => setViewState({ view: 'LANDING' })} />;
       case 'CUSTOMER_MENU':
-        return <CustomerMenu slug={viewState.slug} onBack={() => setViewState({ view: 'LANDING' })} />;
+        return <CustomerMenu slug={viewState.slug} onBack={() => {
+            window.location.hash = '';
+            setViewState({ view: 'LANDING' });
+        }} />;
       default:
         return <LandingPage onRoleSelect={handleRoleSelect} />;
     }
