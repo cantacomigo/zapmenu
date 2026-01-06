@@ -225,12 +225,12 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
             <div className="flex gap-2 overflow-x-auto hide-scroll pb-2 -mx-4 px-4">
                 <button 
                     onClick={() => setActiveCategory('')} 
-                    className={`px-5 py-2.5 rounded-full text-sm font-bold whitespace-nowrap transition-all ${activeCategory === '' ? 'bg-slate-900 text-white shadow-lg' : 'bg-white text-slate-600 border border-slate-200'}`}
+                    className={`px-3.5 py-1.5 rounded-full text-[11px] font-bold whitespace-nowrap transition-all ${activeCategory === '' ? 'bg-slate-900 text-white shadow-lg' : 'bg-white text-slate-600 border border-slate-200'}`}
                 >
                     Todas
                 </button>
                 {categories.map(cat => (
-                    <button key={cat.id} onClick={() => setActiveCategory(cat.id)} className={`px-5 py-2.5 rounded-full text-sm font-bold whitespace-nowrap transition-all ${activeCategory === cat.id ? 'bg-slate-900 text-white shadow-lg' : 'bg-white text-slate-600 border border-slate-200'}`}>{cat.name}</button>
+                    <button key={cat.id} onClick={() => setActiveCategory(cat.id)} className={`px-3.5 py-1.5 rounded-full text-[11px] font-bold whitespace-nowrap transition-all ${activeCategory === cat.id ? 'bg-slate-900 text-white shadow-lg' : 'bg-white text-slate-600 border border-slate-200'}`}>{cat.name}</button>
                 ))}
             </div>
         </div>
