@@ -190,5 +190,26 @@ export const db = {
           address: c.address,
           createdAt: new Date(c.created_at).getTime()
       }));
-  }
+  },
+
+  getAdmins: async (): Promise<AdminUser[]> => {
+    const { data } = await supabase.from('admins').select('*').order('created_at');
+    return (data || []).map(a => ({
+        id: a.id,
+        name: a.name,
+        email: a.email,
+        role: a.role,
+        createdAt: new Date(a.created_at).getTime()
+    }));
+  },
+
+  addAdmin: async (admin: Partial<AdminUser>) => {
+    return await supabase.from('admins').insert({
+        name: admin.name,
+        email: admin.email,
+        role: admin.role || 'support'
+    });
+  },
+
+  deleteAdmin: async (id: string) => supabase.from('admins').delete().eq('id', id)
 };
