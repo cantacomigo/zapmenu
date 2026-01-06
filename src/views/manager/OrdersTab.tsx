@@ -2,7 +2,8 @@ import React, { useState, useMemo } from 'react';
 import { db } from '../../services/db';
 import { Order } from '../../types';
 import { Card, Badge, Button, Input } from '../../components/ui';
-import { MessageSquare, CheckCircle2, Truck, XCircle, CreditCard, Search, Filter, CheckCheck } from 'lucide-react';
+import { OrderReceipt } from '../../components/OrderReceipt';
+import { MessageSquare, CheckCircle2, Truck, XCircle, CreditCard, Search, Filter, CheckCheck, Printer } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 interface OrdersTabProps {
@@ -16,51 +17,46 @@ type StatusFilter = 'all' | Order['status'];
 export const OrdersTab: React.FC<OrdersTabProps> = ({ orders, onRefresh, restaurantName }) => {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [printingOrder, setPrintingOrder] = useState<Order | null>(null);
 
   const getWhatsAppMessage = (order: Order, type: Order['status'] | 'confirm_receipt') => {
     const orderId = order.id.slice(-6).toUpperCase();
-    
-    // Geração de emojis via CodePoints (A forma mais segura em JS)
-    const e = {
-        wave: String.fromCodePoint(0x1F44B),
-        check: String.fromCodePoint(0x2705),
-        pin: String.fromCodePoint(0x1F4CC),
-        rocket: String.fromCodePoint(0x1F680),
-        clock: String.fromCodePoint(0x23F3),
-        motor: String.fromCodePoint(0x1F6F5),
-        pray: String.fromCodePoint(0x1F64F),
-        money: String.fromCodePoint(0x1F4B0),
-        fire: String.fromCodePoint(0x1F525),
-        wind: String.fromCodePoint(0x1F4A8),
-        party: String.fromCodePoint(0x1F389),
-        yum: String.fromCodePoint(0x1F60B),
-        cancel: String.fromCodePoint(0x274C)
-    };
+    const e_wave = "\uD83D\uDC4B";
+    const e_check = "\u2705";
+    const e_pin = "\uD83D\uDCCC";
+    const e_rocket = "\uD83D\uDE80";
+    const e_clock = "\u23F3";
+    const e_motor = "\uD83D\uDEF5";
+    const e_pray = "\uD83D\uDE4F";
+    const e_money = "\uD83D\uDCB0";
+    const e_fire = "\uD83D\uDD25";
+    const e_wind = "\uD83D\uDCA8";
+    const e_party = "\uD83C\uDF89";
+    const e_yum = "\uD83D\uDE0B";
+    const e_cancel = "\u274C";
 
-    const greeting = `${e.wave} Olá *${order.customerName}*!`;
-    const footer = `\n\n${e.pray} Agradecemos a preferência!\n*${restaurantName || 'ZapMenu'}*`;
+    const greeting = `${e_wave} Olá *${order.customerName}*!`;
+    const footer = `\n\n${e_pray} Agradecemos a preferência!\n*${restaurantName || 'ZapMenu'}*`;
 
     if (type === 'confirm_receipt') {
-      let msg = `${greeting}\n\n${e.check} *Pedido Recebido!* Confirmamos que recebemos seu pedido *#${orderId}* e já vamos iniciar o preparo.`;
-      
+      let msg = `${greeting}\n\n${e_check} *Pedido Recebido!* Confirmamos que recebemos seu pedido *#${orderId}* e já vamos iniciar o preparo.`;
       if (order.paymentMethod === 'pix') {
-        msg += `\n\n${e.pin} *Atenção:* Vimos que você optou pelo pagamento via *Pix*. Por favor, *envie o comprovante aqui nesta conversa* para que possamos validar e liberar seu pedido mais rápido! ${e.rocket}`;
+        msg += `\n\n${e_pin} *Atenção:* Vimos que você optou pelo pagamento via *Pix*. Por favor, *envie o comprovante aqui nesta conversa* para que possamos validar e liberar seu pedido mais rápido! ${e_rocket}`;
       } else {
-        msg += `\n\n${e.clock} Fique atento, te avisaremos por aqui assim que ele sair para entrega! ${e.motor}`;
+        msg += `\n\n${e_clock} Fique atento, te avisaremos por aqui assim que ele sair para entrega! ${e_motor}`;
       }
-      
       return msg + footer;
     }
 
     switch (type) {
       case 'paid':
-        return `${greeting}\n${e.money} *Pagamento Confirmado!* Recebemos seu pagamento do pedido *#${orderId}*. Seu pedido já está sendo preparado com muito carinho! ${e.fire}${footer}`;
+        return `${greeting}\n${e_money} *Pagamento Confirmado!* Recebemos seu pagamento do pedido *#${orderId}*. Seu pedido já está sendo preparado com muito carinho! ${e_fire}${footer}`;
       case 'shipped':
-        return `${greeting}\n${e.motor} *Pedido em Caminho!* Seu pedido *#${orderId}* acabou de sair para entrega. Prepare a mesa, logo chegamos aí! ${e.wind}${footer}`;
+        return `${greeting}\n${e_motor} *Pedido em Caminho!* Seu pedido *#${orderId}* acabou de sair para entrega. Prepare a mesa, logo chegamos aí! ${e_wind}${footer}`;
       case 'completed':
-        return `${greeting}\n${e.party} *Pedido Finalizado!* Seu pedido *#${orderId}* foi entregue com sucesso. Bom apetite e aproveite sua refeição! ${e.yum}${e.yum}${footer}`;
+        return `${greeting}\n${e_party} *Pedido Finalizado!* Seu pedido *#${orderId}* foi entregue com sucesso. Bom apetite e aproveite sua refeição! ${e_yum}${e_yum}${footer}`;
       case 'cancelled':
-        return `${greeting}\n${e.cancel} *Pedido Cancelado.* Lamentamos informar, mas seu pedido *#${orderId}* foi cancelado. Se tiver qualquer dúvida, estamos à disposição por aqui.${footer}`;
+        return `${greeting}\n${e_cancel} *Pedido Cancelado.* Lamentamos informar, mas seu pedido *#${orderId}* foi cancelado. Se tiver qualquer dúvida, estamos à disposição por aqui.${footer}`;
       default:
         return '';
     }
@@ -68,9 +64,16 @@ export const OrdersTab: React.FC<OrdersTabProps> = ({ orders, onRefresh, restaur
 
   const openWhatsApp = (phone: string, message: string) => {
     const cleanPhone = phone.replace(/\D/g, '');
-    // Usando a URL da API oficial que é mais estável para codificação
     const url = `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(message)}`;
     window.open(url, '_blank');
+  };
+
+  const handlePrint = (order: Order) => {
+    setPrintingOrder(order);
+    setTimeout(() => {
+        window.print();
+        setPrintingOrder(null);
+    }, 100);
   };
 
   const handleSendConfirmation = (order: Order) => {
@@ -83,12 +86,8 @@ export const OrdersTab: React.FC<OrdersTabProps> = ({ orders, onRefresh, restaur
     try {
       await db.updateOrder({ ...order, status });
       toast.success(`Status atualizado: ${status}`);
-      
       const message = getWhatsAppMessage(order, status);
-      if (message) {
-        openWhatsApp(order.customerPhone, message);
-      }
-      
+      if (message) openWhatsApp(order.customerPhone, message);
       onRefresh();
     } catch (error) {
       toast.error("Erro ao atualizar status");
@@ -118,6 +117,11 @@ export const OrdersTab: React.FC<OrdersTabProps> = ({ orders, onRefresh, restaur
 
   return (
     <div className="space-y-6">
+      {/* Hidden container for printing */}
+      {printingOrder && (
+          <OrderReceipt order={printingOrder} restaurantName={restaurantName || 'ZapMenu'} />
+      )}
+
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <h2 className="text-2xl font-bold text-slate-900">Gestão de Pedidos</h2>
         <Button variant="secondary" size="sm" onClick={onRefresh}>Atualizar Pedidos</Button>
@@ -187,19 +191,22 @@ export const OrdersTab: React.FC<OrdersTabProps> = ({ orders, onRefresh, restaur
                 </div>
 
                 <div className="flex flex-wrap gap-2 items-center justify-end">
+                  <Button size="sm" variant="secondary" onClick={() => handlePrint(order)} className="bg-slate-100 hover:bg-slate-200 text-slate-700">
+                      <Printer className="w-4 h-4 mr-1.5" /> Imprimir
+                  </Button>
                   {order.status === 'pending' && (
                       <Button size="sm" onClick={() => handleSendConfirmation(order)} className="bg-blue-600">
-                          <CheckCheck className="w-4 h-4 mr-1.5" /> Confirmar Recebimento
+                          <CheckCheck className="w-4 h-4 mr-1.5" /> Confirmar
                       </Button>
                   )}
                   {order.status === 'pending' && (
                       <Button size="sm" onClick={() => handleUpdateStatus(order, 'paid')} className="bg-emerald-600">
-                          <CreditCard className="w-4 h-4 mr-1.5" /> Confirmar Pagto
+                          <CreditCard className="w-4 h-4 mr-1.5" /> Pagar
                       </Button>
                   )}
                   {['pending', 'paid'].includes(order.status) && (
                       <Button size="sm" onClick={() => handleUpdateStatus(order, 'shipped')} className="bg-purple-600">
-                          <Truck className="w-4 h-4 mr-1.5" /> Enviar Entrega
+                          <Truck className="w-4 h-4 mr-1.5" /> Enviar
                       </Button>
                   )}
                   {order.status === 'shipped' && (
@@ -218,7 +225,6 @@ export const OrdersTab: React.FC<OrdersTabProps> = ({ orders, onRefresh, restaur
                       window.open(`https://api.whatsapp.com/send?phone=${phone}`, '_blank');
                     }}
                     className="p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all"
-                    title="Conversar no WhatsApp"
                   >
                     <MessageSquare size={18} />
                   </button>
@@ -227,14 +233,6 @@ export const OrdersTab: React.FC<OrdersTabProps> = ({ orders, onRefresh, restaur
             </Card>
           );
         })}
-        {filteredOrders.length === 0 && (
-          <div className="text-center py-20 bg-white rounded-3xl border border-dashed border-slate-200">
-            <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-300">
-              <Filter size={32} />
-            </div>
-            <p className="text-slate-400 font-medium">Nenhum pedido encontrado com os filtros atuais.</p>
-          </div>
-        )}
       </div>
     </div>
   );
