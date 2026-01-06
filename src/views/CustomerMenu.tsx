@@ -45,6 +45,37 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
       scheduledTime: '',
   });
 
+  // Função para criar manifesto dinâmico com a logo do restaurante
+  const updateManifest = (res: Restaurant) => {
+    const myManifest = {
+      "name": res.name,
+      "short_name": res.name,
+      "description": `Cardápio Digital - ${res.name}`,
+      "start_url": window.location.href,
+      "display": "standalone",
+      "background_color": "#ffffff",
+      "theme_color": "#059669",
+      "icons": [
+        {
+          "src": res.logo,
+          "sizes": "192x192",
+          "type": "image/png",
+          "purpose": "any maskable"
+        },
+        {
+          "src": res.logo,
+          "sizes": "512x512",
+          "type": "image/png",
+          "purpose": "any maskable"
+        }
+      ]
+    };
+    const stringManifest = JSON.stringify(myManifest);
+    const blob = new Blob([stringManifest], {type: 'application/json'});
+    const manifestURL = URL.createObjectURL(blob);
+    document.querySelector('#manifest-link')?.setAttribute('href', manifestURL);
+  };
+
   const isStoreOpen = useMemo(() => {
     if (!restaurant?.openingTime || !restaurant?.closingTime) return true;
     const now = new Date();
@@ -78,6 +109,7 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
             const r = await db.getRestaurantBySlug(slug);
             if (r) {
               setRestaurant(r);
+              updateManifest(r); // Atualiza o manifesto com a logo do restaurante
               const [cats, menuItems, promos, gives] = await Promise.all([
                 db.getCategories(r.id),
                 db.getMenuItems(r.id),
@@ -97,7 +129,6 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
     };
     fetchMenu();
     
-    // PWA Logic safer
     const handleBeforeInstallPrompt = (e: any) => {
         e.preventDefault();
         setDeferredPrompt(e);
@@ -105,7 +136,6 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
     };
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
 
-    // Detect IOS
     const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
     setIsIOS(isIOSDevice);
     if (isIOSDevice && !window.matchMedia('(display-mode: standalone)').matches) {
@@ -321,7 +351,9 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
       {showInstallBanner && (
           <div className="fixed top-20 left-4 right-4 z-[100] bg-slate-900 text-white p-4 rounded-3xl shadow-2xl animate-in slide-in-from-top duration-700 flex items-center justify-between border border-white/10 backdrop-blur-md">
               <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-emerald-600 rounded-xl flex items-center justify-center shadow-lg"><Smartphone size={20} /></div>
+                  <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-lg overflow-hidden shrink-0">
+                      <img src={restaurant?.logo} className="w-full h-full object-cover" alt="Logo" />
+                  </div>
                   <div className="min-w-0 flex-1">
                       <p className="text-xs font-black uppercase tracking-widest leading-none mb-1">App {restaurant?.name || 'ZapMenu'}</p>
                       <p className="text-[10px] text-slate-400 font-medium truncate">
