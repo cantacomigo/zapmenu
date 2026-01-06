@@ -115,7 +115,7 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
   };
 
   const addToCart = (item: MenuItem) => {
-    if (!item.available) return;
+    if (item.available === false) return;
     
     // Check Stock
     const currentInCart = cart.find(i => i.id === item.id)?.quantity || 0;
@@ -145,7 +145,6 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
       if (!restaurant) return;
       
       const order: Order = {
-          // simple ID generation for frontend demo
           id: `ord_${Date.now()}`,
           restaurantId: restaurant.id,
           customerName: customerInfo.name,
@@ -355,35 +354,40 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
 
         {/* Menu Items */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {filteredItems.map(item => (
-                <div key={item.id} className={`bg-white p-4 rounded-3xl shadow-sm border border-slate-100 flex gap-4 transition-all hover:shadow-md ${(!item.available || (item.stock !== undefined && item.stock <= 0)) && 'opacity-60 grayscale'}`}>
-                    <div className="w-28 h-28 rounded-2xl bg-slate-100 overflow-hidden shrink-0 relative">
-                         <img src={item.image} className="w-full h-full object-cover" />
-                         {/* Stock Status Badge */}
-                         {item.stock !== undefined && item.stock !== null && (
-                             <div className={`absolute top-0 right-0 px-2 py-1 text-[10px] font-bold rounded-bl-xl ${item.stock === 0 ? 'bg-red-500 text-white' : 'bg-slate-800 text-white'}`}>
-                                 {item.stock === 0 ? 'ESGOTADO' : `${item.stock} un.`}
-                             </div>
-                         )}
-                    </div>
-                    <div className="flex flex-col flex-1">
-                        <div className="flex-1">
-                            <h3 className="font-bold text-slate-800 text-lg leading-tight">{item.name}</h3>
-                            <p className="text-sm text-slate-500 mt-1 line-clamp-2 leading-relaxed">{item.description}</p>
+            {filteredItems.map(item => {
+                const isOutOfStock = item.stock !== undefined && item.stock !== null && item.stock <= 0;
+                const isUnavailable = item.available === false;
+                const showDisabled = isUnavailable || isOutOfStock;
+
+                return (
+                    <div key={item.id} className={`bg-white p-4 rounded-3xl shadow-sm border border-slate-100 flex gap-4 transition-all hover:shadow-md ${showDisabled ? 'opacity-60 grayscale' : ''}`}>
+                        <div className="w-28 h-28 rounded-2xl bg-slate-100 overflow-hidden shrink-0 relative">
+                             <img src={item.image} className="w-full h-full object-cover" />
+                             {item.stock !== undefined && item.stock !== null && (
+                                 <div className={`absolute top-0 right-0 px-2 py-1 text-[10px] font-bold rounded-bl-xl ${item.stock === 0 ? 'bg-red-500 text-white' : 'bg-slate-800 text-white'}`}>
+                                     {item.stock === 0 ? 'ESGOTADO' : `${item.stock} un.`}
+                                 </div>
+                             )}
                         </div>
-                        <div className="flex justify-between items-end mt-2">
-                            <span className="font-bold text-lg text-emerald-700">R$ {Number(item.price).toFixed(2)}</span>
-                            <button 
-                                onClick={() => addToCart(item)} 
-                                disabled={!item.available || (item.stock !== undefined && item.stock !== null && item.stock <= 0)} 
-                                className="bg-slate-50 text-slate-600 w-10 h-10 rounded-xl flex items-center justify-center hover:bg-emerald-600 hover:text-white hover:shadow-lg hover:shadow-emerald-500/30 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                                <Plus className="w-5 h-5" />
-                            </button>
+                        <div className="flex flex-col flex-1">
+                            <div className="flex-1">
+                                <h3 className="font-bold text-slate-800 text-lg leading-tight">{item.name}</h3>
+                                <p className="text-sm text-slate-500 mt-1 line-clamp-2 leading-relaxed">{item.description}</p>
+                            </div>
+                            <div className="flex justify-between items-end mt-2">
+                                <span className="font-bold text-lg text-emerald-700">R$ {Number(item.price).toFixed(2)}</span>
+                                <button 
+                                    onClick={() => addToCart(item)} 
+                                    disabled={showDisabled} 
+                                    className="bg-slate-50 text-slate-600 w-10 h-10 rounded-xl flex items-center justify-center hover:bg-emerald-600 hover:text-white hover:shadow-lg hover:shadow-emerald-500/30 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    <Plus className="w-5 h-5" />
+                                </button>
+                            </div>
                         </div>
                     </div>
-                </div>
-            ))}
+                );
+            })}
         </div>
       </div>
 
@@ -400,7 +404,7 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
           </div>
       )}
 
-      {/* Detail Modals (unchanged) */}
+      {/* Detail Modals */}
       <Modal isOpen={!!selectedPromo} onClose={() => setSelectedPromo(null)} title="Detalhes da Oferta">
         {selectedPromo && (
             <div className="space-y-6">
