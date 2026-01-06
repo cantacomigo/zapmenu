@@ -1,8 +1,11 @@
 export type ViewState = 
   | { view: 'LANDING' }
-  | { view: 'SUPER_ADMIN' }
+  | { view: 'ADMIN_LOGIN' }
   | { view: 'MANAGER_LOGIN' }
+  | { view: 'SUPER_ADMIN_DASHBOARD' }
   | { view: 'MANAGER_DASHBOARD', restaurantId: string }
+  | { view: 'CUSTOMER_LOGIN' }
+  | { view: 'CUSTOMER_REGISTER' }
   | { view: 'CUSTOMER_MENU', slug: string };
 
 export interface Restaurant {

@@ -1,6 +1,5 @@
-/* 
-  ZapMenu v2.0.2 - Gastronomic Red Mode (Production Ready)
-*/
+"use client";
+
 import React, { useState, useEffect } from 'react';
 import { ViewState } from './types';
 import { AdminDashboard } from './views/AdminDashboard';
@@ -104,7 +103,7 @@ export default function App() {
   }, []);
 
   const handleRoleSelect = (role: 'admin' | 'manager' | 'customer') => {
-      if (role === 'admin') setViewState({ view: 'SUPER_ADMIN' });
+      if (role === 'admin') setViewState({ view: 'ADMIN_LOGIN' });
       else if (role === 'manager') setViewState({ view: 'MANAGER_LOGIN' });
       else if (role === 'customer') {
           const saved = localStorage.getItem('zapmenu_customer');
@@ -116,9 +115,12 @@ export default function App() {
     switch (viewState.view) {
       case 'LANDING':
         return <LandingPage onRoleSelect={handleRoleSelect} />;
-      case 'SUPER_ADMIN':
-        return <AdminLogin onLogin={() => setViewState({ view: 'SUPER_ADMIN_DASHBOARD' })} onBack={() => setViewState({ view: 'LANDING' })} />;
-      case 'SUPER_ADMIN_DASHBOARD' as any: // Quick hack for new state
+      case 'ADMIN_LOGIN':
+        return <AdminLogin 
+            onLogin={() => setViewState({ view: 'SUPER_ADMIN_DASHBOARD' })} 
+            onBack={() => setViewState({ view: 'LANDING' })} 
+        />;
+      case 'SUPER_ADMIN_DASHBOARD':
         return <AdminDashboard 
             onNavigate={(slug) => {
                 setViewState({ view: 'CUSTOMER_MENU', slug });
@@ -128,7 +130,10 @@ export default function App() {
             onBack={() => setViewState({ view: 'LANDING' })}
         />;
       case 'MANAGER_LOGIN':
-        return <ManagerLogin onLogin={(staff) => setViewState({ view: 'MANAGER_DASHBOARD', restaurantId: staff.restaurantId })} onBack={() => setViewState({ view: 'LANDING' })} />;
+        return <ManagerLogin 
+            onLogin={(staff) => setViewState({ view: 'MANAGER_DASHBOARD', restaurantId: staff.restaurantId })} 
+            onBack={() => setViewState({ view: 'LANDING' })} 
+        />;
       case 'CUSTOMER_LOGIN':
         return <CustomerLogin 
             onLogin={async (customer) => {
