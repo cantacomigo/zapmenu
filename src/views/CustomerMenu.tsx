@@ -26,6 +26,15 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
   });
 
   useEffect(() => {
+    // Load persisted customer data
+    const saved = localStorage.getItem('zapmenu_customer');
+    if (saved) {
+        try {
+            const data = JSON.parse(saved);
+            setCustomerInfo(prev => ({ ...prev, ...data }));
+        } catch (e) {}
+    }
+
     const fetchMenu = async () => {
         setIsLoading(true);
         try {
@@ -63,6 +72,13 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
           toast.error("Por favor, preencha todos os dados.");
           return;
       }
+
+      // Persist customer data
+      localStorage.setItem('zapmenu_customer', JSON.stringify({
+          name: customerInfo.name,
+          phone: customerInfo.phone,
+          address: customerInfo.address
+      }));
       
       const orderId = `ORD-${Math.random().toString(36).substr(2, 4).toUpperCase()}`;
       const paymentLabels: any = { pix: 'PIX', credit: 'Cartão de Crédito', debit: 'Cartão de Débito', cash: 'Dinheiro' };
@@ -91,8 +107,20 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
       message += `✅ *TOTAL: R$ ${cartTotal.toFixed(2)}*\n`;
       
       const whatsappUrl = `https://wa.me/${restaurant.phone}?text=${encodeURIComponent(message)}`;
-      window.open(whatsappUrl, '_blank');
       
+      // Salvar no DB para aparecer no manager
+      await db.addOrder({
+          restaurantId: restaurant.id,
+          customerName: customerInfo.name,
+          customerPhone: customerInfo.phone,
+          customerAddress: customerInfo.address,
+          paymentMethod: customerInfo.payment as any,
+          items: cart,
+          total: cartTotal,
+          status: 'pending'
+      } as any);
+
+      window.open(whatsappUrl, '_blank');
       setCart([]);
       setIsCheckoutOpen(false);
       toast.success("Pedido enviado!");
@@ -139,7 +167,6 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
                 <Search className="absolute left-3.5 top-2.5 w-4 h-4 text-slate-400" />
                 <input type="text" placeholder="Buscar no cardápio..." className="w-full pl-10 pr-4 py-2.5 rounded-xl border-none bg-white shadow-sm font-medium text-sm" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
             </div>
-            {/* CATEGORIES GRID */}
             <div className="flex flex-wrap gap-1.5">
                 {categories.map(cat => (
                     <button 

@@ -1,6 +1,6 @@
 import { supabase } from '../integrations/supabase/client';
 import { AdminUser, Category, CustomerUser, Giveaway, MenuItem, Order, Promotion, Restaurant, RestaurantStaff } from "../types";
-import { SEED_ADMINS, SEED_CATEGORIES, SEED_MENU_ITEMS, SEED_RESTAURANTS } from "../constants";
+import { SEED_ADMINS, SEED_CATEGORIES, SEED_MENU_ITEMS, SEED_RESTAURANTS, SEED_ORDERS } from "../constants";
 
 const fromDbRestaurant = (r: any): Restaurant => ({
     id: r.id,
@@ -30,7 +30,7 @@ export const db = {
     await supabase.from('admins').upsert(SEED_ADMINS);
     await supabase.from('categories').upsert(SEED_CATEGORIES.map(c => ({ id: c.id, restaurant_id: c.restaurant_id, name: c.name })));
     
-    const items = SEED_MENU_ITEMS.map(i => ({
+    await supabase.from('menu_items').upsert(SEED_MENU_ITEMS.map(i => ({
         restaurant_id: i.restaurant_id,
         category_id: i.category_id,
         name: i.name,
@@ -39,8 +39,9 @@ export const db = {
         image: i.image,
         available: i.available,
         stock: i.stock
-    }));
-    await supabase.from('menu_items').upsert(items);
+    })));
+
+    await supabase.from('orders').insert(SEED_ORDERS);
     return true;
   },
 
@@ -142,7 +143,7 @@ export const db = {
 
   getPromotions: async (restaurantId: string): Promise<Promotion[]> => {
     const { data } = await supabase.from('promotions').select('*').eq('restaurant_id', restaurantId);
-    return (data || []).map(p => ({ ...p, restaurantId: p.restaurant_id, discountedPrice: Number(p.discounted_price), originalPrice: Number(p.original_price), isActive: p.is_active }));
+    return (data || []).map(p => ({ ...p, restaurantId: p.restaurant_id, discountedPrice: Number(p.discount_price), originalPrice: Number(p.original_price), isActive: p.is_active }));
   },
 
   savePromotion: async (promo: Promotion) => {
@@ -151,7 +152,7 @@ export const db = {
         title: promo.title,
         description: promo.description,
         original_price: promo.originalPrice,
-        discounted_price: promo.discountedPrice,
+        discount_price: promo.discountedPrice,
         image: promo.image,
         is_active: promo.isActive
     };
@@ -180,17 +181,14 @@ export const db = {
     return await supabase.from('giveaways').insert(payload);
   },
 
-  registerCustomer: async (c: CustomerUser) => {
-      const { data: existing } = await supabase.from('customers').select('id').eq('phone', c.phone).single();
-      if (existing) return { success: false, message: 'Este telefone já está cadastrado.' };
-      const { error } = await supabase.from('customers').insert({ name: c.name, phone: c.phone, password: c.password, address: c.address });
-      if (error) return { success: false, message: error.message };
-      return { success: true };
-  },
-
-  loginCustomer: async (phone: string, password: string) => {
-      const { data } = await supabase.from('customers').select('*').eq('phone', phone).eq('password', password).single();
-      if (!data) return null;
-      return { id: data.id, name: data.name, phone: data.phone, address: data.address, createdAt: new Date(data.created_at).getTime() } as CustomerUser;
+  getCustomers: async (): Promise<CustomerUser[]> => {
+      const { data } = await supabase.from('customers').select('*').order('name');
+      return (data || []).map(c => ({
+          id: c.id,
+          name: c.name,
+          phone: c.phone,
+          address: c.address,
+          createdAt: new Date(c.created_at).getTime()
+      }));
   }
 };

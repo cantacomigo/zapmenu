@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { db } from '../../services/db';
-import { Order } from '../../types';
+import { Order, CustomerUser } from '../../types';
 import { Card, Input } from '../../components/ui';
 import { Users, Search, Phone, MapPin } from 'lucide-react';
 
@@ -11,12 +11,26 @@ interface CustomersTabProps {
 export const CustomersTab: React.FC<CustomersTabProps> = ({ restaurantId }) => {
   const [customers, setCustomers] = useState<{name: string, phone: string, address: string, orderCount: number}[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetch = async () => {
+        setIsLoading(true);
         const orders = await db.getOrders(restaurantId);
+        const registered = await db.getCustomers();
         const customerMap = new Map<string, any>();
         
+        // Add from registered customers
+        registered.forEach(c => {
+            customerMap.set(c.phone, {
+                name: c.name,
+                phone: c.phone,
+                address: c.address || 'Não informado',
+                orderCount: 0
+            });
+        });
+
+        // Add/Update from orders
         orders.forEach(order => {
             const key = order.customerPhone;
             if (!customerMap.has(key)) {
@@ -33,6 +47,7 @@ export const CustomersTab: React.FC<CustomersTabProps> = ({ restaurantId }) => {
         });
         
         setCustomers(Array.from(customerMap.values()));
+        setIsLoading(false);
     };
     fetch();
   }, [restaurantId]);
@@ -45,11 +60,14 @@ export const CustomersTab: React.FC<CustomersTabProps> = ({ restaurantId }) => {
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <h2 className="text-2xl font-bold text-slate-900">Meus Clientes</h2>
+        <div>
+            <h2 className="text-xl font-black text-slate-900 tracking-tight">Base de Clientes</h2>
+            <p className="text-xs text-slate-500 mt-0.5">Histórico de pessoas que já pediram na sua loja.</p>
+        </div>
         <div className="relative w-full md:w-72">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <Search className="absolute left-3.5 top-2.5 w-4 h-4 text-slate-400" />
             <input 
-                className="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500/20"
+                className="w-full pl-10 pr-4 py-2 bg-white border border-slate-100 rounded-xl outline-none focus:ring-2 focus:ring-red-500/10 text-sm font-medium"
                 placeholder="Buscar por nome ou fone..."
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
@@ -57,36 +75,40 @@ export const CustomersTab: React.FC<CustomersTabProps> = ({ restaurantId }) => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filtered.map((customer, idx) => (
-            <Card key={idx} className="p-5 hover:shadow-md transition-shadow">
-                <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center text-slate-500 shrink-0">
-                        <Users className="w-6 h-6" />
+      {isLoading ? (
+          <div className="py-20 text-center text-slate-400 font-bold text-xs uppercase tracking-widest">Carregando dados...</div>
+      ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filtered.map((customer, idx) => (
+                <Card key={idx} className="p-4 hover:shadow-md transition-shadow group border-slate-100">
+                    <div className="flex items-start gap-3">
+                        <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400 shrink-0 group-hover:bg-red-50 group-hover:text-red-500 transition-colors">
+                            <Users className="w-5 h-5" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <h3 className="font-bold text-sm text-slate-900 truncate">{customer.name}</h3>
+                            <div className="flex items-center gap-1.5 text-[11px] text-slate-500 mt-0.5">
+                                <Phone className="w-3 h-3" /> {customer.phone}
+                            </div>
+                            <div className="flex items-start gap-1.5 text-[11px] text-slate-500 mt-1">
+                                <MapPin className="w-3 h-3 mt-0.5 shrink-0" /> 
+                                <span className="truncate">{customer.address}</span>
+                            </div>
+                            <div className="mt-4 pt-3 border-t border-slate-50 flex items-center justify-between">
+                                <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Total Pedidos</span>
+                                <span className="bg-red-50 text-red-600 px-2 py-0.5 rounded-full text-[10px] font-black">{customer.orderCount}</span>
+                            </div>
+                        </div>
                     </div>
-                    <div className="flex-1 min-w-0">
-                        <h3 className="font-bold text-slate-900 truncate">{customer.name}</h3>
-                        <div className="flex items-center gap-2 text-sm text-slate-500 mt-1">
-                            <Phone className="w-3 h-3" /> {customer.phone}
-                        </div>
-                        <div className="flex items-start gap-2 text-sm text-slate-500 mt-1">
-                            <MapPin className="w-3 h-3 mt-0.5 shrink-0" /> 
-                            <span className="truncate">{customer.address}</span>
-                        </div>
-                        <div className="mt-4 flex items-center justify-between">
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Total de Pedidos</span>
-                            <span className="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full text-xs font-bold">{customer.orderCount}</span>
-                        </div>
-                    </div>
+                </Card>
+            ))}
+            {filtered.length === 0 && (
+                <div className="col-span-full py-20 text-center bg-slate-50 rounded-3xl border-2 border-dashed border-slate-200">
+                    <p className="text-slate-400 font-medium text-sm">Nenhum cliente encontrado.</p>
                 </div>
-            </Card>
-        ))}
-        {filtered.length === 0 && (
-            <div className="col-span-full py-20 text-center bg-slate-50 rounded-3xl border-2 border-dashed border-slate-200">
-                <p className="text-slate-400 font-medium">Nenhum cliente encontrado.</p>
-            </div>
-        )}
-      </div>
+            )}
+          </div>
+      )}
     </div>
   );
 };
