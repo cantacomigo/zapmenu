@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { db } from '../../services/db';
 import { Promotion, Giveaway, Order } from '../../types';
-import { Button, Card, Input, Modal, ImageUpload } from '../../components/ui';
+import { Button, Card, Input, Modal } from '../../components/ui';
+import { ImageUpload } from '../../components/ImageUpload';
 import { Megaphone, Gift, Plus, Trash2, Calendar, Trophy, User } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -73,7 +74,6 @@ export const MarketingTab: React.FC<MarketingTabProps> = ({ restaurantId }) => {
           return;
       }
       
-      // Filtra clientes únicos baseados no telefone com tipagem explícita no Map
       const uniqueCustomers: { name: string; phone: string }[] = Array.from(
         new Map<string, { name: string; phone: string }>(
           orders.map(o => [o.customerPhone, { name: o.customerName, phone: o.customerPhone }])
@@ -198,7 +198,7 @@ export const MarketingTab: React.FC<MarketingTabProps> = ({ restaurantId }) => {
                               
                               {give.winnerName ? (
                                   <div className="bg-emerald-50 p-4 rounded-2xl border border-emerald-100 mb-4">
-                                      <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-1 flex items-center gap-1.5"><Trophy size={12} /> Ganhador Oficial</p>
+                                      <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-1 flex items-center gap-1.5"><Trophy size={12} /> Ganhador</p>
                                       <p className="text-lg font-black text-slate-900">{give.winnerName}</p>
                                       <p className="text-xs text-slate-500">{give.winnerPhone}</p>
                                   </div>

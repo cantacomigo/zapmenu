@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { db } from '@/src/services/db';
 import { Category, MenuItem, Order, Restaurant } from '@/src/types';
-import { Button, Card, Input, Badge, ImageUpload } from '@/src/components/ui';
+import { Button, Card, Input, Badge } from '@/src/components/ui';
+import { ImageUpload } from '@/src/components/ImageUpload';
 import { MenuTab } from '@/src/views/manager/MenuTab';
 import { OrdersTab } from '@/src/views/manager/OrdersTab';
 import { CustomersTab } from '@/src/views/manager/CustomersTab';
