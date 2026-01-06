@@ -19,8 +19,8 @@ export const OrdersTab: React.FC<OrdersTabProps> = ({ orders, onRefresh, restaur
 
   const getWhatsAppMessage = (order: Order, type: Order['status'] | 'confirm_receipt') => {
     const orderId = order.id.slice(-6).toUpperCase();
-    const greeting = `Olá *${order.customerName}*!`;
-    const footer = `\n\nAgradecemos a preferência!\n*${restaurantName || 'ZapMenu'}*`;
+    const greeting = `👋 Olá *${order.customerName}*!`;
+    const footer = `\n\n🙏 Agradecemos a preferência!\n*${restaurantName || 'ZapMenu'}*`;
 
     if (type === 'confirm_receipt') {
       let msg = `${greeting}\n\n✅ *Pedido Recebido!* Confirmamos que recebemos seu pedido *#${orderId}* e já vamos iniciar o preparo.`;
@@ -28,7 +28,7 @@ export const OrdersTab: React.FC<OrdersTabProps> = ({ orders, onRefresh, restaur
       if (order.paymentMethod === 'pix') {
         msg += `\n\n📌 *Atenção:* Vimos que você optou pelo pagamento via *Pix*. Por favor, *envie o comprovante aqui nesta conversa* para que possamos validar e liberar seu pedido mais rápido! 🚀`;
       } else {
-        msg += `\n\nFique atento, te avisaremos por aqui assim que ele sair para entrega! 🛵`;
+        msg += `\n\n⏳ Fique atento, te avisaremos por aqui assim que ele sair para entrega! 🛵`;
       }
       
       return msg + footer;
@@ -36,13 +36,13 @@ export const OrdersTab: React.FC<OrdersTabProps> = ({ orders, onRefresh, restaur
 
     switch (type) {
       case 'paid':
-        return `${greeting}\n💰 *Pagamento Confirmado!* Recebemos seu pagamento do pedido *#${orderId}*. Seu pedido já está sendo preparado!${footer}`;
+        return `${greeting}\n💰 *Pagamento Confirmado!* Recebemos seu pagamento do pedido *#${orderId}*. Seu pedido já está sendo preparado com muito carinho! 🔥${footer}`;
       case 'shipped':
-        return `${greeting}\n🛵 *Pedido em Caminho!* Seu pedido *#${orderId}* acabou de sair para entrega. Prepare a mesa! 💨${footer}`;
+        return `${greeting}\n🛵 *Pedido em Caminho!* Seu pedido *#${orderId}* acabou de sair para entrega. Prepare a mesa, logo chegamos aí! 💨${footer}`;
       case 'completed':
-        return `${greeting}\n🎉 *Pedido Finalizado!* Seu pedido *#${orderId}* foi entregue com sucesso. Bom apetite! 😋${footer}`;
+        return `${greeting}\n🎉 *Pedido Finalizado!* Seu pedido *#${orderId}* foi entregue com sucesso. Bom apetite e aproveite sua refeição! 😋😋${footer}`;
       case 'cancelled':
-        return `${greeting}\n❌ *Pedido Cancelado.* Lamentamos informar, mas seu pedido *#${orderId}* foi cancelado. Por favor, entre em contato se tiver dúvidas.${footer}`;
+        return `${greeting}\n❌ *Pedido Cancelado.* Lamentamos informar, mas seu pedido *#${orderId}* foi cancelado. Se tiver qualquer dúvida, estamos à disposição por aqui.${footer}`;
       default:
         return '';
     }

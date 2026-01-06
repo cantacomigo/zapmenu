@@ -176,10 +176,10 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
       setIsCheckoutOpen(false);
 
       const paymentLabel = {
-          'credit': 'Cartão de Crédito',
-          'debit': 'Cartão de Débito',
-          'pix': 'Pix',
-          'cash': 'Dinheiro'
+          'credit': '💳 Cartão de Crédito',
+          'debit': '💳 Cartão de Débito',
+          'pix': '✨ Pix',
+          'cash': '💵 Dinheiro'
       }[customerInfo.payment];
 
       const changeInfo = (customerInfo.payment === 'cash' && customerInfo.changeFor) 
@@ -187,18 +187,19 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
           : '';
           
       const pixReminder = customerInfo.payment === 'pix' 
-          ? `\n📌 *Pagamento via Pix:* Enviarei o comprovante logo após o pagamento!` 
+          ? `\n\n📌 *Atenção:* Vou enviar o comprovante do Pix em seguida! 🚀` 
           : '';
 
-      const message = `*Novo Pedido: ${restaurant.name}*\n\n` +
+      const message = `*🍱 Novo Pedido: ${restaurant.name}*\n\n` +
           `👤 *Cliente:* ${order.customerName}\n` +
           `📞 *Fone:* ${order.customerPhone}\n` +
           `📍 *Endereço:* ${order.customerAddress}\n\n` +
-          `🛒 *Itens:*\n` + 
-          cart.map(i => `${i.quantity}x ${i.name} (R$ ${(i.price * i.quantity).toFixed(2)})`).join('\n') + 
+          `🛒 *Itens do Pedido:*\n` + 
+          cart.map(i => `✅ ${i.quantity}x ${i.name} (R$ ${(i.price * i.quantity).toFixed(2)})`).join('\n') + 
           `\n\n🛵 *Taxa de Entrega:* R$ ${deliveryFee.toFixed(2)}` +
-          `\n💰 *Total:* R$ ${order.total.toFixed(2)}` +
-          `\n💳 *Pagamento:* ${paymentLabel}${changeInfo}${pixReminder}`;
+          `\n💰 *Total Geral:* R$ ${order.total.toFixed(2)}` +
+          `\n💳 *Forma de Pagamento:* ${paymentLabel}${changeInfo}${pixReminder}\n\n` +
+          `🕒 *Pedido realizado em:* ${new Date().toLocaleTimeString('pt-BR')}`;
 
       window.open(`https://wa.me/${restaurant.phone}?text=${encodeURIComponent(message)}`, '_blank');
       setIsOrdersModalOpen(true);
