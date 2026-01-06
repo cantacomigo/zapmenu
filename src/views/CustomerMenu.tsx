@@ -394,7 +394,10 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
       <Modal isOpen={isItemDetailOpen} onClose={() => setIsItemDetailOpen(false)} title={selectedItem?.name || ''}>
           <div className="flex flex-col h-full max-h-[85vh]">
               <div className="flex-1 overflow-y-auto pr-1 space-y-4 max-h-[400px] mb-4 hide-scroll">
-                  <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest sticky top-0 bg-white py-2">Deseja algum adicional?</p>
+                  <div className="sticky top-0 bg-white py-2 z-10">
+                      <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest leading-tight">Deseja algum adicional?</p>
+                      <p className="text-[11px] text-slate-500 mt-1 leading-tight font-medium">Após acrescentar (ou se não quiser nada), basta clicar em adicionar ao pedido.</p>
+                  </div>
                   <div className="space-y-1.5">
                       {selectedItem?.addons?.map(addon => (
                           <label key={addon.id} className={`flex items-center justify-between px-4 py-3 rounded-xl border transition-all cursor-pointer ${tempAddons.find(a => a.id === addon.id) ? 'bg-orange-50 border-orange-200 text-orange-700' : 'bg-slate-50 border-transparent text-slate-500 hover:bg-slate-100'}`}>
