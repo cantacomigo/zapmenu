@@ -40,15 +40,18 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
             const r = await db.getRestaurantBySlug(slug);
             if (r) {
               setRestaurant(r);
-              setCategories(await db.getCategories(r.id));
+              const cats = await db.getCategories(r.id);
+              setCategories(cats);
               setItems(await db.getMenuItems(r.id));
               const promos = await db.getPromotions(r.id);
               setPromotions(promos.filter(p => p.isActive));
               const gives = await db.getGiveaways(r.id);
               setGiveaways(gives.filter(g => g.isActive || g.winnerName));
               
-              // Por padrão, mostra 'Todas' as categorias
-              setActiveCategory('');
+              // Seleciona a primeira categoria por padrão
+              if (cats.length > 0) {
+                  setActiveCategory(cats[0].id);
+              }
             }
         } catch (e) {
             console.error("Failed to load menu", e);
@@ -223,14 +226,8 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
                 <input type="text" placeholder="Buscar itens..." className="w-full pl-12 pr-4 py-3.5 rounded-2xl border-none bg-white shadow-sm font-medium text-slate-700 placeholder-slate-400 focus:ring-2 focus:ring-emerald-500/20" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
             </div>
             <div className="flex gap-2 overflow-x-auto hide-scroll pb-2 -mx-4 px-4">
-                <button 
-                    onClick={() => setActiveCategory('')} 
-                    className={`px-3.5 py-1.5 rounded-full text-[11px] font-bold whitespace-nowrap transition-all ${activeCategory === '' ? 'bg-slate-900 text-white shadow-lg' : 'bg-white text-slate-600 border border-slate-200'}`}
-                >
-                    Todas
-                </button>
                 {categories.map(cat => (
-                    <button key={cat.id} onClick={() => setActiveCategory(cat.id)} className={`px-3.5 py-1.5 rounded-full text-[11px] font-bold whitespace-nowrap transition-all ${activeCategory === cat.id ? 'bg-slate-900 text-white shadow-lg' : 'bg-white text-slate-600 border border-slate-200'}`}>{cat.name}</button>
+                    <button key={cat.id} onClick={() => setActiveCategory(cat.id)} className={`px-5 py-2.5 rounded-full text-sm font-bold whitespace-nowrap transition-all ${activeCategory === cat.id ? 'bg-slate-900 text-white shadow-lg' : 'bg-white text-slate-600 border border-slate-200'}`}>{cat.name}</button>
                 ))}
             </div>
         </div>
