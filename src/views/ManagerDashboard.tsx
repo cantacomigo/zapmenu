@@ -125,6 +125,7 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({ restaurantId
                                     <Input label="Pedido Mínimo (R$)" type="number" value={restaurant.minOrderValue || ''} onChange={(e: any) => setRestaurant({...restaurant, minOrderValue: Number(e.target.value)})} />
                                     <Input label="Taxa de Entrega (R$)" type="number" value={restaurant.deliveryFee || ''} onChange={(e: any) => setRestaurant({...restaurant, deliveryFee: Number(e.target.value)})} />
                                 </div>
+                                <Input label="Chave Pix para Pagamento" value={restaurant.pixKey || ''} onChange={(e: any) => setRestaurant({...restaurant, pixKey: e.target.value})} placeholder="E-mail, CPF ou Celular" />
                             </Card>
                             <Card className="p-8 space-y-6">
                                 <h3 className="font-bold text-slate-900 text-lg">Identidade Visual</h3>

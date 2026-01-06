@@ -108,7 +108,8 @@ export const db = {
   updateRestaurant: async (rest: Restaurant) => {
     return await supabase.from('restaurants').update({
         name: rest.name, slug: rest.slug, phone: rest.phone, address: rest.address,
-        logo: rest.logo, cover_image: rest.coverImage, min_order_value: rest.minOrderValue, delivery_fee: rest.deliveryFee
+        logo: rest.logo, cover_image: rest.coverImage, min_order_value: rest.minOrderValue, 
+        delivery_fee: rest.deliveryFee, pix_key: rest.pixKey
     }).eq('id', rest.id);
   },
 

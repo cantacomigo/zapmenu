@@ -96,7 +96,6 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
           setCustomerInfo(prev => ({ ...prev, name: user.name, phone: user.phone, address: user.address }));
           setIsAuthModalOpen(false);
           toast.success(`Bem-vindo, ${user.name}!`);
-          // Se estava tentando abrir o checkout, abre agora
           setIsCheckoutOpen(true);
       } else {
           toast.error("Telefone ou senha incorretos.");
@@ -186,6 +185,10 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
       const changeInfo = (customerInfo.payment === 'cash' && customerInfo.changeFor) 
           ? `\n💰 *Troco para:* R$ ${customerInfo.changeFor}` 
           : '';
+          
+      const pixReminder = customerInfo.payment === 'pix' 
+          ? `\n📌 *Pagamento via Pix:* Enviarei o comprovante logo após o pagamento!` 
+          : '';
 
       const message = `*Novo Pedido: ${restaurant.name}*\n\n` +
           `👤 *Cliente:* ${order.customerName}\n` +
@@ -195,7 +198,7 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
           cart.map(i => `${i.quantity}x ${i.name} (R$ ${(i.price * i.quantity).toFixed(2)})`).join('\n') + 
           `\n\n🛵 *Taxa de Entrega:* R$ ${deliveryFee.toFixed(2)}` +
           `\n💰 *Total:* R$ ${order.total.toFixed(2)}` +
-          `\n💳 *Pagamento:* ${paymentLabel}${changeInfo}`;
+          `\n💳 *Pagamento:* ${paymentLabel}${changeInfo}${pixReminder}`;
 
       window.open(`https://wa.me/${restaurant.phone}?text=${encodeURIComponent(message)}`, '_blank');
       setIsOrdersModalOpen(true);
@@ -216,7 +219,7 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
 
   return (
     <div className="bg-slate-50 min-h-screen pb-32 md:pb-12 font-sans">
-      {/* Header & Cover */}
+      {/* Header & Cover (keep existing code) */}
       <div className="relative h-72 md:h-80 w-full overflow-hidden bg-slate-900">
          {coverImages.map((img, idx) => (
              <img key={idx} src={img} className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${idx === currentCoverIndex ? 'opacity-100' : 'opacity-0'}`} alt="cover" />
@@ -239,12 +242,12 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
          </div>
          <div className="absolute bottom-0 left-0 right-0 p-6 z-10">
             <div className="flex items-end gap-4 max-w-4xl mx-auto">
-                <img src={restaurant.logo} className="w-24 h-24 rounded-2xl bg-white p-1 object-cover shadow-lg" alt="logo" />
+                <img src={restaurant?.logo} className="w-24 h-24 rounded-2xl bg-white p-1 object-cover shadow-lg" alt="logo" />
                 <div className="text-white mb-2">
-                    <h1 className="text-3xl font-bold">{restaurant.name}</h1>
+                    <h1 className="text-3xl font-bold">{restaurant?.name}</h1>
                     <div className="flex gap-3 text-sm font-medium text-slate-200 mt-1">
                         <span className="flex items-center"><Star className="w-4 h-4 text-yellow-400 mr-1" /> 4.8</span>
-                        <span className="flex items-center"><Clock className="w-4 h-4 mr-1" /> {restaurant.estimatedTime}</span>
+                        <span className="flex items-center"><Clock className="w-4 h-4 mr-1" /> {restaurant?.estimatedTime}</span>
                     </div>
                 </div>
             </div>
@@ -252,7 +255,7 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
       </div>
 
       <div className="max-w-4xl mx-auto px-4 md:px-6 pt-8">
-        {/* Filtros e Busca */}
+        {/* Filtros e Busca (keep existing code) */}
         <div className="sticky top-0 z-30 bg-slate-50 pb-4 pt-2">
             <div className="relative mb-4">
                 <Search className="absolute left-4 top-3.5 w-5 h-5 text-slate-400" />
@@ -271,7 +274,7 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
             </div>
         </div>
 
-        {/* Listagem de Itens */}
+        {/* Listagem de Itens (keep existing code) */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {filteredItems.map(item => (
                 <div key={item.id} className="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 flex gap-4 transition-all hover:shadow-md">
@@ -374,6 +377,25 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
                   </div>
                   {customerInfo.payment === 'cash' && (
                       <Input label="Precisa de troco para quanto?" type="number" value={customerInfo.changeFor} onChange={e => setCustomerInfo({...customerInfo, changeFor: e.target.value})} placeholder="Ex: 50.00" />
+                  )}
+                  
+                  {customerInfo.payment === 'pix' && restaurant?.pixKey && (
+                      <div className="bg-emerald-50 p-5 rounded-2xl border border-emerald-100 space-y-3">
+                          <div className="flex items-center justify-between">
+                              <span className="text-[10px] font-black uppercase text-emerald-600 tracking-widest">Chave Pix</span>
+                              <button 
+                                onClick={() => {
+                                    navigator.clipboard.writeText(restaurant?.pixKey || '');
+                                    toast.success("Chave Pix copiada!");
+                                }}
+                                className="text-emerald-700 font-bold text-xs flex items-center gap-1.5 hover:underline"
+                              >
+                                <Copy size={12} /> Copiar Chave
+                              </button>
+                          </div>
+                          <p className="text-lg font-black text-slate-900 break-all">{restaurant.pixKey}</p>
+                          <p className="text-[10px] font-medium text-emerald-600/70">Pague agora e envie o comprovante no WhatsApp após confirmar o pedido.</p>
+                      </div>
                   )}
               </div>
 
