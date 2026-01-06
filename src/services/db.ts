@@ -83,7 +83,7 @@ export const db = {
   updateRestaurant: async (rest: Restaurant) => {
     const payload = {
         name: rest.name, 
-        slug: rest.slug, // Adicionado aqui para salvar o link
+        slug: rest.slug,
         phone: rest.phone, 
         address: rest.address,
         logo: rest.logo, 
@@ -99,7 +99,7 @@ export const db = {
 
   getCategories: async (restaurantId: string): Promise<Category[]> => {
     const { data } = await supabase.from('categories').select('*').eq('restaurant_id', restaurantId).order('name');
-    return (data || []) as Category[];
+    return (data || []).map(c => ({ id: c.id, restaurantId: c.restaurant_id, name: c.name })) as Category[];
   },
 
   addCategory: async (cat: Category) => {
@@ -227,6 +227,37 @@ export const db = {
   deleteGiveaway: async (id: string) => supabase.from('giveaways').delete().eq('id', id),
   
   getRestaurantStaff: async (rId: string) => [],
-  registerCustomer: async (c: any) => ({ success: true, message: 'Cadastro realizado com sucesso.' }),
-  loginCustomer: async (p: string, s: string) => null
+
+  registerCustomer: async (c: CustomerUser) => {
+      // Verifica se já existe
+      const { data: existing } = await supabase.from('customers').select('id').eq('phone', c.phone).single();
+      if (existing) return { success: false, message: 'Este telefone já está cadastrado.' };
+
+      const { error } = await supabase.from('customers').insert({
+          name: c.name,
+          phone: c.phone,
+          password: c.password,
+          address: c.address
+      });
+
+      if (error) return { success: false, message: 'Erro ao cadastrar: ' + error.message };
+      return { success: true, message: 'Cadastro realizado com sucesso.' };
+  },
+
+  loginCustomer: async (phone: string, password: string): Promise<CustomerUser | null> => {
+      const { data, error } = await supabase.from('customers')
+        .select('*')
+        .eq('phone', phone)
+        .eq('password', password)
+        .single();
+
+      if (error || !data) return null;
+      return {
+          id: data.id,
+          name: data.name,
+          phone: data.phone,
+          address: data.address,
+          createdAt: new Date(data.created_at).getTime()
+      } as CustomerUser;
+  }
 };
