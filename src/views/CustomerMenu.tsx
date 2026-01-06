@@ -263,17 +263,27 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
                 </div>
                 <div className="flex gap-4 overflow-x-auto hide-scroll pb-4 -mx-4 px-4">
                     {promotions.map(promo => (
-                        <div key={promo.id} className="min-w-[280px] bg-white p-4 rounded-2xl shadow-sm border border-pink-100 flex flex-col hover:shadow-md transition-all">
-                            <div className="flex justify-between items-start mb-2">
-                                <h3 className="font-bold text-slate-800">{promo.title}</h3>
-                                <div className="bg-pink-100 text-pink-600 text-[10px] font-bold px-2 py-1 rounded-full uppercase">Oferta</div>
-                            </div>
-                            <p className="text-sm text-slate-500 mb-4 line-clamp-2">{promo.description}</p>
-                            <div className="flex justify-between items-center mt-auto">
-                                <span className="text-lg font-bold text-pink-600">R$ {Number(promo.discountedPrice).toFixed(2)}</span>
-                                <button onClick={() => addToCart({ id: `promo_${promo.id}`, name: promo.title, price: promo.discountedPrice, image: '', available: true } as MenuItem)} className="bg-pink-50 text-pink-600 w-8 h-8 rounded-lg flex items-center justify-center hover:bg-pink-600 hover:text-white transition-colors">
-                                    <Plus className="w-5 h-5" />
-                                </button>
+                        <div key={promo.id} className="min-w-[280px] bg-white rounded-2xl shadow-sm border border-pink-100 flex flex-col hover:shadow-md transition-all overflow-hidden">
+                            {promo.image && (
+                                <div className="h-32 w-full overflow-hidden bg-slate-100">
+                                    <img src={promo.image} className="w-full h-full object-cover" alt={promo.title} />
+                                </div>
+                            )}
+                            <div className="p-4 flex flex-col flex-1">
+                                <div className="flex justify-between items-start mb-2">
+                                    <h3 className="font-bold text-slate-800">{promo.title}</h3>
+                                    <div className="bg-pink-100 text-pink-600 text-[10px] font-bold px-2 py-1 rounded-full uppercase">Oferta</div>
+                                </div>
+                                <p className="text-sm text-slate-500 mb-4 line-clamp-2">{promo.description}</p>
+                                <div className="flex justify-between items-center mt-auto">
+                                    <div className="flex flex-col">
+                                        {promo.originalPrice && <span className="text-[10px] text-slate-400 line-through">R$ {Number(promo.originalPrice).toFixed(2)}</span>}
+                                        <span className="text-lg font-bold text-pink-600">R$ {Number(promo.discountedPrice).toFixed(2)}</span>
+                                    </div>
+                                    <button onClick={() => addToCart({ id: `promo_${promo.id}`, name: promo.title, price: promo.discountedPrice, image: '', available: true } as MenuItem)} className="bg-pink-50 text-pink-600 w-8 h-8 rounded-lg flex items-center justify-center hover:bg-pink-600 hover:text-white transition-colors">
+                                        <Plus className="w-5 h-5" />
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     ))}
@@ -289,27 +299,34 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
                 </div>
                 <div className="flex gap-4 overflow-x-auto hide-scroll pb-4 -mx-4 px-4">
                     {giveaways.map(give => (
-                        <div key={give.id} className={`min-w-[280px] p-4 rounded-2xl shadow-sm border flex flex-col transition-all ${give.winnerName ? 'bg-emerald-50 border-emerald-100' : 'bg-white border-purple-100'}`}>
-                            <div className="flex justify-between items-start mb-2">
-                                <h3 className="font-bold text-slate-800">{give.title}</h3>
-                                {give.winnerName ? (
-                                    <div className="bg-emerald-600 text-white text-[10px] font-bold px-2 py-1 rounded-full uppercase">Encerrado</div>
-                                ) : (
-                                    <div className="bg-purple-600 text-white text-[10px] font-bold px-2 py-1 rounded-full uppercase">Ativo</div>
-                                )}
-                            </div>
-                            <p className="text-sm text-slate-500 mb-4 leading-relaxed">{give.description}</p>
-                            
-                            {give.winnerName ? (
-                                <div className="mt-auto bg-white p-3 rounded-xl border border-emerald-100">
-                                    <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-1 flex items-center gap-1"><Trophy size={10} /> Ganhador</p>
-                                    <p className="font-bold text-slate-900">{give.winnerName}</p>
-                                </div>
-                            ) : (
-                                <div className="mt-auto flex items-center text-xs font-bold text-purple-600 bg-purple-50 p-2 rounded-lg">
-                                    <Calendar className="w-3.5 h-3.5 mr-2" /> Sorteio: {new Date(give.drawDate).toLocaleDateString('pt-BR')}
+                        <div key={give.id} className={`min-w-[280px] rounded-2xl shadow-sm border flex flex-col transition-all overflow-hidden ${give.winnerName ? 'bg-emerald-50 border-emerald-100' : 'bg-white border-purple-100'}`}>
+                            {give.image && (
+                                <div className="h-32 w-full overflow-hidden bg-slate-100">
+                                    <img src={give.image} className="w-full h-full object-cover" alt={give.title} />
                                 </div>
                             )}
+                            <div className="p-4 flex flex-col flex-1">
+                                <div className="flex justify-between items-start mb-2">
+                                    <h3 className="font-bold text-slate-800">{give.title}</h3>
+                                    {give.winnerName ? (
+                                        <div className="bg-emerald-600 text-white text-[10px] font-bold px-2 py-1 rounded-full uppercase">Encerrado</div>
+                                    ) : (
+                                        <div className="bg-purple-600 text-white text-[10px] font-bold px-2 py-1 rounded-full uppercase">Ativo</div>
+                                    )}
+                                </div>
+                                <p className="text-sm text-slate-500 mb-4 leading-relaxed line-clamp-2">{give.description}</p>
+                                
+                                {give.winnerName ? (
+                                    <div className="mt-auto bg-white p-3 rounded-xl border border-emerald-100">
+                                        <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-1 flex items-center gap-1"><Trophy size={10} /> Ganhador</p>
+                                        <p className="font-bold text-slate-900">{give.winnerName}</p>
+                                    </div>
+                                ) : (
+                                    <div className="mt-auto flex items-center text-xs font-bold text-purple-600 bg-purple-50 p-2 rounded-lg">
+                                        <Calendar className="w-3.5 h-3.5 mr-2" /> Sorteio: {new Date(give.drawDate).toLocaleDateString('pt-BR')}
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     ))}
                 </div>
