@@ -63,6 +63,16 @@ export const MenuTab: React.FC<MenuTabProps> = ({ restaurantId, categories, item
     db.getAddons(restaurantId).then(setAllAddons);
   };
 
+  const handleDeleteAddon = async (id: string) => {
+    if (confirm("Deseja realmente excluir este acréscimo? Ele será removido de todos os produtos vinculados.")) {
+      await db.deleteAddon(id);
+      toast.success("Acréscimo excluído!");
+      const updatedAddons = await db.getAddons(restaurantId);
+      setAllAddons(updatedAddons);
+      onRefresh(); 
+    }
+  };
+
   const parentCategories = categories.filter(c => !c.parentId);
 
   return (
@@ -105,7 +115,6 @@ export const MenuTab: React.FC<MenuTabProps> = ({ restaurantId, categories, item
                         </div>
                     </div>
 
-                    {/* Produtos da categoria pai */}
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {items.filter(i => i.categoryId === parent.id).map(item => (
                             <Card key={item.id} className="p-4 flex items-center gap-4 group">
@@ -117,14 +126,13 @@ export const MenuTab: React.FC<MenuTabProps> = ({ restaurantId, categories, item
                                     <p className="text-sm text-emerald-600 font-black">R$ {Number(item.price).toFixed(2)}</p>
                                     <div className="flex gap-2 mt-2">
                                         <button onClick={() => { setCurrentItem(item); setSelectedAddonIds(item.addons?.map(a => a.id) || []); setIsItemModalOpen(true); }} className="text-[10px] font-black uppercase text-slate-400 hover:text-blue-600 transition-colors">Editar</button>
-                                        <button onClick={() => db.deleteMenuItem(item.id).then(onRefresh)} className="text-[10px] font-black uppercase text-slate-400 hover:text-red-600 transition-colors">Excluir</button>
+                                        <button onClick={() => { if(confirm("Remover este item?")) db.deleteMenuItem(item.id).then(onRefresh); }} className="text-[10px] font-black uppercase text-slate-400 hover:text-red-600 transition-colors">Excluir</button>
                                     </div>
                                 </div>
                             </Card>
                         ))}
                     </div>
 
-                    {/* Subcategorias */}
                     {children.map(child => (
                         <div key={child.id} className="ml-6 space-y-4">
                             <div className="flex items-center gap-2 border-b border-slate-100 pb-1">
@@ -162,7 +170,7 @@ export const MenuTab: React.FC<MenuTabProps> = ({ restaurantId, categories, item
                       </div>
                       <div className="flex gap-2">
                           <button onClick={() => { setCurrentAddon(addon); setIsAddonModalOpen(true); }} className="p-2 text-slate-400 hover:text-blue-600 transition-colors"><Edit2 size={16} /></button>
-                          <button onClick={() => db.deleteAddon(addon.id).then(() => db.getAddons(restaurantId).then(setAllAddons))} className="p-2 text-slate-400 hover:text-red-600 transition-colors"><Trash2 size={16} /></button>
+                          <button onClick={() => handleDeleteAddon(addon.id)} className="p-2 text-slate-400 hover:text-red-600 transition-colors"><Trash2 size={16} /></button>
                       </div>
                   </Card>
               ))}
@@ -223,7 +231,7 @@ export const MenuTab: React.FC<MenuTabProps> = ({ restaurantId, categories, item
               <p className="text-[10px] text-slate-400 uppercase tracking-widest font-black">Selecione o que o cliente pode adicionar</p>
               <div className="grid grid-cols-2 gap-2">
                   {allAddons.map(addon => (
-                      <label key={addon.id} className={`flex items-center gap-3 p-3 rounded-xl border transition-all cursor-pointer ${selectedAddonIds.includes(addon.id) ? 'bg-orange-50 border-orange-200 text-orange-700 shadow-sm' : 'bg-slate-50 border-transparent text-slate-500 hover:bg-slate-100'}`}>
+                      <label key={addon.id} className={`flex items-center gap-3 p-3 rounded-xl border transition-all cursor-pointer ${selectedAddonIds.includes(addon.id) ? 'bg-orange-50 border-orange-200 text-orange-700' : 'bg-slate-50 border-transparent text-slate-500 hover:bg-slate-100'}`}>
                           <input 
                               type="checkbox" 
                               className="w-4 h-4 accent-orange-600"
@@ -246,15 +254,15 @@ export const MenuTab: React.FC<MenuTabProps> = ({ restaurantId, categories, item
         </div>
       </Modal>
 
-      {/* MODAL ACRÉSCIMO */}
-      <Modal isOpen={isAddonModalOpen} onClose={() => setIsAddonModalOpen(false)} title="Novo Acréscimo">
+      {/* MODAL ACRÉSCIMOS */}
+      <Modal isOpen={isAddonModalOpen} onClose={() => setIsAddonModalOpen(false)} title="Acréscimo">
           <div className="space-y-4">
               <Input label="Nome do Adicional" placeholder="Ex: Bacon Extra" value={currentAddon.name || ''} onChange={e => setCurrentAddon({...currentAddon, name: e.target.value})} />
               <Input label="Preço (R$)" type="number" placeholder="0.00" value={currentAddon.price || ''} onChange={e => setCurrentAddon({...currentAddon, price: Number(e.target.value)})} />
               <div className="bg-blue-50 p-4 rounded-xl border border-blue-100">
-                  <p className="text-xs text-blue-700">Após criar o acréscimo, você poderá vinculá-lo a um ou mais produtos no cardápio.</p>
+                  <p className="text-xs text-blue-700">Ao excluir ou editar um acréscimo, as mudanças refletirão em todos os produtos que o utilizam.</p>
               </div>
-              <Button className="w-full bg-orange-600" onClick={handleSaveAddon}>Criar Adicional</Button>
+              <Button className="w-full bg-orange-600" onClick={handleSaveAddon}>Salvar Adicional</Button>
           </div>
       </Modal>
     </div>
