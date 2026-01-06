@@ -185,7 +185,13 @@ export const db = {
 
   getPromotions: async (restaurantId: string): Promise<Promotion[]> => {
     const { data } = await supabase.from('promotions').select('*').eq('restaurant_id', restaurantId);
-    return (data || []).map(p => ({ ...p, restaurantId: p.restaurant_id, discountedPrice: Number(p.discount_price), originalPrice: Number(p.original_price), isActive: p.is_active }));
+    return (data || []).map(p => ({ 
+        ...p, 
+        restaurantId: p.restaurant_id, 
+        discountedPrice: Number(p.discounted_price), 
+        originalPrice: Number(p.original_price), 
+        isActive: p.is_active 
+    }));
   },
 
   savePromotion: async (promo: Promotion) => {
@@ -194,7 +200,7 @@ export const db = {
         title: promo.title,
         description: promo.description,
         original_price: promo.originalPrice,
-        discount_price: promo.discountedPrice,
+        discounted_price: promo.discountedPrice,
         image: promo.image,
         is_active: promo.isActive
     };
