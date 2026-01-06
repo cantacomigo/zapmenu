@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { db } from '../../services/db';
 import { Order } from '../../types';
 import { Card, Badge, Button, Input } from '../../components/ui';
-import { MessageSquare, CheckCircle2, Truck, XCircle, CreditCard, Search, Filter } from 'lucide-react';
+import { MessageSquare, CheckCircle2, Truck, XCircle, CreditCard, Search, Filter, CheckCheck } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 interface OrdersTabProps {
@@ -17,12 +17,24 @@ export const OrdersTab: React.FC<OrdersTabProps> = ({ orders, onRefresh, restaur
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [searchTerm, setSearchTerm] = useState('');
 
-  const getWhatsAppMessage = (order: Order, status: Order['status']) => {
-    const orderId = order.id.slice(0, 4).toUpperCase();
+  const getWhatsAppMessage = (order: Order, type: Order['status'] | 'confirm_receipt') => {
+    const orderId = order.id.slice(-6).toUpperCase();
     const greeting = `Olá *${order.customerName}*!`;
     const footer = `\n\nAgradecemos a preferência!\n*${restaurantName || 'ZapMenu'}*`;
 
-    switch (status) {
+    if (type === 'confirm_receipt') {
+      let msg = `${greeting}\n\n✅ *Pedido Recebido!* Confirmamos que recebemos seu pedido *#${orderId}* e já vamos iniciar o preparo.`;
+      
+      if (order.paymentMethod === 'pix') {
+        msg += `\n\n📌 *Atenção:* Vimos que você optou pelo pagamento via *Pix*. Por favor, *envie o comprovante aqui nesta conversa* para que possamos validar e liberar seu pedido mais rápido! 🚀`;
+      } else {
+        msg += `\n\nFique atento, te avisaremos por aqui assim que ele sair para entrega! 🛵`;
+      }
+      
+      return msg + footer;
+    }
+
+    switch (type) {
       case 'paid':
         return `${greeting}\n💰 *Pagamento Confirmado!* Recebemos seu pagamento do pedido *#${orderId}*. Seu pedido já está sendo preparado!${footer}`;
       case 'shipped':
@@ -34,6 +46,14 @@ export const OrdersTab: React.FC<OrdersTabProps> = ({ orders, onRefresh, restaur
       default:
         return '';
     }
+  };
+
+  const handleSendConfirmation = (order: Order) => {
+    const message = getWhatsAppMessage(order, 'confirm_receipt');
+    const phone = order.customerPhone.replace(/\D/g, '');
+    const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+    window.open(url, '_blank');
+    toast.success("Mensagem de confirmação enviada!");
   };
 
   const handleUpdateStatus = async (order: Order, status: Order['status']) => {
@@ -118,12 +138,16 @@ export const OrdersTab: React.FC<OrdersTabProps> = ({ orders, onRefresh, restaur
               <div className="flex flex-col lg:flex-row justify-between gap-6">
                 <div className="space-y-2">
                   <div className="flex items-center gap-3">
-                    <span className="font-black text-slate-900">#{order.id.slice(0, 8).toUpperCase()}</span>
+                    <span className="font-black text-slate-900">#{order.id.slice(-8).toUpperCase()}</span>
                     <Badge color={`${statusInfo.color} border-transparent text-[10px] font-bold uppercase`}>{statusInfo.label}</Badge>
                   </div>
                   <p className="text-sm font-bold text-slate-700">{order.customerName}</p>
                   <p className="text-xs text-slate-500 max-w-xs">{order.customerAddress}</p>
-                  <p className="text-[10px] text-slate-400 font-medium">Realizado em {new Date(order.createdAt).toLocaleString('pt-BR')}</p>
+                  <div className="flex items-center gap-2 mt-1">
+                      <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-md ${order.paymentMethod === 'pix' ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-600'}`}>
+                          {order.paymentMethod}
+                      </span>
+                  </div>
                 </div>
 
                 <div className="flex-1 lg:border-x border-slate-100 px-0 lg:px-6">
@@ -142,6 +166,11 @@ export const OrdersTab: React.FC<OrdersTabProps> = ({ orders, onRefresh, restaur
                 </div>
 
                 <div className="flex flex-wrap gap-2 items-center justify-end">
+                  {order.status === 'pending' && (
+                      <Button size="sm" onClick={() => handleSendConfirmation(order)} className="bg-blue-600">
+                          <CheckCheck className="w-4 h-4 mr-1.5" /> Confirmar Recebimento
+                      </Button>
+                  )}
                   {order.status === 'pending' && (
                       <Button size="sm" onClick={() => handleUpdateStatus(order, 'paid')} className="bg-emerald-600">
                           <CreditCard className="w-4 h-4 mr-1.5" /> Confirmar Pagto
