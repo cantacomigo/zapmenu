@@ -205,8 +205,8 @@ export const db = {
   deletePromotion: async (id: string) => supabase.from('promotions').delete().eq('id', id),
 
   getGiveaways: async (restaurantId: string): Promise<Giveaway[]> => {
-    const { data } = await supabase.from('giveaways').select('*').eq('restaurant_id', restaurantId);
-    return (data || []).map(g => ({ ...g, restaurantId: g.restaurant_id, drawDate: g.draw_date, isActive: g.is_active, winnerName: g.winner_name }));
+    const { data } = await supabase.from('giveaways').select('*').eq('restaurant_id', restaurantId).order('draw_date', { ascending: false });
+    return (data || []).map(g => ({ ...g, restaurantId: g.restaurant_id, drawDate: g.draw_date, isActive: g.is_active, winnerName: g.winner_name, drawnAt: g.drawn_at ? new Date(g.drawn_at).getTime() : undefined }));
   },
 
   saveGiveaway: async (give: Giveaway) => {
@@ -217,11 +217,16 @@ export const db = {
         description: give.description,
         draw_date: give.drawDate,
         image: give.image,
-        is_active: give.isActive
+        is_active: give.isActive,
+        winner_name: give.winnerName,
+        winner_phone: give.winnerPhone,
+        drawn_at: give.drawnAt ? new Date(give.drawnAt).toISOString() : null
     };
     if (give.id) return await supabase.from('giveaways').update(payload).eq('id', give.id);
     return await supabase.from('giveaways').insert(payload);
   },
+
+  deleteGiveaway: async (id: string) => supabase.from('giveaways').delete().eq('id', id),
 
   getCustomers: async (): Promise<CustomerUser[]> => {
       const { data } = await supabase.from('customers').select('*').order('name');
