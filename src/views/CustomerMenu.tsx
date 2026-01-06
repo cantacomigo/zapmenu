@@ -128,6 +128,12 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
     return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
   }, [slug]);
 
+  useEffect(() => {
+    if (currentUser && restaurant) {
+        db.getCustomerOrders(currentUser.phone, restaurant.id).then(setCustomerOrders);
+    }
+  }, [currentUser, restaurant, isOrdersModalOpen]);
+
   const handleInstallApp = async () => {
       if (isIOS) {
           toast("No iPhone: Toque no ícone de 'Compartilhar' abaixo e depois em 'Adicionar à Tela de Início'", { duration: 6000, icon: '📱' });
@@ -212,7 +218,7 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
         setCustomerInfo(prev => ({ ...prev, name: user.name, phone: user.phone, address: user.address }));
         setIsAuthModalOpen(false);
         toast.success(`Bem-vindo, ${user.name}!`);
-        setIsCheckoutOpen(true);
+        if (cart.length > 0) setIsCheckoutOpen(true);
     } else {
         toast.error("Telefone ou senha incorretos.");
     }
@@ -229,7 +235,12 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
   };
 
   const checkoutOrder = async () => {
-      if (!restaurant || !currentUser) return;
+      if (!restaurant) return;
+      if (!currentUser) {
+          setIsCheckoutOpen(false);
+          setIsAuthModalOpen(true);
+          return;
+      }
       if (!isStoreOpen && !customerInfo.scheduledTime) {
           toast.error("Por favor, selecione um horário para agendar seu pedido.");
           return;
@@ -496,7 +507,7 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
           </div>
       )}
 
-      {/* MODALS (Checkout, Auth, ItemDetail, etc) - Mantidos conforme original mas limpos de manifest logic */}
+      {/* MODAL ITEM DETAIL */}
       <Modal isOpen={isItemDetailOpen} onClose={() => setIsItemDetailOpen(false)} title={selectedItem?.name || ''}>
           <div className="flex flex-col h-full max-h-[85vh]">
               <div className="flex-1 overflow-y-auto pr-1 space-y-6 max-h-[450px] mb-4 hide-scroll">
@@ -522,6 +533,7 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
           </div>
       </Modal>
 
+      {/* MODAL CHECKOUT */}
       <Modal isOpen={isCheckoutOpen} onClose={() => setIsCheckoutOpen(false)} title="Minha Sacola">
           <div className="space-y-6">
               {!isStoreOpen && (
@@ -541,6 +553,7 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
                                   <span className="font-black text-emerald-600 text-sm">{item.quantity}x</span>
                                   <span className="text-sm font-bold text-slate-700">{item.name}</span>
                               </div>
+                              {item.selectedAddons?.map(a => <p key={a.id} className="text-[10px] text-slate-400 ml-8">+ {a.name}</p>)}
                           </div>
                           <div className="flex items-center gap-4">
                               <span className="text-sm font-black text-slate-900">R$ {((Number(item.price) + (item.selectedAddons?.reduce((a,b)=>a+b.price,0)||0)) * item.quantity).toFixed(2)}</span>
@@ -568,7 +581,50 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
           </div>
       </Modal>
 
-      {/* Orders and Auth Modal omitted for brevity but remain in full code */}
+      {/* MODAL AUTH */}
+      <Modal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} title={authMode === 'login' ? "Bem-vindo!" : "Criar Conta"}>
+          <div className="space-y-4">
+              <div className="text-center mb-4">
+                  <div className="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-3xl flex items-center justify-center mx-auto mb-2"><User size={32} /></div>
+                  <p className="text-xs text-slate-500">{authMode === 'login' ? 'Faça login para pedir mais rápido' : 'Cadastre-se para salvar seu endereço'}</p>
+              </div>
+              <div className="space-y-3">
+                  {authMode === 'register' && <Input label="Nome" value={authForm.name} onChange={e => setAuthForm({...authForm, name: e.target.value})} />}
+                  <Input label="Telefone" value={authForm.phone} onChange={e => setAuthForm({...authForm, phone: e.target.value})} placeholder="DDD + Número" />
+                  {authMode === 'register' && <Input label="Endereço" value={authForm.address} onChange={e => setAuthForm({...authForm, address: e.target.value})} />}
+                  <Input label="Senha" type="password" value={authForm.password} onChange={e => setAuthForm({...authForm, password: e.target.value})} />
+              </div>
+              <Button className="w-full bg-emerald-600 py-4 mt-2" onClick={authMode === 'login' ? handleLogin : handleRegister}>
+                  {authMode === 'login' ? 'Entrar' : 'Cadastrar'}
+              </Button>
+              <button onClick={() => setAuthMode(authMode === 'login' ? 'register' : 'login')} className="w-full text-center text-xs text-slate-400 font-bold uppercase tracking-widest py-2">
+                  {authMode === 'login' ? 'Não tenho conta' : 'Já tenho conta'}
+              </button>
+          </div>
+      </Modal>
+
+      {/* MODAL ORDERS */}
+      <Modal isOpen={isOrdersModalOpen} onClose={() => setIsOrdersModalOpen(false)} title="Meus Pedidos">
+          <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
+              {customerOrders.length > 0 ? customerOrders.map(order => (
+                  <div key={order.id} className="p-4 bg-white border border-slate-100 rounded-2xl shadow-sm">
+                      <div className="flex justify-between mb-2">
+                          <span className="font-black text-slate-400 text-[10px]">#{order.id.slice(-6).toUpperCase()}</span>
+                          <span className="text-[10px] font-black uppercase text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">{order.status}</span>
+                      </div>
+                      <div className="text-xs text-slate-500 space-y-1">
+                          {order.items.map((i, idx) => <p key={idx}>{i.quantity}x {i.name}</p>)}
+                      </div>
+                      <div className="mt-3 pt-3 border-t border-slate-50 flex justify-between items-center">
+                          <span className="text-[10px] text-slate-400">{new Date(order.createdAt).toLocaleDateString()}</span>
+                          <span className="font-black text-slate-900">R$ {order.total.toFixed(2)}</span>
+                      </div>
+                  </div>
+              )) : (
+                  <div className="text-center py-10 text-slate-400 text-xs font-bold uppercase tracking-widest">Nenhum pedido encontrado</div>
+              )}
+          </div>
+      </Modal>
     </div>
   );
 };
