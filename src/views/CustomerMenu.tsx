@@ -113,7 +113,7 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
   useEffect(() => {
       if (isOrdersModalOpen) {
           fetchCustomerOrders();
-          const interval = setInterval(fetchCustomerOrders, 15000); // Atualiza a cada 15s
+          const interval = setInterval(fetchCustomerOrders, 15000); 
           return () => clearInterval(interval);
       }
   }, [isOrdersModalOpen]);
@@ -190,7 +190,6 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
 
       window.open(`https://wa.me/${restaurant.phone}?text=${encodeURIComponent(message)}`, '_blank');
       
-      // Abre o modal de pedidos para ele ver o novo pedido
       setIsOrdersModalOpen(true);
   };
 
@@ -282,6 +281,41 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
             </div>
         )}
 
+        {giveaways.length > 0 && (
+            <div className="mb-8">
+                <div className="flex items-center gap-2 mb-4">
+                    <Gift className="w-5 h-5 text-purple-600" />
+                    <h2 className="text-xl font-bold text-slate-900">Sorteios & Prêmios</h2>
+                </div>
+                <div className="flex gap-4 overflow-x-auto hide-scroll pb-4 -mx-4 px-4">
+                    {giveaways.map(give => (
+                        <div key={give.id} className={`min-w-[280px] p-4 rounded-2xl shadow-sm border flex flex-col transition-all ${give.winnerName ? 'bg-emerald-50 border-emerald-100' : 'bg-white border-purple-100'}`}>
+                            <div className="flex justify-between items-start mb-2">
+                                <h3 className="font-bold text-slate-800">{give.title}</h3>
+                                {give.winnerName ? (
+                                    <div className="bg-emerald-600 text-white text-[10px] font-bold px-2 py-1 rounded-full uppercase">Encerrado</div>
+                                ) : (
+                                    <div className="bg-purple-600 text-white text-[10px] font-bold px-2 py-1 rounded-full uppercase">Ativo</div>
+                                )}
+                            </div>
+                            <p className="text-sm text-slate-500 mb-4 leading-relaxed">{give.description}</p>
+                            
+                            {give.winnerName ? (
+                                <div className="mt-auto bg-white p-3 rounded-xl border border-emerald-100">
+                                    <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-1 flex items-center gap-1"><Trophy size={10} /> Ganhador</p>
+                                    <p className="font-bold text-slate-900">{give.winnerName}</p>
+                                </div>
+                            ) : (
+                                <div className="mt-auto flex items-center text-xs font-bold text-purple-600 bg-purple-50 p-2 rounded-lg">
+                                    <Calendar className="w-3.5 h-3.5 mr-2" /> Sorteio: {new Date(give.drawDate).toLocaleDateString('pt-BR')}
+                                </div>
+                            )}
+                        </div>
+                    ))}
+                </div>
+            </div>
+        )}
+
         <div className="sticky top-0 z-30 bg-slate-50 pb-4 pt-2">
             <div className="relative mb-4">
                 <Search className="absolute left-4 top-3.5 w-5 h-5 text-slate-400" />
@@ -335,7 +369,6 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
           </div>
       )}
 
-      {/* MODAL DE MEUS PEDIDOS */}
       <Modal isOpen={isOrdersModalOpen} onClose={() => setIsOrdersModalOpen(false)} title="Meus Pedidos">
           <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-1">
               {customerOrders.length > 0 ? (
@@ -456,7 +489,6 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
   );
 };
 
-// Import inline to fix missing icon in local context
 const CreditCard = ({ size = 18 }: { size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>
 );
