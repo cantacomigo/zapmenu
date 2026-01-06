@@ -1,8 +1,8 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { db } from '../../services/db';
 import { Order } from '../../types';
-import { Card, Badge, Button } from '../../components/ui';
-import { MessageSquare, CheckCircle2, Truck, XCircle, CreditCard } from 'lucide-react';
+import { Card, Badge, Button, Input } from '../../components/ui';
+import { MessageSquare, CheckCircle2, Truck, XCircle, CreditCard, Search, Filter } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 interface OrdersTabProps {
@@ -11,7 +11,12 @@ interface OrdersTabProps {
   restaurantName?: string;
 }
 
+type StatusFilter = 'all' | Order['status'];
+
 export const OrdersTab: React.FC<OrdersTabProps> = ({ orders, onRefresh, restaurantName }) => {
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  const [searchTerm, setSearchTerm] = useState('');
+
   const getWhatsAppMessage = (order: Order, status: Order['status']) => {
     const orderId = order.id.slice(0, 4).toUpperCase();
     const greeting = `Olá *${order.customerName}*!`;
@@ -60,26 +65,65 @@ export const OrdersTab: React.FC<OrdersTabProps> = ({ orders, onRefresh, restaur
     }
   };
 
+  const filteredOrders = useMemo(() => {
+    return orders.filter(order => {
+      const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
+      const matchesSearch = 
+        order.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        order.id.toLowerCase().includes(searchTerm.toLowerCase());
+      return matchesStatus && matchesSearch;
+    });
+  }, [orders, statusFilter, searchTerm]);
+
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <h2 className="text-2xl font-bold text-slate-900">Gestão de Pedidos</h2>
-        <Button variant="secondary" size="sm" onClick={onRefresh}>Atualizar</Button>
+        <Button variant="secondary" size="sm" onClick={onRefresh}>Atualizar Pedidos</Button>
+      </div>
+
+      <div className="flex flex-col lg:flex-row gap-4">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+          <input 
+            type="text" 
+            placeholder="Buscar por cliente ou ID do pedido..." 
+            className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500/20 text-sm"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+        <div className="flex gap-2 overflow-x-auto pb-1 hide-scroll">
+          {(['all', 'pending', 'paid', 'shipped', 'completed', 'cancelled'] as StatusFilter[]).map((status) => (
+            <button
+              key={status}
+              onClick={() => setStatusFilter(status)}
+              className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all border ${
+                statusFilter === status 
+                  ? 'bg-slate-900 text-white border-slate-900 shadow-sm' 
+                  : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-50'
+              }`}
+            >
+              {status === 'all' ? 'Todos' : getStatusDisplay(status).label}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 gap-4">
-        {orders.map(order => {
+        {filteredOrders.map(order => {
           const statusInfo = getStatusDisplay(order.status);
           return (
-            <Card key={order.id} className="p-6">
+            <Card key={order.id} className="p-6 hover:shadow-md transition-shadow">
               <div className="flex flex-col lg:flex-row justify-between gap-6">
                 <div className="space-y-2">
                   <div className="flex items-center gap-3">
                     <span className="font-black text-slate-900">#{order.id.slice(0, 8).toUpperCase()}</span>
-                    <Badge color={`${statusInfo.color} border-transparent`}>{statusInfo.label}</Badge>
+                    <Badge color={`${statusInfo.color} border-transparent text-[10px] font-bold uppercase`}>{statusInfo.label}</Badge>
                   </div>
                   <p className="text-sm font-bold text-slate-700">{order.customerName}</p>
-                  <p className="text-xs text-slate-500">{order.customerAddress}</p>
+                  <p className="text-xs text-slate-500 max-w-xs">{order.customerAddress}</p>
+                  <p className="text-[10px] text-slate-400 font-medium">Realizado em {new Date(order.createdAt).toLocaleString('pt-BR')}</p>
                 </div>
 
                 <div className="flex-1 lg:border-x border-slate-100 px-0 lg:px-6">
@@ -124,6 +168,7 @@ export const OrdersTab: React.FC<OrdersTabProps> = ({ orders, onRefresh, restaur
                       window.open(`https://wa.me/${phone}`, '_blank');
                     }}
                     className="p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all"
+                    title="Conversar no WhatsApp"
                   >
                     <MessageSquare size={18} />
                   </button>
@@ -132,9 +177,12 @@ export const OrdersTab: React.FC<OrdersTabProps> = ({ orders, onRefresh, restaur
             </Card>
           );
         })}
-        {orders.length === 0 && (
+        {filteredOrders.length === 0 && (
           <div className="text-center py-20 bg-white rounded-3xl border border-dashed border-slate-200">
-            <p className="text-slate-400">Nenhum pedido no momento.</p>
+            <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-300">
+              <Filter size={32} />
+            </div>
+            <p className="text-slate-400 font-medium">Nenhum pedido encontrado com os filtros atuais.</p>
           </div>
         )}
       </div>
