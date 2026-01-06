@@ -82,9 +82,15 @@ export const db = {
 
   updateRestaurant: async (rest: Restaurant) => {
     const payload = {
-        name: rest.name, phone: rest.phone, address: rest.address,
-        logo: rest.logo, cover_image: rest.coverImage, cover_images: rest.coverImages,
-        min_order_value: rest.minOrderValue, delivery_fee: rest.deliveryFee
+        name: rest.name, 
+        slug: rest.slug, // Adicionado aqui para salvar o link
+        phone: rest.phone, 
+        address: rest.address,
+        logo: rest.logo, 
+        cover_image: rest.coverImage, 
+        cover_images: rest.coverImages,
+        min_order_value: rest.minOrderValue, 
+        delivery_fee: rest.deliveryFee
     };
     return await supabase.from('restaurants').update(payload).eq('id', rest.id);
   },

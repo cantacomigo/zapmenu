@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { db } from '@/src/services/db';
 import { Category, MenuItem, Order, Restaurant } from '@/src/types';
@@ -118,9 +120,12 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({ restaurantId
                                 <h3 className="font-bold text-slate-900 text-lg">Informações Básicas</h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <Input label="Nome da Loja" value={restaurant.name} onChange={(e: any) => setRestaurant({...restaurant, name: e.target.value})} />
-                                    <Input label="WhatsApp (DDD + Número)" value={restaurant.phone} onChange={(e: any) => setRestaurant({...restaurant, phone: e.target.value})} />
+                                    <Input label="Link do Cardápio (Slug)" value={restaurant.slug} onChange={(e: any) => setRestaurant({...restaurant, slug: e.target.value.toLowerCase().replace(/\s+/g, '-')})} />
                                 </div>
-                                <Input label="Endereço Completo" value={restaurant.address} onChange={(e: any) => setRestaurant({...restaurant, address: e.target.value})} />
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <Input label="WhatsApp (DDD + Número)" value={restaurant.phone} onChange={(e: any) => setRestaurant({...restaurant, phone: e.target.value})} />
+                                    <Input label="Endereço Completo" value={restaurant.address} onChange={(e: any) => setRestaurant({...restaurant, address: e.target.value})} />
+                                </div>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <Input label="Pedido Mínimo (R$)" type="number" value={restaurant.minOrderValue || ''} onChange={(e: any) => setRestaurant({...restaurant, minOrderValue: Number(e.target.value)})} />
                                     <Input label="Taxa de Entrega (R$)" type="number" value={restaurant.deliveryFee || ''} onChange={(e: any) => setRestaurant({...restaurant, deliveryFee: Number(e.target.value)})} />
