@@ -19,31 +19,32 @@ export const OrdersTab: React.FC<OrdersTabProps> = ({ orders, onRefresh, restaur
 
   const getWhatsAppMessage = (order: Order, type: Order['status'] | 'confirm_receipt') => {
     const orderId = order.id.slice(-6).toUpperCase();
-    // Usando Unicode Escapes para garantir compatibilidade
-    const wave = "\u{1F44B}";
-    const check = "\u{2705}";
-    const pin = "\u{1F4CC}";
-    const rocket = "\u{1F680}";
-    const clock = "\u{23F3}";
-    const motor = "\u{1F6F5}";
-    const pray = "\u{1F64F}";
-    const money = "\u{1F4B0}";
-    const fire = "\u{1F525}";
-    const wind = "\u{1F4A8}";
-    const party = "\u{1F389}";
-    const yum = "\u{1F60B}";
-    const cancel = "\u{274C}";
+    
+    // Definição de emojis usando surrogate pairs para evitar erro de codificação
+    const e_wave = "\uD83D\uDC4B";
+    const e_check = "\u2705";
+    const e_pin = "\uD83D\uDCCC";
+    const e_rocket = "\uD83D\uDE80";
+    const e_clock = "\u23F3";
+    const e_motor = "\uD83D\uDEF5";
+    const e_pray = "\uD83D\uDE4F";
+    const e_money = "\uD83D\uDCB0";
+    const e_fire = "\uD83D\uDD25";
+    const e_wind = "\uD83D\uDCA8";
+    const e_party = "\uD83C\uDF89";
+    const e_yum = "\uD83D\uDE0B";
+    const e_cancel = "\u274C";
 
-    const greeting = `${wave} Olá *${order.customerName}*!`;
-    const footer = `\n\n${pray} Agradecemos a preferência!\n*${restaurantName || 'ZapMenu'}*`;
+    const greeting = `${e_wave} Olá *${order.customerName}*!`;
+    const footer = `\n\n${e_pray} Agradecemos a preferência!\n*${restaurantName || 'ZapMenu'}*`;
 
     if (type === 'confirm_receipt') {
-      let msg = `${greeting}\n\n${check} *Pedido Recebido!* Confirmamos que recebemos seu pedido *#${orderId}* e já vamos iniciar o preparo.`;
+      let msg = `${greeting}\n\n${e_check} *Pedido Recebido!* Confirmamos que recebemos seu pedido *#${orderId}* e já vamos iniciar o preparo.`;
       
       if (order.paymentMethod === 'pix') {
-        msg += `\n\n${pin} *Atenção:* Vimos que você optou pelo pagamento via *Pix*. Por favor, *envie o comprovante aqui nesta conversa* para que possamos validar e liberar seu pedido mais rápido! ${rocket}`;
+        msg += `\n\n${e_pin} *Atenção:* Vimos que você optou pelo pagamento via *Pix*. Por favor, *envie o comprovante aqui nesta conversa* para que possamos validar e liberar seu pedido mais rápido! ${e_rocket}`;
       } else {
-        msg += `\n\n${clock} Fique atento, te avisaremos por aqui assim que ele sair para entrega! ${motor}`;
+        msg += `\n\n${e_clock} Fique atento, te avisaremos por aqui assim que ele sair para entrega! ${e_motor}`;
       }
       
       return msg + footer;
@@ -51,13 +52,13 @@ export const OrdersTab: React.FC<OrdersTabProps> = ({ orders, onRefresh, restaur
 
     switch (type) {
       case 'paid':
-        return `${greeting}\n${money} *Pagamento Confirmado!* Recebemos seu pagamento do pedido *#${orderId}*. Seu pedido já está sendo preparado com muito carinho! ${fire}${footer}`;
+        return `${greeting}\n${e_money} *Pagamento Confirmado!* Recebemos seu pagamento do pedido *#${orderId}*. Seu pedido já está sendo preparado com muito carinho! ${e_fire}${footer}`;
       case 'shipped':
-        return `${greeting}\n${motor} *Pedido em Caminho!* Seu pedido *#${orderId}* acabou de sair para entrega. Prepare a mesa, logo chegamos aí! ${wind}${footer}`;
+        return `${greeting}\n${e_motor} *Pedido em Caminho!* Seu pedido *#${orderId}* acabou de sair para entrega. Prepare a mesa, logo chegamos aí! ${e_wind}${footer}`;
       case 'completed':
-        return `${greeting}\n${party} *Pedido Finalizado!* Seu pedido *#${orderId}* foi entregue com sucesso. Bom apetite e aproveite sua refeição! ${yum}${yum}${footer}`;
+        return `${greeting}\n${e_party} *Pedido Finalizado!* Seu pedido *#${orderId}* foi entregue com sucesso. Bom apetite e aproveite sua refeição! ${e_yum}${e_yum}${footer}`;
       case 'cancelled':
-        return `${greeting}\n${cancel} *Pedido Cancelado.* Lamentamos informar, mas seu pedido *#${orderId}* foi cancelado. Se tiver qualquer dúvida, estamos à disposição por aqui.${footer}`;
+        return `${greeting}\n${e_cancel} *Pedido Cancelado.* Lamentamos informar, mas seu pedido *#${orderId}* foi cancelado. Se tiver qualquer dúvida, estamos à disposição por aqui.${footer}`;
       default:
         return '';
     }

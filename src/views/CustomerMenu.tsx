@@ -175,43 +175,46 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
       setCart([]);
       setIsCheckoutOpen(false);
 
-      const bento = "\u{1F371}";
-      const userIcon = "\u{1F464}";
-      const phoneIcon = "\u{1F4DE}";
-      const pinIcon = "\u{1F4CD}";
-      const cartIcon = "\u{1F6D2}";
-      const checkIcon = "\u{2705}";
-      const motorIcon = "\u{1F6F5}";
-      const cashIcon = "\u{1F4B0}";
-      const cardIcon = "\u{1F4B3}";
-      const rocketIcon = "\u{1F680}";
-      const timeIcon = "\u{1F552}";
+      // Emojis usando pares substitutos para evitar erro de codificação
+      const e_bento = "\uD83C\uDF71";
+      const e_user = "\uD83D\uDC64";
+      const e_phone = "\uD83D\uDCDE";
+      const e_pin = "\uD83D\uDCCD";
+      const e_cart = "\uD83D\uDED2";
+      const e_check = "\u2705";
+      const e_motor = "\uD83D\uDEF5";
+      const e_money = "\uD83D\uDCB0";
+      const e_card = "\uD83D\uDCB3";
+      const e_rocket = "\uD83D\uDE80";
+      const e_time = "\u23F3";
+      const e_spark = "\u2728";
+      const e_bill = "\uD83D\uDCB5";
 
       const paymentLabel = {
-          'credit': `\u{1F4B3} Cartão de Crédito`,
-          'debit': `\u{1F4B3} Cartão de Débito`,
-          'pix': `\u{2728} Pix`,
-          'cash': `\u{1F4B5} Dinheiro`
+          'credit': `${e_card} Cartão de Crédito`,
+          'debit': `${e_card} Cartão de Débito`,
+          'pix': `${e_spark} Pix`,
+          'cash': `${e_bill} Dinheiro`
       }[customerInfo.payment];
 
       const changeInfo = (customerInfo.payment === 'cash' && customerInfo.changeFor) 
-          ? `\n\u{1F4B0} *Troco para:* R$ ${customerInfo.changeFor}` 
+          ? `\n${e_money} *Troco para:* R$ ${customerInfo.changeFor}` 
           : '';
           
       const pixReminder = customerInfo.payment === 'pix' 
-          ? `\n\n\u{1F4CC} *Atenção:* Vou enviar o comprovante do Pix em seguida! ${rocketIcon}` 
+          ? `\n\n${e_pin} *Atenção:* Vou enviar o comprovante do Pix em seguida! ${e_rocket}` 
           : '';
 
-      const message = `*${bento} Novo Pedido: ${restaurant.name}*\n\n` +
-          `${userIcon} *Cliente:* ${order.customerName}\n` +
-          `${phoneIcon} *Fone:* ${order.customerPhone}\n` +
-          `${pinIcon} *Endereço:* ${order.customerAddress}\n\n` +
-          `${cartIcon} *Itens do Pedido:*\n` + 
-          cart.map(i => `${checkIcon} ${i.quantity}x ${i.name} (R$ ${(i.price * i.quantity).toFixed(2)})`).join('\n') + 
-          `\n\n${motorIcon} *Taxa de Entrega:* R$ ${deliveryFee.toFixed(2)}` +
-          `\n${cashIcon} *Total Geral:* R$ ${order.total.toFixed(2)}` +
-          `\n${cardIcon} *Forma de Pagamento:* ${paymentLabel}${changeInfo}${pixReminder}\n\n` +
-          `${timeIcon} *Pedido realizado em:* ${new Date().toLocaleTimeString('pt-BR')}`;
+      const message = `*${e_bento} Novo Pedido: ${restaurant.name}*\n\n` +
+          `${e_user} *Cliente:* ${order.customerName}\n` +
+          `${e_phone} *Fone:* ${order.customerPhone}\n` +
+          `${e_pin} *Endereço:* ${order.customerAddress}\n\n` +
+          `${e_cart} *Itens do Pedido:*\n` + 
+          cart.map(i => `${e_check} ${i.quantity}x ${i.name} (R$ ${(i.price * i.quantity).toFixed(2)})`).join('\n') + 
+          `\n\n${e_motor} *Taxa de Entrega:* R$ ${deliveryFee.toFixed(2)}` +
+          `\n${e_money} *Total Geral:* R$ ${order.total.toFixed(2)}` +
+          `\n${e_card} *Forma de Pagamento:* ${paymentLabel}${changeInfo}${pixReminder}\n\n` +
+          `${e_time} *Pedido realizado em:* ${new Date().toLocaleTimeString('pt-BR')}`;
 
       window.open(`https://wa.me/${restaurant.phone}?text=${encodeURIComponent(message)}`, '_blank');
       setIsOrdersModalOpen(true);
@@ -232,7 +235,7 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
 
   return (
     <div className="bg-slate-50 min-h-screen pb-32 md:pb-12 font-sans">
-      {/* Header & Cover (keep existing code) */}
+      {/* Restante do componente permanece igual */}
       <div className="relative h-72 md:h-80 w-full overflow-hidden bg-slate-900">
          {coverImages.map((img, idx) => (
              <img key={idx} src={img} className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${idx === currentCoverIndex ? 'opacity-100' : 'opacity-0'}`} alt="cover" />
@@ -268,7 +271,6 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
       </div>
 
       <div className="max-w-4xl mx-auto px-4 md:px-6 pt-8">
-        {/* Filtros e Busca (keep existing code) */}
         <div className="sticky top-0 z-30 bg-slate-50 pb-4 pt-2">
             <div className="relative mb-4">
                 <Search className="absolute left-4 top-3.5 w-5 h-5 text-slate-400" />
@@ -287,7 +289,6 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
             </div>
         </div>
 
-        {/* Listagem de Itens (keep existing code) */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {filteredItems.map(item => (
                 <div key={item.id} className="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 flex gap-4 transition-all hover:shadow-md">
@@ -315,7 +316,6 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
         </div>
       </div>
 
-      {/* Botão Flutuante Sacola */}
       {cart.length > 0 && (
           <div className="fixed bottom-6 left-4 right-4 z-40 max-w-4xl mx-auto">
               <button onClick={handleOpenCheckout} className="w-full bg-slate-900 text-white p-4 rounded-2xl shadow-xl shadow-slate-900/20 flex justify-between items-center hover:bg-slate-800 transition-colors">
@@ -328,7 +328,6 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
           </div>
       )}
 
-      {/* Modal de Autenticação */}
       <Modal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} title={authMode === 'login' ? "Entrar na Conta" : "Criar Cadastro"}>
           <div className="space-y-4">
               <p className="text-xs text-slate-500 mb-2">Para finalizar seu pedido e garantir a entrega, precisamos te identificar.</p>
@@ -354,7 +353,6 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
           </div>
       </Modal>
 
-      {/* Modal de Checkout */}
       <Modal isOpen={isCheckoutOpen} onClose={() => setIsCheckoutOpen(false)} title="Finalizar Pedido">
           <div className="space-y-6">
               <div className="space-y-2">
@@ -433,7 +431,6 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
           </div>
       </Modal>
 
-      {/* Modal Meus Pedidos */}
       <Modal isOpen={isOrdersModalOpen} onClose={() => setIsOrdersModalOpen(false)} title="Meus Pedidos">
           <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
               {customerOrders.length > 0 ? customerOrders.map(order => {
