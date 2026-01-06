@@ -233,7 +233,6 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
     return res;
   }, [items, activeCategory, searchTerm]);
 
-  // Identifica se o item atual é uma bebida para mudar os textos
   const isBebida = useMemo(() => {
     if (!selectedItem) return false;
     const cat = categories.find(c => c.id === selectedItem.categoryId);
@@ -419,7 +418,7 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
           </div>
       )}
 
-      {/* MODAL DETALHE ITEM (PERSONALIZADO POR CATEGORIA) */}
+      {/* MODAL DETALHE ITEM */}
       <Modal isOpen={isItemDetailOpen} onClose={() => setIsItemDetailOpen(false)} title={selectedItem?.name || ''}>
           <div className="flex flex-col h-full max-h-[85vh]">
               <div className="flex-1 overflow-y-auto pr-1 space-y-4 max-h-[400px] mb-4 hide-scroll">
@@ -481,49 +480,69 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
       </Modal>
 
       <Modal isOpen={isCheckoutOpen} onClose={() => setIsCheckoutOpen(false)} title="Finalizar Pedido">
-          <div className="space-y-6">
+          <div className="space-y-4">
+              {/* SEÇÃO DE AGENDAMENTO COMPACTA */}
               {!isStoreOpen && (
-                  <div className="bg-amber-50 p-4 rounded-2xl border border-amber-200">
-                      <label className="block text-xs font-black uppercase text-amber-700 mb-2">Horário de Entrega</label>
-                      <input type="datetime-local" className="w-full bg-white border border-amber-200 rounded-xl px-4 py-3 outline-none" value={customerInfo.scheduledTime} onChange={e => setCustomerInfo({...customerInfo, scheduledTime: e.target.value})} />
+                  <div className="bg-amber-50/50 p-3 rounded-xl border border-amber-100">
+                      <div className="flex items-center gap-2 mb-2">
+                          <Clock className="w-3.5 h-3.5 text-amber-600" />
+                          <label className="text-[10px] font-black uppercase text-amber-700 tracking-wider">Horário de Entrega</label>
+                      </div>
+                      <input 
+                        type="datetime-local" 
+                        className="w-full bg-white border border-amber-200 rounded-lg px-3 py-2 outline-none text-sm font-medium focus:ring-2 focus:ring-amber-500/20" 
+                        value={customerInfo.scheduledTime} 
+                        onChange={e => setCustomerInfo({...customerInfo, scheduledTime: e.target.value})} 
+                      />
                   </div>
               )}
-              <div className="space-y-3">
+
+              <div className="space-y-2">
                   {cart.map((item, idx) => (
-                      <div key={idx} className="flex justify-between items-start py-2 border-b border-slate-50">
+                      <div key={idx} className="flex justify-between items-start py-2 border-b border-slate-50 last:border-0">
                           <div className="flex-1">
                               <div className="flex gap-2">
-                                  <span className="font-bold text-emerald-600">{item.quantity}x</span>
+                                  <span className="font-bold text-emerald-600 text-sm">{item.quantity}x</span>
                                   <span className="text-sm font-bold text-slate-700">{item.name}</span>
                               </div>
                               {item.selectedAddons?.map(a => (
-                                  <p key={a.id} className="text-[10px] text-slate-400 ml-6">+ {a.name}</p>
+                                  <p key={a.id} className="text-[10px] text-slate-400 ml-6 font-medium">+ {a.name}</p>
                               ))}
                           </div>
                           <div className="flex items-center gap-3">
-                              <span className="text-sm font-bold">R$ {((Number(item.price) + (item.selectedAddons?.reduce((a,b)=>a+b.price,0)||0)) * item.quantity).toFixed(2)}</span>
-                              <button onClick={() => removeFromCart(idx)} className="p-1 text-slate-300 hover:text-red-500"><X size={14} /></button>
+                              <span className="text-sm font-black text-slate-900">R$ {((Number(item.price) + (item.selectedAddons?.reduce((a,b)=>a+b.price,0)||0)) * item.quantity).toFixed(2)}</span>
+                              <button onClick={() => removeFromCart(idx)} className="p-1 text-slate-300 hover:text-red-500 transition-colors"><X size={14} /></button>
                           </div>
                       </div>
                   ))}
               </div>
-              <div className="space-y-4">
-                  <Input label="Endereço de Entrega" value={customerInfo.address} onChange={e => setCustomerInfo({...customerInfo, address: e.target.value})} />
-                  <div className="space-y-1.5">
-                      <label className="block text-sm font-semibold text-slate-700">Pagamento</label>
-                      <select className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl" value={customerInfo.payment} onChange={e => setCustomerInfo({...customerInfo, payment: e.target.value as any})}>
-                          <option value="pix">Pix</option>
-                          <option value="credit">Cartão Crédito</option>
-                          <option value="debit">Cartão Débito</option>
-                          <option value="cash">Dinheiro</option>
-                      </select>
+
+              <div className="space-y-3 pt-2">
+                  <div className="grid grid-cols-1 gap-3">
+                    <Input label="Endereço de Entrega" value={customerInfo.address} onChange={e => setCustomerInfo({...customerInfo, address: e.target.value})} />
+                    <div className="space-y-1.5">
+                        <label className="block text-xs font-bold text-slate-700 ml-1">Forma de Pagamento</label>
+                        <select className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500/20" value={customerInfo.payment} onChange={e => setCustomerInfo({...customerInfo, payment: e.target.value as any})}>
+                            <option value="pix">Pix</option>
+                            <option value="credit">Cartão Crédito</option>
+                            <option value="debit">Cartão Débito</option>
+                            <option value="cash">Dinheiro (Espécie)</option>
+                        </select>
+                    </div>
+                    {customerInfo.payment === 'cash' && <Input label="Troco para quanto?" type="number" value={customerInfo.changeFor} onChange={e => setCustomerInfo({...customerInfo, changeFor: e.target.value})} placeholder="Ex: 50" />}
                   </div>
-                  {customerInfo.payment === 'cash' && <Input label="Troco para quanto?" type="number" value={customerInfo.changeFor} onChange={e => setCustomerInfo({...customerInfo, changeFor: e.target.value})} />}
               </div>
-              <div className="bg-slate-50 p-4 rounded-2xl">
-                  <div className="flex justify-between text-lg font-black text-slate-900"><span>Total</span><span>R$ {cartTotal.toFixed(2)}</span></div>
+
+              <div className="bg-slate-900 p-4 rounded-2xl mt-2">
+                  <div className="flex justify-between text-white font-black">
+                      <span className="text-sm opacity-60">Total a Pagar</span>
+                      <span className="text-lg">R$ {cartTotal.toFixed(2)}</span>
+                  </div>
               </div>
-              <Button className="w-full bg-emerald-600 py-4" onClick={checkoutOrder}><Send className="w-5 h-5 mr-2" /> Enviar Pedido</Button>
+
+              <Button className="w-full bg-emerald-600 py-4 shadow-lg shadow-emerald-100" onClick={checkoutOrder}>
+                  <Send className="w-5 h-5 mr-2" /> Enviar Pedido via WhatsApp
+              </Button>
           </div>
       </Modal>
 
