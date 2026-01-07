@@ -562,8 +562,9 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
                       </div>
                   ))}
               </div>
-              <div className="space-y-3">
+              <div className="space-y-4">
                 <Input label="Onde Entregar?" value={customerInfo.address} onChange={e => setCustomerInfo({...customerInfo, address: e.target.value})} placeholder="Rua, Número, Bairro" />
+                
                 <div className="space-y-2">
                     <label className="block text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Pagamento</label>
                     <div className="grid grid-cols-2 gap-2">
@@ -573,8 +574,49 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
                             </button>
                         ))}
                     </div>
+
+                    {/* PIX KEY DISPLAY */}
+                    {customerInfo.payment === 'pix' && restaurant?.pixKey && (
+                        <div className="bg-emerald-50 p-4 rounded-3xl border border-emerald-100 mt-2 animate-in fade-in slide-in-from-top-2 duration-300">
+                            <p className="text-[10px] font-black uppercase text-emerald-700 tracking-widest mb-2 flex items-center gap-1">
+                                <QrCode size={12} /> Chave Pix para Pagamento
+                            </p>
+                            <div className="flex items-center justify-between bg-white p-3 rounded-2xl border border-emerald-100">
+                                <span className="text-xs font-bold text-slate-700 truncate mr-2">{restaurant.pixKey}</span>
+                                <button
+                                    onClick={() => {
+                                        navigator.clipboard.writeText(restaurant.pixKey!);
+                                        toast.success("Chave Pix copiada!");
+                                    }}
+                                    className="bg-emerald-600 text-white p-2 rounded-xl active:scale-90 transition-all"
+                                >
+                                    <Copy size={14} />
+                                </button>
+                            </div>
+                            <p className="text-[9px] text-emerald-600 mt-2 font-medium">* Realize o pagamento e envie o comprovante no WhatsApp.</p>
+                        </div>
+                    )}
+
+                    {/* CHANGE FOR CASH */}
+                    {customerInfo.payment === 'cash' && (
+                        <div className="mt-2 animate-in fade-in slide-in-from-top-2 duration-300">
+                            <Input
+                                label="Troco para quanto?"
+                                type="number"
+                                placeholder="Ex: 50.00"
+                                value={customerInfo.changeFor}
+                                onChange={e => setCustomerInfo({...customerInfo, changeFor: e.target.value})}
+                            />
+                        </div>
+                    )}
                 </div>
               </div>
+
+              <div className="bg-slate-50 p-4 rounded-3xl border border-slate-100 flex justify-between items-center">
+                  <span className="text-sm font-bold text-slate-500">Total Geral:</span>
+                  <span className="text-xl font-black text-slate-900">R$ {cartTotal.toFixed(2)}</span>
+              </div>
+
               <Button className="w-full bg-emerald-600 py-5 rounded-[24px] shadow-xl shadow-emerald-100 font-black uppercase tracking-widest text-xs" onClick={checkoutOrder}>
                   <Send className="w-5 h-5 mr-2" /> Enviar para o WhatsApp
               </Button>
