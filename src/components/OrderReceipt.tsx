@@ -40,8 +40,8 @@ export const OrderReceipt: React.FC<OrderReceiptProps> = ({ order, restaurantNam
       const addonsPrice = item.selectedAddons?.reduce((a, b) => a + b.price, 0) || 0;
       const itemTotal = (itemPriceWithoutAddons + addonsPrice) * item.quantity;
       
-      // Linha principal do item (truncada se o nome for muito longo para caber o preço)
-      receiptContent += padText(`${item.quantity}x ${item.name}`, formatCurrency(itemTotal), ' ') + '\n';
+      // Linha principal do item: prefixando com * para destaque visual
+      receiptContent += padText(`*${item.quantity}x ${item.name}`, formatCurrency(itemTotal), ' ') + '\n';
       
       // Acréscimos (indentados)
       item.selectedAddons?.forEach(addon => {
@@ -76,18 +76,18 @@ export const OrderReceipt: React.FC<OrderReceiptProps> = ({ order, restaurantNam
   // --------------------------------------------------
 
   return (
-    <div id={`receipt-${order.id}`} className="print-only hidden print:block bg-white text-black p-4 w-[80mm] font-mono text-sm leading-tight">
+    <div id={`receipt-${order.id}`} className="print-only hidden print:block bg-white text-black p-4 w-[80mm] font-mono text-base leading-tight">
       <div className="text-center pb-2 mb-2">
         {restaurantLogo && (
           <div className="flex justify-center mb-2">
-            {/* Aumentando o tamanho do logo para 320px */}
+            {/* Ajustando o tamanho do logo para 160px para evitar cortes em impressoras de 80mm */}
             <img 
               src={restaurantLogo} 
               alt="Logo" 
-              className="w-80 h-80 object-contain print-logo" 
+              className="w-40 h-40 object-contain print-logo" 
               style={{ 
-                width: '320px', 
-                height: '320px', 
+                width: '160px', 
+                height: '160px', 
                 filter: 'grayscale(100%) contrast(200%)',
                 display: 'block',
                 margin: '0 auto'
