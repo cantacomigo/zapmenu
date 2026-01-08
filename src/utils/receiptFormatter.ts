@@ -16,7 +16,12 @@ export const formatCurrency = (value: number) => {
  * @param maxWidth Largura máxima da linha (padrão: 40)
  */
 export const padText = (leftText: string, rightText: string, fillChar: string = ' ', maxWidth: number = MAX_WIDTH): string => {
-    const totalLength = leftText.length + rightText.length;
+    // Remove formatação de moeda para contar caracteres corretamente
+    const cleanLeft = leftText.replace(/R\$\s/g, '').trim();
+    const cleanRight = rightText.replace(/R\$\s/g, '').trim();
+    
+    const totalLength = cleanLeft.length + cleanRight.length;
+    
     if (totalLength >= maxWidth) {
         // Se for muito longo, apenas concatena e trunca se necessário
         return (leftText + ' ' + rightText).substring(0, maxWidth);

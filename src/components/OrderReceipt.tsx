@@ -17,12 +17,68 @@ export const OrderReceipt: React.FC<OrderReceiptProps> = ({ order, restaurantNam
   const changeForMatch = order.paymentDetails?.match(/Troco para R\$ ([\d\.]+)/);
   const changeFor = changeForMatch ? parseFloat(changeForMatch[1]) : 0;
 
+  // --- Geração do Conteúdo do Recibo em String ---
+  let receiptContent = '';
+
+  // 1. Informações do Cliente
+  receiptContent += separator + '\n';
+  receiptContent += `CLIENTE: ${order.customerName}\n`;
+  receiptContent += `FONE: ${order.customerPhone}\n`;
+  receiptContent += `ENTREGA: ${order.customerAddress}\n`;
+  if (order.scheduledTime) {
+      receiptContent += `AGENDADO: ${new Date(order.scheduledTime).toLocaleString('pt-BR')}\n`;
+  }
+  receiptContent += separator + '\n';
+
+  // 2. Itens
+  receiptContent += padText('ITEM', 'VALOR', ' ') + '\n';
+  receiptContent += separator + '\n';
+
+  order.items.forEach(item => {
+      const itemPriceWithoutAddons = Number(item.price);
+      const addonsPrice = item.selectedAddons?.reduce((a, b) => a + b.price, 0) || 0;
+      const itemTotal = (itemPriceWithoutAddons + addonsPrice) * item.quantity;
+      
+      // Linha principal do item
+      receiptContent += padText(`${item.quantity}x ${item.name}`, formatCurrency(itemTotal), ' ') + '\n';
+      
+      // Acréscimos (indentados)
+      item.selectedAddons?.forEach(addon => {
+          receiptContent += padText(`  + ${addon.name}`, formatCurrency(addon.price), ' ') + '\n';
+      });
+  });
+  receiptContent += separator + '\n';
+
+  // 3. Totais
+  receiptContent += padText('Subtotal:', formatCurrency(subtotal), ' ') + '\n';
+  if (deliveryFee > 0) {
+      receiptContent += padText('Taxa de Entrega:', formatCurrency(deliveryFee), ' ') + '\n';
+  }
+  receiptContent += doubleSeparator + '\n';
+  receiptContent += padText('TOTAL GERAL:', formatCurrency(order.total), ' ') + '\n';
+  
+  if (changeFor > 0) {
+      receiptContent += padText('Troco para:', formatCurrency(changeFor), ' ') + '\n';
+  }
+  receiptContent += separator + '\n';
+
+  // 4. Pagamento e Rodapé
+  receiptContent += `PAGAMENTO: ${order.paymentMethod.toUpperCase()}\n`;
+  if (order.paymentDetails && order.paymentMethod !== 'cash') {
+      receiptContent += `${order.paymentDetails}\n`;
+  }
+  receiptContent += '\n';
+  receiptContent += 'ZapMenu - Sistema de Pedidos Online\n';
+  receiptContent += separator + '\n';
+  receiptContent += 'OBRIGADO PELA PREFERENCIA!\n';
+  // --------------------------------------------------
+
   return (
     <div id={`receipt-${order.id}`} className="print-only hidden print:block bg-white text-black p-4 w-[80mm] font-mono text-sm leading-tight">
       <div className="text-center pb-2 mb-2">
         {restaurantLogo && (
           <div className="flex justify-center mb-2">
-            {/* Otimiza para impressão térmica P&B e garante tamanho fixo */}
+            {/* Estilo para otimizar a impressão P&B do logo */}
             <img 
               src={restaurantLogo} 
               alt="Logo" 
@@ -40,75 +96,12 @@ export const OrderReceipt: React.FC<OrderReceiptProps> = ({ order, restaurantNam
         <h2 className="text-lg font-bold uppercase">{restaurantName}</h2>
         <p>PEDIDO #{order.id.slice(-6).toUpperCase()}</p>
         <p>{new Date(order.createdAt).toLocaleString('pt-BR')}</p>
-        {order.scheduledTime && (
-            <p className="mt-1">AGENDADO PARA: {new Date(order.scheduledTime).toLocaleString('pt-BR')}</p>
-        )}
       </div>
-      <pre className="text-center">{separator}</pre>
-
-      <div className="mb-2">
-        <pre>
-          <strong>CLIENTE:</strong> {order.customerName}
-          {'\n'}
-          <strong>FONE:</strong> {order.customerPhone}
-          {'\n'}
-          <strong>ENTREGA:</strong> {order.customerAddress}
-        </pre>
-      </div>
-      <pre className="text-center">{separator}</pre>
-
-      <div className="py-2 mb-2">
-        <pre className="font-bold mb-1">
-          {padText('ITEM', 'VALOR', ' ')}
-        </pre>
-        {order.items.map((item, idx) => {
-            const itemPriceWithoutAddons = Number(item.price);
-            const addonsPrice = item.selectedAddons?.reduce((a, b) => a + b.price, 0) || 0;
-            const itemTotal = (itemPriceWithoutAddons + addonsPrice) * item.quantity;
-            
-            return (
-                <div key={idx} className="py-0.5">
-                    <pre>
-                        {padText(`${item.quantity}x ${item.name}`, formatCurrency(itemTotal), ' ')}
-                    </pre>
-                    {item.selectedAddons?.map(addon => (
-                        <pre key={addon.id} className="text-xs pl-4">
-                            {padText(`+ ${addon.name}`, formatCurrency(addon.price), ' ')}
-                        </pre>
-                    ))}
-                </div>
-            );
-        })}
-      </div>
-      <pre className="text-center">{separator}</pre>
-
-      <div className="space-y-1 mb-2">
-        <pre>
-          {padText('Subtotal:', formatCurrency(subtotal), ' ')}
-        </pre>
-        {deliveryFee > 0 && (
-            <pre>
-                {padText('Taxa de Entrega:', formatCurrency(deliveryFee), ' ')}
-            </pre>
-        )}
-        <pre className="text-center">{doubleSeparator}</pre>
-        <pre className="font-bold text-base pt-1">
-          {padText('TOTAL GERAL:', formatCurrency(order.total), ' ')}
-        </pre>
-        
-        {changeFor > 0 && (
-            <pre className="text-sm pt-1">
-                {padText('Troco para:', formatCurrency(changeFor), ' ')}
-            </pre>
-        )}
-      </div>
-
-      <pre className="text-center">{separator}</pre>
-      <div className="pt-2 text-center">
-        <p><strong>PAGAMENTO:</strong> {order.paymentMethod.toUpperCase()}</p>
-        {order.paymentDetails && order.paymentMethod !== 'cash' && <p className="text-xs">{order.paymentDetails}</p>}
-        <p className="mt-4 text-[10px]">ZapMenu - Sistema de Pedidos Online</p>
-      </div>
+      
+      {/* O corpo principal do recibo é uma única tag <pre> para garantir o alinhamento fixo de caracteres */}
+      <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>
+        {receiptContent}
+      </pre>
     </div>
   );
 };
