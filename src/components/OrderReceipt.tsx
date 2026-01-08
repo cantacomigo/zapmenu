@@ -78,11 +78,12 @@ export const OrderReceipt: React.FC<OrderReceiptProps> = ({ order, restaurantNam
       <div className="text-center pb-2 mb-2">
         {restaurantLogo && (
           <div className="flex justify-center mb-2">
-            {/* Estilo para otimizar a impressão P&B do logo */}
+            {/* Estilo para otimizar a impressão P&B do logo. 
+                Adicionamos 'print-logo' para garantir visibilidade e filtro. */}
             <img 
               src={restaurantLogo} 
               alt="Logo" 
-              className="w-20 h-20 object-contain" 
+              className="w-20 h-20 object-contain print-logo" 
               style={{ 
                 width: '80px', 
                 height: '80px', 

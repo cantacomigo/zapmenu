@@ -31,6 +31,13 @@
     /* Força fonte monoespaçada para alinhamento de recibo */
     font-family: 'Courier New', Courier, monospace !important;
   }
+  
+  /* Garante que a imagem do logo seja impressa */
+  .print-logo {
+    visibility: visible !important;
+    display: block !important;
+  }
+
   @page {
     margin: 0;
     size: auto;
