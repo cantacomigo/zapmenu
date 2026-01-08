@@ -19,7 +19,7 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
   const [currentCoverIndex, setCurrentCoverIndex] = useState(0);
   const [currentUser, setCurrentUser] = useState<CustomerUser | null>(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
+  const [authMode, setAuthMode, ] = useState<'login' | 'register'>('login');
   const [authForm, setAuthForm] = useState({ name: '', phone: '', address: '', password: '' });
 
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
@@ -31,7 +31,7 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
   const [tempAddons, setTempAddons] = useState<ProductAddon[]>([]);
 
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
-  const [showInstallBanner, setShowInstallBanner] = useState(false);
+  // Removido showInstallBanner
   const [isIOS, setIsIOS] = useState(false);
 
   const categoryRef = useRef<HTMLDivElement>(null);
@@ -104,18 +104,13 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
     const handleBeforeInstallPrompt = (e: any) => {
         e.preventDefault();
         setDeferredPrompt(e);
-        setShowInstallBanner(true);
+        // Removido setShowInstallBanner(true);
     };
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
 
-    const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
     const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
     setIsIOS(isIOSDevice);
     
-    if (!isStandalone) {
-        setShowInstallBanner(true);
-    }
-
     const storedUser = localStorage.getItem('zapmenu_current_user');
     if (storedUser) {
         try {
@@ -147,7 +142,7 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
       const { outcome } = await deferredPrompt.userChoice;
       if (outcome === 'accepted') {
           setDeferredPrompt(null);
-          setShowInstallBanner(false);
+          // Removido setShowInstallBanner(false);
       }
   };
 
@@ -332,26 +327,7 @@ export const CustomerMenu: React.FC<{ slug: string; onBack: () => void }> = ({ s
 
   return (
     <div className="bg-slate-50 min-h-screen pb-32 md:pb-12 font-sans select-none">
-      {/* PWA Install Banner */}
-      {showInstallBanner && (
-          <div className="fixed top-20 left-4 right-4 z-[100] bg-slate-900 text-white p-4 rounded-3xl shadow-2xl animate-in slide-in-from-top duration-700 flex items-center justify-between border border-white/10 backdrop-blur-md">
-              <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-lg overflow-hidden shrink-0">
-                      <img src={restaurant?.logo} className="w-full h-full object-cover" alt="Logo" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                      <p className="text-xs font-black uppercase tracking-widest leading-none mb-1">App {restaurant?.name || 'ZapMenu'}</p>
-                      <p className="text-[10px] text-slate-400 font-medium truncate">Instale para pedir em 1 clique!</p>
-                  </div>
-              </div>
-              <div className="flex items-center gap-2 ml-4">
-                  <button onClick={() => setShowInstallBanner(false)} className="p-2 text-slate-500"><X size={18} /></button>
-                  <button onClick={handleInstallApp} className="bg-emerald-600 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest active:scale-95 transition-all">
-                      {isIOS ? 'Como?' : 'Baixar'}
-                  </button>
-              </div>
-          </div>
-      )}
+      {/* PWA Install Banner (REMOVED) */}
 
       {/* Hero Header */}
       <div className="relative h-64 md:h-80 w-full overflow-hidden bg-slate-900">
