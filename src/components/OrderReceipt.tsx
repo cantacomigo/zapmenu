@@ -25,11 +25,12 @@ export const OrderReceipt: React.FC<OrderReceiptProps> = ({ order, restaurantNam
       <div className="text-center border-b border-dashed border-black pb-2 mb-2">
         {restaurantLogo && (
           <div className="flex justify-center mb-2">
+            {/* Aplica filtro para otimizar para impressão térmica P&B */}
             <img 
               src={restaurantLogo} 
               alt="Logo" 
               className="w-20 h-20 object-contain" 
-              style={{ filter: 'grayscale(100%) contrast(200%)' }} // Otimiza para impressão térmica P&B
+              style={{ filter: 'grayscale(100%) contrast(200%)' }} 
             />
           </div>
         )}
