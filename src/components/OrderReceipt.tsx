@@ -29,12 +29,19 @@ export const OrderReceipt: React.FC<OrderReceiptProps> = ({ order, restaurantNam
       <div className="text-center pb-2 mb-2">
         {restaurantLogo && (
           <div className="flex justify-center mb-2">
-            {/* Otimiza para impressão térmica P&B */}
+            {/* Otimiza para impressão térmica P&B e garante tamanho fixo */}
             <img 
               src={restaurantLogo} 
               alt="Logo" 
               className="w-20 h-20 object-contain" 
-              style={{ filter: 'grayscale(100%) contrast(200%)' }} 
+              style={{ 
+                width: '80px', 
+                height: '80px', 
+                filter: 'grayscale(100%) contrast(200%)',
+                // Adiciona um estilo para garantir que a imagem seja tratada como bloco
+                display: 'block',
+                margin: '0 auto'
+              }} 
             />
           </div>
         )}
@@ -60,8 +67,10 @@ export const OrderReceipt: React.FC<OrderReceiptProps> = ({ order, restaurantNam
           <span>VALOR</span>
         </div>
         {order.items.map((item, idx) => {
-            const itemPriceWithAddons = Number(item.price) + (item.selectedAddons?.reduce((a, b) => a + b.price, 0) || 0);
-            const itemTotal = itemPriceWithAddons * item.quantity;
+            const itemPriceWithoutAddons = Number(item.price);
+            const addonsPrice = item.selectedAddons?.reduce((a, b) => a + b.price, 0) || 0;
+            const itemTotal = (itemPriceWithoutAddons + addonsPrice) * item.quantity;
+            
             return (
                 <div key={idx} className="py-0.5">
                     <div className="flex justify-between">

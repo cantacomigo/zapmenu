@@ -72,27 +72,12 @@ export const OrdersTab: React.FC<OrdersTabProps> = ({ orders, onRefresh, restaur
   const handlePrint = (order: Order) => {
     setPrintingOrder(order);
     
-    const printAction = () => {
+    // Simplificando a lógica de impressão para evitar problemas de carregamento de imagem
+    // A imagem deve ser carregada pelo navegador antes de chamar a impressão.
+    setTimeout(() => {
         window.print();
         setPrintingOrder(null);
-    };
-
-    if (restaurantLogo) {
-        const img = new Image();
-        img.onload = () => {
-            // Imagem carregada, espera um pequeno tempo para renderização do DOM
-            setTimeout(printAction, 100); 
-        };
-        img.onerror = () => {
-            // Falha ao carregar, imprime sem a logo
-            toast.error("Falha ao carregar logo. Imprimindo sem imagem.");
-            printAction();
-        };
-        img.src = restaurantLogo;
-    } else {
-        // Sem logo, imprime imediatamente
-        printAction();
-    }
+    }, 300); 
   };
 
   const handleSendAction = async (order: Order, type: Order['status'] | 'confirm_receipt') => {
