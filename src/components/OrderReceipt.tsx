@@ -80,14 +80,14 @@ export const OrderReceipt: React.FC<OrderReceiptProps> = ({ order, restaurantNam
       <div className="text-center pb-2 mb-2">
         {restaurantLogo && (
           <div className="flex justify-center mb-2">
-            {/* Aumentando o tamanho do logo para 160px */}
+            {/* Aumentando o tamanho do logo para 320px */}
             <img 
               src={restaurantLogo} 
               alt="Logo" 
-              className="w-40 h-40 object-contain print-logo" 
+              className="w-80 h-80 object-contain print-logo" 
               style={{ 
-                width: '160px', 
-                height: '160px', 
+                width: '320px', 
+                height: '320px', 
                 filter: 'grayscale(100%) contrast(200%)',
                 display: 'block',
                 margin: '0 auto'
