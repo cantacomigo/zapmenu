@@ -22,14 +22,24 @@ export const OrdersTab: React.FC<OrdersTabProps> = ({ orders, onRefresh, restaur
   const handlePrint = (orderId: string) => {
     const receiptElement = document.getElementById(`receipt-${orderId}`);
     if (receiptElement) {
-        // Esconde todo o corpo, exceto o recibo
+        // 1. Salva o estado original do corpo
         const originalBody = document.body.innerHTML;
         const printContent = receiptElement.outerHTML;
         
+        // 2. Substitui o corpo pelo conteúdo de impressão
         document.body.innerHTML = printContent;
+        
+        // 3. Chama a impressão
         window.print();
+        
+        // 4. Restaura o corpo original
         document.body.innerHTML = originalBody;
-        window.location.reload(); // Recarrega para restaurar o estado da aplicação
+        
+        // 5. Força o React a re-renderizar o componente (sem recarregar a página)
+        onRefresh(); 
+        
+        // Nota: O navegador pode precisar de um pequeno atraso para restaurar o foco e o scroll,
+        // mas remover o reload é a chave para manter o estado do React.
     } else {
         toast.error("Erro ao gerar recibo para impressão.");
     }
