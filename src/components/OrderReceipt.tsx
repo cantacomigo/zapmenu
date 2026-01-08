@@ -1,19 +1,12 @@
 import React from 'react';
 import { Order } from '../types';
+import { formatCurrency, padText, separator, doubleSeparator } from '../utils/receiptFormatter';
 
 interface OrderReceiptProps {
   order: Order;
   restaurantName: string;
   restaurantLogo?: string;
 }
-
-const formatCurrency = (value: number) => {
-    // Garante que o valor seja tratado como número e formatado corretamente
-    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(value));
-};
-
-const separator = '----------------------------------------';
-const doubleSeparator = '========================================';
 
 export const OrderReceipt: React.FC<OrderReceiptProps> = ({ order, restaurantName, restaurantLogo }) => {
   const subtotal = order.items.reduce((acc, item) => {
@@ -38,7 +31,6 @@ export const OrderReceipt: React.FC<OrderReceiptProps> = ({ order, restaurantNam
                 width: '80px', 
                 height: '80px', 
                 filter: 'grayscale(100%) contrast(200%)',
-                // Adiciona um estilo para garantir que a imagem seja tratada como bloco
                 display: 'block',
                 margin: '0 auto'
               }} 
@@ -52,20 +44,23 @@ export const OrderReceipt: React.FC<OrderReceiptProps> = ({ order, restaurantNam
             <p className="mt-1">AGENDADO PARA: {new Date(order.scheduledTime).toLocaleString('pt-BR')}</p>
         )}
       </div>
-      <p className="text-center">{separator}</p>
+      <pre className="text-center">{separator}</pre>
 
       <div className="mb-2">
-        <p><strong>CLIENTE:</strong> {order.customerName}</p>
-        <p><strong>FONE:</strong> {order.customerPhone}</p>
-        <p className="whitespace-pre-wrap"><strong>ENTREGA:</strong> {order.customerAddress}</p>
+        <pre>
+          <strong>CLIENTE:</strong> {order.customerName}
+          {'\n'}
+          <strong>FONE:</strong> {order.customerPhone}
+          {'\n'}
+          <strong>ENTREGA:</strong> {order.customerAddress}
+        </pre>
       </div>
-      <p className="text-center">{separator}</p>
+      <pre className="text-center">{separator}</pre>
 
       <div className="py-2 mb-2">
-        <div className="flex justify-between font-bold mb-1">
-          <span>ITEM</span>
-          <span>VALOR</span>
-        </div>
+        <pre className="font-bold mb-1">
+          {padText('ITEM', 'VALOR', ' ')}
+        </pre>
         {order.items.map((item, idx) => {
             const itemPriceWithoutAddons = Number(item.price);
             const addonsPrice = item.selectedAddons?.reduce((a, b) => a + b.price, 0) || 0;
@@ -73,47 +68,42 @@ export const OrderReceipt: React.FC<OrderReceiptProps> = ({ order, restaurantNam
             
             return (
                 <div key={idx} className="py-0.5">
-                    <div className="flex justify-between">
-                        <span className="flex-1">{item.quantity}x {item.name}</span>
-                        <span>{formatCurrency(itemTotal)}</span>
-                    </div>
+                    <pre>
+                        {padText(`${item.quantity}x ${item.name}`, formatCurrency(itemTotal), ' ')}
+                    </pre>
                     {item.selectedAddons?.map(addon => (
-                        <p key={addon.id} className="text-xs pl-4">
-                            + {addon.name} ({formatCurrency(addon.price)})
-                        </p>
+                        <pre key={addon.id} className="text-xs pl-4">
+                            {padText(`+ ${addon.name}`, formatCurrency(addon.price), ' ')}
+                        </pre>
                     ))}
                 </div>
             );
         })}
       </div>
-      <p className="text-center">{separator}</p>
+      <pre className="text-center">{separator}</pre>
 
-      <div className="space-y-1 text-right mb-2">
-        <div className="flex justify-between">
-          <span>Subtotal:</span>
-          <span>{formatCurrency(subtotal)}</span>
-        </div>
+      <div className="space-y-1 mb-2">
+        <pre>
+          {padText('Subtotal:', formatCurrency(subtotal), ' ')}
+        </pre>
         {deliveryFee > 0 && (
-            <div className="flex justify-between">
-                <span>Taxa de Entrega:</span>
-                <span>{formatCurrency(deliveryFee)}</span>
-            </div>
+            <pre>
+                {padText('Taxa de Entrega:', formatCurrency(deliveryFee), ' ')}
+            </pre>
         )}
-        <p className="text-center">{doubleSeparator}</p>
-        <div className="flex justify-between font-bold text-base pt-1">
-          <span>TOTAL GERAL:</span>
-          <span>{formatCurrency(order.total)}</span>
-        </div>
+        <pre className="text-center">{doubleSeparator}</pre>
+        <pre className="font-bold text-base pt-1">
+          {padText('TOTAL GERAL:', formatCurrency(order.total), ' ')}
+        </pre>
         
         {changeFor > 0 && (
-            <div className="flex justify-between text-sm pt-1">
-                <span>Troco para:</span>
-                <span>{formatCurrency(changeFor)}</span>
-            </div>
+            <pre className="text-sm pt-1">
+                {padText('Troco para:', formatCurrency(changeFor), ' ')}
+            </pre>
         )}
       </div>
 
-      <p className="text-center">{separator}</p>
+      <pre className="text-center">{separator}</pre>
       <div className="pt-2 text-center">
         <p><strong>PAGAMENTO:</strong> {order.paymentMethod.toUpperCase()}</p>
         {order.paymentDetails && order.paymentMethod !== 'cash' && <p className="text-xs">{order.paymentDetails}</p>}
