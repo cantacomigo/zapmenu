@@ -80,14 +80,14 @@ export const OrderReceipt: React.FC<OrderReceiptProps> = ({ order, restaurantNam
       <div className="text-center pb-2 mb-2">
         {restaurantLogo && (
           <div className="flex justify-center mb-2">
-            {/* Garantindo que a imagem seja um elemento de bloco e tenha o filtro P&B para impressão térmica */}
+            {/* Aumentando o tamanho do logo para 120px */}
             <img 
               src={restaurantLogo} 
               alt="Logo" 
-              className="w-20 h-20 object-contain print-logo" 
+              className="w-30 h-30 object-contain print-logo" 
               style={{ 
-                width: '80px', 
-                height: '80px', 
+                width: '120px', 
+                height: '120px', 
                 filter: 'grayscale(100%) contrast(200%)',
                 display: 'block',
                 margin: '0 auto'
