@@ -8,8 +8,12 @@ interface OrderReceiptProps {
 }
 
 const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+    // Garante que o valor seja tratado como número e formatado corretamente
+    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(value));
 };
+
+const separator = '----------------------------------------';
+const doubleSeparator = '========================================';
 
 export const OrderReceipt: React.FC<OrderReceiptProps> = ({ order, restaurantName, restaurantLogo }) => {
   const subtotal = order.items.reduce((acc, item) => {
@@ -22,10 +26,10 @@ export const OrderReceipt: React.FC<OrderReceiptProps> = ({ order, restaurantNam
 
   return (
     <div id={`receipt-${order.id}`} className="print-only hidden print:block bg-white text-black p-4 w-[80mm] font-mono text-sm leading-tight">
-      <div className="text-center border-b border-dashed border-black pb-2 mb-2">
+      <div className="text-center pb-2 mb-2">
         {restaurantLogo && (
           <div className="flex justify-center mb-2">
-            {/* Aplica filtro para otimizar para impressão térmica P&B */}
+            {/* Otimiza para impressão térmica P&B */}
             <img 
               src={restaurantLogo} 
               alt="Logo" 
@@ -41,20 +45,23 @@ export const OrderReceipt: React.FC<OrderReceiptProps> = ({ order, restaurantNam
             <p className="mt-1">AGENDADO PARA: {new Date(order.scheduledTime).toLocaleString('pt-BR')}</p>
         )}
       </div>
+      <p className="text-center">{separator}</p>
 
       <div className="mb-2">
         <p><strong>CLIENTE:</strong> {order.customerName}</p>
         <p><strong>FONE:</strong> {order.customerPhone}</p>
         <p className="whitespace-pre-wrap"><strong>ENTREGA:</strong> {order.customerAddress}</p>
       </div>
+      <p className="text-center">{separator}</p>
 
-      <div className="border-y border-dashed border-black py-2 mb-2">
+      <div className="py-2 mb-2">
         <div className="flex justify-between font-bold mb-1">
           <span>ITEM</span>
           <span>VALOR</span>
         </div>
         {order.items.map((item, idx) => {
-            const itemTotal = (Number(item.price) + (item.selectedAddons?.reduce((a, b) => a + b.price, 0) || 0)) * item.quantity;
+            const itemPriceWithAddons = Number(item.price) + (item.selectedAddons?.reduce((a, b) => a + b.price, 0) || 0);
+            const itemTotal = itemPriceWithAddons * item.quantity;
             return (
                 <div key={idx} className="py-0.5">
                     <div className="flex justify-between">
@@ -70,6 +77,7 @@ export const OrderReceipt: React.FC<OrderReceiptProps> = ({ order, restaurantNam
             );
         })}
       </div>
+      <p className="text-center">{separator}</p>
 
       <div className="space-y-1 text-right mb-2">
         <div className="flex justify-between">
@@ -82,7 +90,8 @@ export const OrderReceipt: React.FC<OrderReceiptProps> = ({ order, restaurantNam
                 <span>{formatCurrency(deliveryFee)}</span>
             </div>
         )}
-        <div className="flex justify-between font-bold text-base border-t border-black pt-1">
+        <p className="text-center">{doubleSeparator}</p>
+        <div className="flex justify-between font-bold text-base pt-1">
           <span>TOTAL GERAL:</span>
           <span>{formatCurrency(order.total)}</span>
         </div>
@@ -95,7 +104,8 @@ export const OrderReceipt: React.FC<OrderReceiptProps> = ({ order, restaurantNam
         )}
       </div>
 
-      <div className="border-t border-dashed border-black pt-2 text-center">
+      <p className="text-center">{separator}</p>
+      <div className="pt-2 text-center">
         <p><strong>PAGAMENTO:</strong> {order.paymentMethod.toUpperCase()}</p>
         {order.paymentDetails && order.paymentMethod !== 'cash' && <p className="text-xs">{order.paymentDetails}</p>}
         <p className="mt-4 text-[10px]">ZapMenu - Sistema de Pedidos Online</p>

@@ -71,10 +71,11 @@ export const OrdersTab: React.FC<OrdersTabProps> = ({ orders, onRefresh, restaur
 
   const handlePrint = (order: Order) => {
     setPrintingOrder(order);
+    // Aumenta o tempo de espera para garantir o carregamento da imagem
     setTimeout(() => {
         window.print();
         setPrintingOrder(null);
-    }, 100);
+    }, 500); // 500ms de atraso
   };
 
   const handleSendAction = async (order: Order, type: Order['status'] | 'confirm_receipt') => {
