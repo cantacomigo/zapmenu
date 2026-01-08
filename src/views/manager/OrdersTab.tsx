@@ -2,8 +2,9 @@ import React, { useState, useMemo } from 'react';
 import { db } from '../../services/db';
 import { Order } from '../../types';
 import { Card, Badge, Button, Input } from '../../components/ui';
-import { MessageSquare, CheckCircle2, Truck, XCircle, CreditCard, Search, Filter, CheckCheck, Clock, Calendar, RefreshCw, MapPin, ClipboardList, SendHorizontal, BellRing } from 'lucide-react';
+import { MessageSquare, CheckCircle2, Truck, XCircle, CreditCard, Search, Filter, CheckCheck, Clock, Calendar, RefreshCw, MapPin, ClipboardList, SendHorizontal, BellRing, Printer } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { OrderReceipt } from '../../components/OrderReceipt';
 
 interface OrdersTabProps {
   orders: Order[];
@@ -17,6 +18,22 @@ type StatusFilter = 'all' | Order['status'] | 'scheduled';
 export const OrdersTab: React.FC<OrdersTabProps> = ({ orders, onRefresh, restaurantName, restaurantLogo }) => {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [searchTerm, setSearchTerm] = useState('');
+
+  const handlePrint = (orderId: string) => {
+    const receiptElement = document.getElementById(`receipt-${orderId}`);
+    if (receiptElement) {
+        // Esconde todo o corpo, exceto o recibo
+        const originalBody = document.body.innerHTML;
+        const printContent = receiptElement.outerHTML;
+        
+        document.body.innerHTML = printContent;
+        window.print();
+        document.body.innerHTML = originalBody;
+        window.location.reload(); // Recarrega para restaurar o estado da aplicação
+    } else {
+        toast.error("Erro ao gerar recibo para impressão.");
+    }
+  };
 
   const getWhatsAppMessage = (order: Order, type: Order['status'] | 'confirm_receipt') => {
     const orderId = order.id.slice(-6).toUpperCase();
@@ -109,6 +126,18 @@ export const OrdersTab: React.FC<OrdersTabProps> = ({ orders, onRefresh, restaur
 
   return (
     <div className="space-y-4 md:space-y-6">
+      {/* Renderiza os recibos escondidos para impressão */}
+      <div className="hidden">
+          {orders.map(order => (
+              <OrderReceipt 
+                  key={`receipt-${order.id}`} 
+                  order={order} 
+                  restaurantName={restaurantName || ''} 
+                  restaurantLogo={restaurantLogo} 
+              />
+          ))}
+      </div>
+
       <div className="flex justify-between items-center px-1">
         <h2 className="text-xl md:text-2xl font-black text-slate-900 tracking-tight">Pedidos</h2>
         <button onClick={onRefresh} className="p-2 bg-emerald-50 text-emerald-600 rounded-xl active:rotate-180 transition-all duration-500 shadow-sm">
@@ -222,6 +251,14 @@ export const OrdersTab: React.FC<OrdersTabProps> = ({ orders, onRefresh, restaur
                         >
                             <MessageSquare size={14} /> Chat
                         </button>
+                        
+                        <button 
+                            onClick={() => handlePrint(order.id)}
+                            className="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 rounded-xl text-[10px] font-black uppercase tracking-tight hover:bg-blue-100 transition-all"
+                        >
+                            <Printer size={14} /> Ticket
+                        </button>
+
                         <div className="flex-1"></div>
                         <button 
                             onClick={() => handleSendAction(order, 'cancelled')}
