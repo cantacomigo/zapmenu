@@ -120,7 +120,11 @@ export const OrdersTab: React.FC<OrdersTabProps> = ({ orders, onRefresh, restaur
   return (
     <div className="space-y-4 md:space-y-6">
       {printingOrder && (
-          <OrderReceipt order={printingOrder} restaurantName={restaurantName || 'ZapMenu'} restaurantLogo={restaurantLogo} />
+          <OrderReceipt 
+            order={printingOrder} 
+            restaurantName={restaurantName || 'ZapMenu'} 
+            restaurantLogo={restaurantLogo} 
+          />
       )}
 
       <div className="flex justify-between items-center px-1">
