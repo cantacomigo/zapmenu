@@ -22,11 +22,12 @@ export const OrderReceipt: React.FC<OrderReceiptProps> = ({ order, restaurantNam
 
   // 1. Informações do Cliente
   receiptContent += separator + '\n';
-  receiptContent += `CLIENTE: ${order.customerName}\n`;
-  receiptContent += `FONE: ${order.customerPhone}\n`;
-  receiptContent += `ENTREGA: ${order.customerAddress}\n`;
+  // Usando padText com string vazia para garantir que a linha tenha exatamente 40 caracteres, truncando se necessário.
+  receiptContent += padText(`CLIENTE: ${order.customerName}`, '', ' ') + '\n';
+  receiptContent += padText(`FONE: ${order.customerPhone}`, '', ' ') + '\n';
+  receiptContent += padText(`ENTREGA: ${order.customerAddress}`, '', ' ') + '\n';
   if (order.scheduledTime) {
-      receiptContent += `AGENDADO: ${new Date(order.scheduledTime).toLocaleString('pt-BR')}\n`;
+      receiptContent += padText(`AGENDADO: ${new Date(order.scheduledTime).toLocaleString('pt-BR')}`, '', ' ') + '\n';
   }
   receiptContent += separator + '\n';
 
@@ -39,11 +40,12 @@ export const OrderReceipt: React.FC<OrderReceiptProps> = ({ order, restaurantNam
       const addonsPrice = item.selectedAddons?.reduce((a, b) => a + b.price, 0) || 0;
       const itemTotal = (itemPriceWithoutAddons + addonsPrice) * item.quantity;
       
-      // Linha principal do item
+      // Linha principal do item (truncada se o nome for muito longo para caber o preço)
       receiptContent += padText(`${item.quantity}x ${item.name}`, formatCurrency(itemTotal), ' ') + '\n';
       
       // Acréscimos (indentados)
       item.selectedAddons?.forEach(addon => {
+          // Usando padText para garantir alinhamento do preço do adicional
           receiptContent += padText(`  + ${addon.name}`, formatCurrency(addon.price), ' ') + '\n';
       });
   });
@@ -68,7 +70,7 @@ export const OrderReceipt: React.FC<OrderReceiptProps> = ({ order, restaurantNam
       receiptContent += `${order.paymentDetails}\n`;
   }
   receiptContent += '\n';
-  receiptContent += `${restaurantName} - Pedido Online\n`; // Alterado aqui
+  receiptContent += `${restaurantName} - Pedido Online\n`;
   receiptContent += separator + '\n';
   receiptContent += 'OBRIGADO PELA PREFERENCIA!\n';
   // --------------------------------------------------
@@ -79,7 +81,7 @@ export const OrderReceipt: React.FC<OrderReceiptProps> = ({ order, restaurantNam
         {restaurantLogo && (
           <div className="flex justify-center mb-2">
             {/* Estilo para otimizar a impressão P&B do logo. 
-                Adicionamos 'print-logo' para garantir visibilidade e filtro. */}
+                A classe 'print-logo' no CSS garante a visibilidade. */}
             <img 
               src={restaurantLogo} 
               alt="Logo" 
@@ -99,8 +101,8 @@ export const OrderReceipt: React.FC<OrderReceiptProps> = ({ order, restaurantNam
         <p>{new Date(order.createdAt).toLocaleString('pt-BR')}</p>
       </div>
       
-      {/* O corpo principal do recibo é uma única tag <pre> para garantir o alinhamento fixo de caracteres */}
-      <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>
+      {/* Removendo wordBreak: 'break-all' para evitar quebras indesejadas em fontes monoespaçadas */}
+      <pre style={{ whiteSpace: 'pre-wrap' }}>
         {receiptContent}
       </pre>
     </div>
