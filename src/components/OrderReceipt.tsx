@@ -80,8 +80,7 @@ export const OrderReceipt: React.FC<OrderReceiptProps> = ({ order, restaurantNam
       <div className="text-center pb-2 mb-2">
         {restaurantLogo && (
           <div className="flex justify-center mb-2">
-            {/* Estilo para otimizar a impressão P&B do logo. 
-                A classe 'print-logo' no CSS garante a visibilidade. */}
+            {/* Garantindo que a imagem seja um elemento de bloco e tenha o filtro P&B */}
             <img 
               src={restaurantLogo} 
               alt="Logo" 
@@ -101,7 +100,7 @@ export const OrderReceipt: React.FC<OrderReceiptProps> = ({ order, restaurantNam
         <p>{new Date(order.createdAt).toLocaleString('pt-BR')}</p>
       </div>
       
-      {/* Removendo wordBreak: 'break-all' para evitar quebras indesejadas em fontes monoespaçadas */}
+      {/* Removendo wordBreak: 'break-all' do estilo inline */}
       <pre style={{ whiteSpace: 'pre-wrap' }}>
         {receiptContent}
       </pre>

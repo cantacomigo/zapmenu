@@ -16,18 +16,23 @@ export const formatCurrency = (value: number) => {
  * @param maxWidth Largura máxima da linha (padrão: 40)
  */
 export const padText = (leftText: string, rightText: string, fillChar: string = ' ', maxWidth: number = MAX_WIDTH): string => {
-    // Usamos o comprimento bruto das strings, pois a fonte é monoespaçada.
-    const totalLength = leftText.length + rightText.length;
     
-    if (totalLength >= maxWidth) {
-        // Se for muito longo, trunca a esquerda para garantir que o preço caiba.
-        const availableSpaceForLeft = maxWidth - rightText.length;
-        const truncatedLeft = leftText.substring(0, availableSpaceForLeft);
-        return truncatedLeft + rightText;
+    // 1. Calcula o espaço disponível para o texto da esquerda
+    const availableSpaceForLeft = maxWidth - rightText.length;
+    
+    let finalLeftText = leftText;
+
+    // 2. Se o texto da esquerda for muito longo, trunca-o
+    if (leftText.length > availableSpaceForLeft) {
+        // Trunca e adiciona um espaço para separar do preenchimento
+        finalLeftText = leftText.substring(0, availableSpaceForLeft - 1) + ' '; 
     }
-    
+
+    // 3. Calcula o preenchimento necessário
+    const totalLength = finalLeftText.length + rightText.length;
     const padding = fillChar.repeat(maxWidth - totalLength);
-    return leftText + padding + rightText;
+    
+    return finalLeftText + padding + rightText;
 };
 
 export const separator = '-'.repeat(MAX_WIDTH);
