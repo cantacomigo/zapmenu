@@ -32,21 +32,17 @@ export const OrderReceipt: React.FC<OrderReceiptProps> = ({ order, restaurantNam
   receiptContent += separator + '\n';
 
   // 2. Itens
-  receiptContent += padText('ITEM', 'VALOR', ' ') + '\n';
+  receiptContent += padText('ITEM', '', ' ') + '\n'; // Removendo 'VALOR' do cabeçalho
   receiptContent += separator + '\n';
 
   order.items.forEach(item => {
-      const itemPriceWithoutAddons = Number(item.price);
-      const addonsPrice = item.selectedAddons?.reduce((a, b) => a + b.price, 0) || 0;
-      const itemTotal = (itemPriceWithoutAddons + addonsPrice) * item.quantity;
-      
-      // Linha principal do item: prefixando com * para destaque visual
-      receiptContent += padText(`*${item.quantity}x ${item.name}`, formatCurrency(itemTotal), ' ') + '\n';
+      // Linha principal do item: apenas quantidade e nome, sem preço
+      receiptContent += padText(`*${item.quantity}x ${item.name}`, '', ' ') + '\n';
       
       // Acréscimos (indentados)
       item.selectedAddons?.forEach(addon => {
-          // Usando padText para garantir alinhamento do preço do adicional
-          receiptContent += padText(`  + ${addon.name}`, formatCurrency(addon.price), ' ') + '\n';
+          // Acréscimos também sem preço
+          receiptContent += padText(`  + ${addon.name}`, '', ' ') + '\n';
       });
   });
   receiptContent += separator + '\n';
@@ -76,7 +72,7 @@ export const OrderReceipt: React.FC<OrderReceiptProps> = ({ order, restaurantNam
   // --------------------------------------------------
 
   return (
-    <div id={`receipt-${order.id}`} className="print-only hidden print:block bg-white text-black p-4 w-[80mm] font-mono text-base leading-tight">
+    <div id={`receipt-${order.id}`} className="print-only hidden print:block bg-white text-black p-4 w-[80mm] font-mono text-lg leading-tight">
       <div className="text-center pb-2 mb-2">
         {restaurantLogo && (
           <div className="flex justify-center mb-2">
