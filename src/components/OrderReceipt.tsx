@@ -12,8 +12,15 @@ const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(value));
 };
 
-const separator = '----------------------------------------';
-const doubleSeparator = '========================================';
+// Função para criar separadores de largura total (40 caracteres para 80mm)
+const createSeparator = (char: string = '-', length: number = 40) => char.repeat(length);
+
+// Função para alinhar texto à esquerda e valor à direita
+const alignTextAndValue = (text: string, value: string, totalLength: number = 40) => {
+    const textPart = text.substring(0, totalLength - value.length - 1);
+    const padding = totalLength - textPart.length - value.length;
+    return textPart + ' '.repeat(padding) + value;
+};
 
 export const OrderReceipt: React.FC<OrderReceiptProps> = ({ order, restaurantName, restaurantLogo }) => {
   const subtotal = order.items.reduce((acc, item) => {
@@ -24,12 +31,12 @@ export const OrderReceipt: React.FC<OrderReceiptProps> = ({ order, restaurantNam
   const changeForMatch = order.paymentDetails?.match(/Troco para R\$ ([\d\.]+)/);
   const changeFor = changeForMatch ? parseFloat(changeForMatch[1]) : 0;
 
+  // Usamos 'whitespace-pre' para respeitar os espaços e quebras de linha gerados pelas funções de alinhamento
   return (
-    <div id={`receipt-${order.id}`} className="print-only hidden print:block bg-white text-black p-4 w-[80mm] font-mono text-sm leading-tight">
-      <div className="text-center pb-2 mb-2">
-        {restaurantLogo && (
+    <div id={`receipt-${order.id}`} className="print-only hidden print:block bg-white text-black p-4 w-[80mm] font-mono text-sm leading-tight whitespace-pre">
+{/* LOGO REMOVIDA TEMPORARIAMENTE PARA GARANTIR O ALINHAMENTO DO TEXTO */}
+{/* {restaurantLogo && (
           <div className="flex justify-center mb-2">
-            {/* Otimiza para impressão térmica P&B */}
             <img 
               src={restaurantLogo} 
               alt="Logo" 
@@ -37,79 +44,56 @@ export const OrderReceipt: React.FC<OrderReceiptProps> = ({ order, restaurantNam
               style={{ filter: 'grayscale(100%) contrast(200%)' }} 
             />
           </div>
-        )}
-        <h2 className="text-lg font-bold uppercase">{restaurantName}</h2>
-        <p>PEDIDO #{order.id.slice(-6).toUpperCase()}</p>
-        <p>{new Date(order.createdAt).toLocaleString('pt-BR')}</p>
-        {order.scheduledTime && (
-            <p className="mt-1">AGENDADO PARA: {new Date(order.scheduledTime).toLocaleString('pt-BR')}</p>
-        )}
-      </div>
-      <p className="text-center">{separator}</p>
+        )} */}
+{`
+        ${restaurantName.toUpperCase().padStart(20 + restaurantName.length / 2, ' ').padEnd(40, ' ')}
+        PEDIDO #${order.id.slice(-6).toUpperCase().padStart(20 + order.id.slice(-6).length / 2, ' ').padEnd(40, ' ')}
+        ${new Date(order.createdAt).toLocaleString('pt-BR').padStart(20 + new Date(order.createdAt).toLocaleString('pt-BR').length / 2, ' ').padEnd(40, ' ')}
+${order.scheduledTime ? `        AGENDADO PARA: ${new Date(order.scheduledTime).toLocaleString('pt-BR')}\n` : ''}
+${createSeparator()}
 
-      <div className="mb-2">
-        <p><strong>CLIENTE:</strong> {order.customerName}</p>
-        <p><strong>FONE:</strong> {order.customerPhone}</p>
-        <p className="whitespace-pre-wrap"><strong>ENTREGA:</strong> {order.customerAddress}</p>
-      </div>
-      <p className="text-center">{separator}</p>
+CLIENTE: ${order.customerName}
+FONE: ${order.customerPhone}
+ENTREGA: ${order.customerAddress}
+${createSeparator()}
 
-      <div className="py-2 mb-2">
-        <div className="flex justify-between font-bold mb-1">
-          <span>ITEM</span>
-          <span>VALOR</span>
-        </div>
-        {order.items.map((item, idx) => {
-            const itemPriceWithAddons = Number(item.price) + (item.selectedAddons?.reduce((a, b) => a + b.price, 0) || 0);
-            const itemTotal = itemPriceWithAddons * item.quantity;
-            return (
-                <div key={idx} className="py-0.5">
-                    <div className="flex justify-between">
-                        <span className="flex-1">{item.quantity}x {item.name}</span>
-                        <span>{formatCurrency(itemTotal)}</span>
-                    </div>
-                    {item.selectedAddons?.map(addon => (
-                        <p key={addon.id} className="text-xs pl-4">
-                            + {addon.name} ({formatCurrency(addon.price)})
-                        </p>
-                    ))}
-                </div>
+ITEM                                VALOR
+`}
+{order.items.map((item, idx) => {
+    const itemPrice = Number(item.price);
+    const addonsPrice = item.selectedAddons?.reduce((a, b) => a + b.price, 0) || 0;
+    const itemTotal = (itemPrice + addonsPrice) * item.quantity;
+    
+    const itemLine = alignTextAndValue(
+        `${item.quantity}x ${item.name}`,
+        formatCurrency(itemTotal).replace('R$', '').trim()
+    );
+
+    return (
+        `${itemLine}\n` +
+        (item.selectedAddons?.map(addon => {
+            const addonLine = alignTextAndValue(
+                `  + ${addon.name}`,
+                formatCurrency(addon.price).replace('R$', '').trim()
             );
-        })}
-      </div>
-      <p className="text-center">{separator}</p>
+            return `${addonLine}\n`;
+        }).join('') || '')
+    );
+}).join('')}
+{createSeparator()}
 
-      <div className="space-y-1 text-right mb-2">
-        <div className="flex justify-between">
-          <span>Subtotal:</span>
-          <span>{formatCurrency(subtotal)}</span>
-        </div>
-        {deliveryFee > 0 && (
-            <div className="flex justify-between">
-                <span>Taxa de Entrega:</span>
-                <span>{formatCurrency(deliveryFee)}</span>
-            </div>
-        )}
-        <p className="text-center">{doubleSeparator}</p>
-        <div className="flex justify-between font-bold text-base pt-1">
-          <span>TOTAL GERAL:</span>
-          <span>{formatCurrency(order.total)}</span>
-        </div>
-        
-        {changeFor > 0 && (
-            <div className="flex justify-between text-sm pt-1">
-                <span>Troco para:</span>
-                <span>{formatCurrency(changeFor)}</span>
-            </div>
-        )}
-      </div>
+{alignTextAndValue('Subtotal:', formatCurrency(subtotal).replace('R$', '').trim())}
+${deliveryFee > 0 ? alignTextAndValue('Taxa de Entrega:', formatCurrency(deliveryFee).replace('R$', '').trim()) : ''}
+${createSeparator('=')}
+${alignTextAndValue('TOTAL GERAL:', formatCurrency(order.total).replace('R$', '').trim())}
+${changeFor > 0 ? alignTextAndValue('Troco para:', formatCurrency(changeFor).replace('R$', '').trim()) : ''}
+${createSeparator()}
 
-      <p className="text-center">{separator}</p>
-      <div className="pt-2 text-center">
-        <p><strong>PAGAMENTO:</strong> {order.paymentMethod.toUpperCase()}</p>
-        {order.paymentDetails && order.paymentMethod !== 'cash' && <p className="text-xs">{order.paymentDetails}</p>}
-        <p className="mt-4 text-[10px]">ZapMenu - Sistema de Pedidos Online</p>
-      </div>
+PAGAMENTO: ${order.paymentMethod.toUpperCase()}
+${order.paymentDetails && order.paymentMethod !== 'cash' ? order.paymentDetails : ''}
+
+${'ZapMenu - Sistema de Pedidos Online'.padStart(20 + 'ZapMenu - Sistema de Pedidos Online'.length / 2, ' ').padEnd(40, ' ')}
+`}
     </div>
   );
 };
