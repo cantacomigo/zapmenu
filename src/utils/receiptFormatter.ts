@@ -9,23 +9,23 @@ export const formatCurrency = (value: number) => {
 };
 
 /**
- * Cria uma linha formatada com texto à esquerda e valor à direita, preenchendo o espaço com pontos.
+ * Cria uma linha formatada com texto à esquerda e valor à direita, preenchendo o espaço com o caractere de preenchimento.
  * @param leftText Texto da esquerda (ex: Subtotal)
  * @param rightText Texto da direita (ex: R$ 100,00)
  * @param fillChar Caractere de preenchimento (padrão: ' ')
  * @param maxWidth Largura máxima da linha (padrão: 40)
  */
 export const padText = (leftText: string, rightText: string, fillChar: string = ' ', maxWidth: number = MAX_WIDTH): string => {
-    // Remove formatação de moeda para contar caracteres corretamente
-    const cleanLeft = leftText.replace(/R\$\s/g, '').trim();
-    const cleanRight = rightText.replace(/R\$\s/g, '').trim();
-    
-    const totalLength = cleanLeft.length + cleanRight.length;
+    // Usamos o comprimento bruto das strings, pois a fonte é monoespaçada.
+    const totalLength = leftText.length + rightText.length;
     
     if (totalLength >= maxWidth) {
-        // Se for muito longo, apenas concatena e trunca se necessário
-        return (leftText + ' ' + rightText).substring(0, maxWidth);
+        // Se for muito longo, trunca a esquerda para garantir que o preço caiba.
+        const availableSpaceForLeft = maxWidth - rightText.length;
+        const truncatedLeft = leftText.substring(0, availableSpaceForLeft);
+        return truncatedLeft + rightText;
     }
+    
     const padding = fillChar.repeat(maxWidth - totalLength);
     return leftText + padding + rightText;
 };

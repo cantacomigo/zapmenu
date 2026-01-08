@@ -28,6 +28,8 @@
     left: 0;
     top: 0;
     width: 100%;
+    /* Força fonte monoespaçada para alinhamento de recibo */
+    font-family: 'Courier New', Courier, monospace !important;
   }
   @page {
     margin: 0;
