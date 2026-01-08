@@ -76,7 +76,7 @@ export const OrderReceipt: React.FC<OrderReceiptProps> = ({ order, restaurantNam
       <div className="text-center pb-2 mb-2">
         {restaurantLogo && (
           <div className="flex justify-center mb-2">
-            {/* Definindo o tamanho do logo para 320px */}
+            {/* Definindo o tamanho do logo para 320px e garantindo fundo branco */}
             <img 
               src={restaurantLogo} 
               alt="Logo" 
@@ -86,7 +86,8 @@ export const OrderReceipt: React.FC<OrderReceiptProps> = ({ order, restaurantNam
                 height: '320px', 
                 filter: 'grayscale(100%) contrast(200%)',
                 display: 'block',
-                margin: '0 auto'
+                margin: '0 auto',
+                backgroundColor: 'white' // Adicionado para forçar fundo branco
               }} 
             />
           </div>
