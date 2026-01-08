@@ -68,7 +68,7 @@ export const OrderReceipt: React.FC<OrderReceiptProps> = ({ order, restaurantNam
       receiptContent += `${order.paymentDetails}\n`;
   }
   receiptContent += '\n';
-  receiptContent += 'ZapMenu - Sistema de Pedidos Online\n';
+  receiptContent += `${restaurantName} - Pedido Online\n`; // Alterado aqui
   receiptContent += separator + '\n';
   receiptContent += 'OBRIGADO PELA PREFERENCIA!\n';
   // --------------------------------------------------
