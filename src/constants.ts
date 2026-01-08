@@ -4,7 +4,7 @@ export const SEED_RESTAURANTS = [
     name: 'Barranco Lanches',
     slug: 'barranco-lanches',
     phone: '5511999999999',
-    logo: 'https://images.unsplash.com/photo-1550547660-d9450f859349?w=200&h=200&fit=crop',
+    logo: '/assets/barranco_lanches_logo.png',
     coverImage: 'https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?w=800&h=400&fit=crop',
     coverImages: [
         'https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?w=800&h=400&fit=crop',
