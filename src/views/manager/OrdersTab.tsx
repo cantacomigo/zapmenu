@@ -2,8 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { db } from '../../services/db';
 import { Order } from '../../types';
 import { Card, Badge, Button, Input } from '../../components/ui';
-import { OrderReceipt } from '../../components/OrderReceipt';
-import { MessageSquare, CheckCircle2, Truck, XCircle, CreditCard, Search, Filter, CheckCheck, Printer, Clock, Calendar, RefreshCw, MapPin, ClipboardList, SendHorizontal, BellRing } from 'lucide-react';
+import { MessageSquare, CheckCircle2, Truck, XCircle, CreditCard, Search, Filter, CheckCheck, Clock, Calendar, RefreshCw, MapPin, ClipboardList, SendHorizontal, BellRing } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 interface OrdersTabProps {
@@ -18,7 +17,6 @@ type StatusFilter = 'all' | Order['status'] | 'scheduled';
 export const OrdersTab: React.FC<OrdersTabProps> = ({ orders, onRefresh, restaurantName, restaurantLogo }) => {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [searchTerm, setSearchTerm] = useState('');
-  const [printingOrder, setPrintingOrder] = useState<Order | null>(null);
 
   const getWhatsAppMessage = (order: Order, type: Order['status'] | 'confirm_receipt') => {
     const orderId = order.id.slice(-6).toUpperCase();
@@ -69,17 +67,6 @@ export const OrdersTab: React.FC<OrdersTabProps> = ({ orders, onRefresh, restaur
     window.open(url, '_blank');
   };
 
-  const handlePrint = (order: Order) => {
-    setPrintingOrder(order);
-    
-    // Simplificando a lógica de impressão para evitar problemas de carregamento de imagem
-    // A imagem deve ser carregada pelo navegador antes de chamar a impressão.
-    setTimeout(() => {
-        window.print();
-        setPrintingOrder(null);
-    }, 300); 
-  };
-
   const handleSendAction = async (order: Order, type: Order['status'] | 'confirm_receipt') => {
     // Se for um status do banco, atualiza. Se for só mensagem (confirm_receipt), não muda o status.
     if (type !== 'confirm_receipt') {
@@ -122,14 +109,6 @@ export const OrdersTab: React.FC<OrdersTabProps> = ({ orders, onRefresh, restaur
 
   return (
     <div className="space-y-4 md:space-y-6">
-      {printingOrder && (
-          <OrderReceipt 
-            order={printingOrder} 
-            restaurantName={restaurantName || 'ZapMenu'} 
-            restaurantLogo={restaurantLogo} 
-          />
-      )}
-
       <div className="flex justify-between items-center px-1">
         <h2 className="text-xl md:text-2xl font-black text-slate-900 tracking-tight">Pedidos</h2>
         <button onClick={onRefresh} className="p-2 bg-emerald-50 text-emerald-600 rounded-xl active:rotate-180 transition-all duration-500 shadow-sm">
@@ -234,9 +213,6 @@ export const OrdersTab: React.FC<OrdersTabProps> = ({ orders, onRefresh, restaur
                     </div>
 
                     <div className="flex items-center gap-2 pt-2">
-                        <button onClick={() => handlePrint(order)} className="flex items-center gap-2 px-4 py-2 bg-slate-100 text-slate-600 rounded-xl text-[10px] font-black uppercase tracking-tight hover:bg-slate-200 transition-all">
-                            <Printer size={14} /> Ticket
-                        </button>
                         <button 
                             onClick={() => {
                                 const phone = order.customerPhone.replace(/\D/g, '');
